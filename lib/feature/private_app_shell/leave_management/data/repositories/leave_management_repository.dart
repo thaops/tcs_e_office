@@ -1,0 +1,485 @@
+import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:tcs_e_office/common/Services/api_endpoints.dart';
+import 'package:tcs_e_office/common/repositoty/dio_api.dart';
+import 'package:tcs_e_office/feature/private_app_shell/leave_management/data/models/approver_model.dart';
+import 'package:tcs_e_office/feature/private_app_shell/leave_management/data/models/approval_list_model.dart';
+import 'package:tcs_e_office/feature/private_app_shell/leave_management/data/models/leave_request_model.dart';
+import 'package:tcs_e_office/src/config/constants/url/url.dart';
+import 'package:tcs_e_office/feature/private_app_shell/leave_management/data/models/add.leave.dart';
+import 'package:tcs_e_office/feature/private_app_shell/leave_management/data/models/leave_id.dart';
+import 'package:tcs_e_office/feature/private_app_shell/leave_management/models/leave_management.dart';
+import 'package:tcs_e_office/feature/private_app_shell/leave_management/domain/repositories/leave_repository_interface.dart';
+import 'package:flutter/material.dart';
+import 'package:tcs_e_office/common/constants/http_status_codes.dart';
+
+class LeaveManagementRepository extends ChangeNotifier
+    implements LeaveRepositoryInterface {
+  final DioApi dio = DioApi();
+  bool isLoading = false;
+
+  Future<String> getBaseUrl(BuildContext context) async {
+    return await BaseUrlProvider.getBaseUrl(context);
+  }
+
+  Future<List<LeaveRequest>?> getListOff(
+    DateTime firstDayOfMonth,
+    DateTime lastDayOfMonth, [
+    int pageIndex = 1,
+  ]) async {
+    try {
+      isLoading = true;
+
+      final response = await dio.post(
+        ApiEndpoints.listoffListView,
+        data: {
+          "FromDate": firstDayOfMonth.toIso8601String(),
+          "ToDate": lastDayOfMonth.toIso8601String(),
+          "PageIndex": pageIndex,
+          "PageSize": 50,
+        },
+      );
+      if (response.data['statusCode'] == HttpStatusCodes.STATUS_CODE_OK) {
+        final Map<String, dynamic> jsonResponse = response.data;
+        final List<dynamic> leaveRequestJson = jsonResponse['data'];
+
+        List<LeaveRequest> leaveRequests = [];
+        try {
+          leaveRequests =
+              leaveRequestJson.map((json) {
+                return LeaveRequest.fromJson(json);
+              }).toList();
+        } catch (e) {
+          rethrow;
+        }
+
+        return leaveRequests;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<LeaveID?> getLeaveID(String leaveId, BuildContext context) async {
+    try {
+      isLoading = true;
+      final response = await dio.get(ApiEndpoints.getLeaveIDV2(leaveId));
+      print('getLeaveID response: $response');
+
+      if (response.statusCode == HttpStatusCodes.STATUS_CODE_OK) {
+        final Map<String, dynamic> jsonResponse = response.data;
+        final Map<String, dynamic> leaveJson = jsonResponse['data'];
+        print('getLeaveID leaveJson: $leaveJson');
+        return LeaveID.fromJson(leaveJson);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<List<LeaveType>?> getLeave(BuildContext context) async {
+    try {
+      final response = await dio.get(ApiEndpoints.getLeaveV2);
+      if (response.statusCode == HttpStatusCodes.STATUS_CODE_OK) {
+        final Map<String, dynamic> jsonResponse = response.data;
+        final List<dynamic> leaveJson = jsonResponse['data'];
+        List<LeaveType> leaves =
+            leaveJson
+                .map((leaveJson) => LeaveType.fromJson(leaveJson))
+                .toList();
+        return leaves;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> deleteLeave(String dayyOffId, BuildContext context) async {
+    try {
+      final response = await dio.delete(
+        ApiEndpoints.deleteLeaveIDV2(dayyOffId),
+      );
+
+      if (response.data['statusCode'] == HttpStatusCodes.STATUS_CODE_OK) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> cancelLeave(
+    String dayyOffId,
+    BuildContext context, [
+    String reason = '',
+  ]) async {
+    try {
+      debugPrint(
+        'Cancel leave URL: ${ApiEndpoints.cancelLeaveIDV2(dayyOffId)}',
+      );
+      debugPrint('Cancel leave data: {Id: $dayyOffId, Reason: $reason}');
+
+      final response = await dio.post(
+        ApiEndpoints.cancelLeaveIDV2(dayyOffId),
+        data: {'Id': dayyOffId, 'Reason': reason},
+      );
+
+      if (response.data['statusCode'] == HttpStatusCodes.STATUS_CODE_OK) {
+        return true;
+      } else {
+        // Lưu message từ server để sử dụng sau
+        final message = response.data['Message'] ?? 'Hủy đơn xin nghỉ thất bại';
+        debugPrint('Server response: ${response.data}');
+        throw Exception(message);
+      }
+    } catch (e) {
+      // Re-throw để message được truyền lên
+      rethrow;
+    }
+  }
+
+  @override
+  Future<AddDayOffResponseModel> addLeave(
+    Map<String, dynamic> addData,
+    BuildContext context,
+  ) async {
+    try {
+      // Tạo map dữ liệu cho FormData
+      final Map<String, dynamic> formDataMap = {
+        'EmployeeId': addData['employeeId'] ?? '',
+        'FullName': addData['fullName'] ?? '',
+        'FromDate': addData['fromDate'] ?? '',
+        'ToDate': addData['toDate'] ?? '',
+        'CategoryId': addData['categoryId'] ?? '',
+        'Reason': addData['reason'] ?? '',
+      };
+
+      // Thêm file đính kèm nếu có
+      if (addData['attachmentFiles'] != null &&
+          addData['attachmentFiles'] is List) {
+        final List<Map<String, dynamic>> attachmentFiles =
+            addData['attachmentFiles'] as List<Map<String, dynamic>>;
+
+        // Tạo danh sách MultipartFile cho multiple files
+        List<MultipartFile> attachmentFilesList = [];
+
+        for (int i = 0; i < attachmentFiles.length; i++) {
+          final Map<String, dynamic> file = attachmentFiles[i];
+          final String? filePath = file['path'];
+          final String fileName = file['name'] ?? 'attachment';
+
+          if (filePath != null && filePath.isNotEmpty) {
+            // Thêm file thực tế vào danh sách
+            attachmentFilesList.add(
+              await MultipartFile.fromFile(filePath, filename: fileName),
+            );
+          }
+        }
+
+        // Gán danh sách files vào FormData
+        if (attachmentFilesList.isNotEmpty) {
+          formDataMap['AttachmentIds'] = attachmentFilesList;
+        }
+      }
+
+      // Tạo FormData từ map
+      final formData = FormData.fromMap(formDataMap);
+
+      final response = await dio.post(
+        ApiEndpoints.createLeaveIDV2(), // Sử dụng endpoint v2
+        data: formData,
+        // Không cần thiết lập headers, Dio sẽ tự động xử lý
+      );
+
+      if (response.statusCode == HttpStatusCodes.STATUS_CODE_OK) {
+        final Map<String, dynamic> data = response.data as Map<String, dynamic>;
+        return AddDayOffResponseModel.fromJson(data);
+      } else {
+        return AddDayOffResponseModel(
+          statusCode:
+              response.statusCode ??
+              HttpStatusCodes.STATUS_CODE_INTERNAL_SERVER_ERROR,
+          message: 'Request failed with status: ${response.statusCode}',
+          totalRecord: 0,
+          data: false,
+        );
+      }
+    } catch (e) {
+      return AddDayOffResponseModel(
+        statusCode: HttpStatusCodes.STATUS_CODE_INTERNAL_SERVER_ERROR,
+        message: 'An error occurred: $e',
+        totalRecord: 0,
+        data: false,
+      );
+    }
+  }
+
+  @override
+  Future<AddDayOffResponseModel> updateLeave(
+    Map<String, dynamic> updateData,
+    String leaveId,
+    BuildContext context,
+  ) async {
+    try {
+      // Tạo map dữ liệu cho FormData
+      final Map<String, dynamic> formDataMap = {
+        'EmployeeId': updateData['employeeId'] ?? '',
+        'FullName': updateData['fullName'] ?? '',
+        'FromDate': updateData['fromDate'] ?? '',
+        'ToDate': updateData['toDate'] ?? '',
+        'CategoryId': updateData['categoryId'] ?? '',
+        'Reason': updateData['reason'] ?? '',
+      };
+
+      // Thêm file đính kèm nếu có
+      if (updateData['attachmentFiles'] != null &&
+          updateData['attachmentFiles'] is List) {
+        final List<Map<String, dynamic>> attachmentFiles =
+            updateData['attachmentFiles'] as List<Map<String, dynamic>>;
+
+        // Tạo danh sách MultipartFile cho multiple files
+        List<MultipartFile> attachmentFilesList = [];
+
+        for (int i = 0; i < attachmentFiles.length; i++) {
+          final Map<String, dynamic> file = attachmentFiles[i];
+          final String? filePath = file['path'];
+          final String fileName = file['name'] ?? 'attachment';
+
+          if (filePath != null && filePath.isNotEmpty) {
+            // Gửi file thực tế
+            final multipartFile = await MultipartFile.fromFile(
+              filePath,
+              filename: fileName,
+            );
+            attachmentFilesList.add(multipartFile);
+          }
+        }
+
+        // Gán danh sách files vào FormData (giống như addLeave)
+        if (attachmentFilesList.isNotEmpty) {
+          formDataMap['attachmentIds'] = attachmentFilesList;
+        }
+      }
+
+      // Thêm danh sách file bị xóa
+      if (updateData['deletedAttachmentIds'] != null &&
+          updateData['deletedAttachmentIds'] is List) {
+        final List<String> deletedIds =
+            (updateData['deletedAttachmentIds'] as List).cast<String>();
+        if (deletedIds.isNotEmpty) {
+          formDataMap['deleteAttachmentIds'] = deletedIds;
+        }
+      }
+
+      // Tạo FormData từ map
+      final formData = FormData.fromMap(formDataMap);
+
+      final response = await dio.put(
+        ApiEndpoints.updateLeaveIDV2(leaveId), // Sử dụng endpoint v2
+        data: formData,
+      );
+
+      // Debug logging để kiểm tra response từ server
+      debugPrint("Server response status: ${response.statusCode}");
+      debugPrint("Server response data: ${response.data}");
+
+      if (response.statusCode == HttpStatusCodes.STATUS_CODE_OK) {
+        final Map<String, dynamic> data = response.data as Map<String, dynamic>;
+        return AddDayOffResponseModel.fromJson(data);
+      } else {
+        // Xử lý lỗi từ server với thông báo chi tiết
+        String errorMessage = 'Cập nhật thất bại. ';
+
+        // Kiểm tra xem server có trả về message không
+        final responseData = response.data;
+        if (responseData is Map<String, dynamic>) {
+          final serverMessage =
+              responseData['message'] ?? responseData['Message'] ?? '';
+          if (serverMessage.isNotEmpty) {
+            errorMessage = serverMessage.toString();
+          } else {
+            // Fallback message dựa trên status code
+            if (response.statusCode == 400) {
+              errorMessage +=
+                  'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin.';
+            } else if (response.statusCode == 401) {
+              errorMessage +=
+                  'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+            } else if (response.statusCode == 403) {
+              errorMessage += 'Bạn không có quyền cập nhật đơn nghỉ phép này.';
+            } else if (response.statusCode == 404) {
+              errorMessage += 'Không tìm thấy đơn nghỉ phép.';
+            } else if (response.statusCode == 409) {
+              errorMessage +=
+                  'Đơn nghỉ phép đã được cập nhật bởi người khác. Vui lòng tải lại trang.';
+            } else if (response.statusCode == 500) {
+              errorMessage += 'Lỗi máy chủ. Vui lòng thử lại sau.';
+            } else {
+              errorMessage += 'Mã lỗi: ${response.statusCode}';
+            }
+          }
+        } else {
+          // Fallback message nếu response không phải Map
+          errorMessage += 'Mã lỗi: ${response.statusCode}';
+        }
+
+        debugPrint("Server error message: $errorMessage");
+
+        return AddDayOffResponseModel(
+          statusCode:
+              response.statusCode ??
+              HttpStatusCodes.STATUS_CODE_INTERNAL_SERVER_ERROR,
+          message: errorMessage,
+          totalRecord: 0,
+          data: false,
+        );
+      }
+    } catch (e) {
+      // Xử lý lỗi network và các lỗi khác
+      String errorMessage = 'Không thể cập nhật đơn nghỉ phép. ';
+
+      if (e.toString().contains('SocketException')) {
+        errorMessage +=
+            'Không có kết nối mạng. Vui lòng kiểm tra kết nối và thử lại.';
+      } else if (e.toString().contains('TimeoutException')) {
+        errorMessage += 'Kết nối quá chậm. Vui lòng thử lại.';
+      } else if (e.toString().contains('FormatException')) {
+        errorMessage += 'Dữ liệu không đúng định dạng.';
+      } else if (e.toString().contains('HandshakeException')) {
+        errorMessage += 'Lỗi bảo mật kết nối. Vui lòng thử lại.';
+      } else {
+        errorMessage += 'Đã xảy ra lỗi không mong muốn: ${e.toString()}';
+      }
+
+      return AddDayOffResponseModel(
+        statusCode: HttpStatusCodes.STATUS_CODE_INTERNAL_SERVER_ERROR,
+        message: errorMessage,
+        totalRecord: 0,
+        data: false,
+      );
+    }
+  }
+
+  Future<AddDayOffResponseModel> approveLeave(
+    Map<String, dynamic> approveData,
+    String approveId,
+    status,
+    BuildContext context,
+  ) async {
+    try {
+      final response = await dio.post(
+        ApiEndpoints.approveLeaveV2(approveId),
+        data: jsonEncode(approveData),
+      );
+
+      if (response.statusCode == HttpStatusCodes.STATUS_CODE_OK) {
+        final Map<String, dynamic> data = response.data as Map<String, dynamic>;
+        return AddDayOffResponseModel.fromJson(data);
+      } else {
+        return AddDayOffResponseModel(
+          statusCode:
+              response.statusCode ??
+              HttpStatusCodes.STATUS_CODE_INTERNAL_SERVER_ERROR,
+          message: 'Request failed with status: ${response.statusCode}',
+          totalRecord: 0,
+          data: false,
+        );
+      }
+    } catch (e) {
+      return AddDayOffResponseModel(
+        statusCode: HttpStatusCodes.STATUS_CODE_INTERNAL_SERVER_ERROR,
+        message: 'An error occurred: $e',
+        totalRecord: 0,
+        data: false,
+      );
+    }
+  }
+
+  @override
+  Future<List<String>> getDepartmentNames() async {
+    try {
+      final response = await dio.post(
+        ApiEndpoints.departments,
+        data: {"string": "string"},
+      );
+      if (response.statusCode == HttpStatusCodes.STATUS_CODE_OK) {
+        final list =
+            (response.data is Map && response.data['data'] is List)
+                ? (response.data['data'] as List)
+                : <dynamic>[];
+        final names =
+            list
+                .map(
+                  (e) =>
+                      (e is Map && e['name'] != null)
+                          ? e['name'].toString().trim()
+                          : '',
+                )
+                .where((s) => s.isNotEmpty)
+                .toSet()
+                .toList()
+              ..sort();
+        return names;
+      }
+      return <String>[];
+    } catch (e) {
+      return <String>[];
+    }
+  }
+
+  @override
+  Future<List<Approver>> getListApprover(int? step, String? keyword) async {
+    try {
+      final response = await dio.get(
+        ApiEndpoints.getListApproverV2(step, keyword),
+      );
+      if (response.statusCode == HttpStatusCodes.STATUS_CODE_OK) {
+        final list =
+            (response.data is Map && response.data['data'] is List)
+                ? (response.data['data'] as List)
+                : <dynamic>[];
+        final approvers = list.map((e) => Approver.fromJson(e)).toList();
+        return approvers;
+      }
+      return <Approver>[];
+    } catch (e) {
+      return <Approver>[];
+    }
+  }
+
+  // Method mới để gọi API get-list-approval-by
+  Future<List<ApprovalData>> getListApprovalByUser(String leaveOffId) async {
+    try {
+      final response = await dio.get(
+        ApiEndpoints.getListApprovalByUserV2(leaveOffId),
+      );
+      if (response.statusCode == HttpStatusCodes.STATUS_CODE_OK) {
+        final list =
+            (response.data is Map && response.data['data'] is List)
+                ? (response.data['data'] as List)
+                : <dynamic>[];
+        final approvals = list.map((e) => ApprovalData.fromJson(e)).toList();
+        return approvals;
+      }
+      return <ApprovalData>[];
+    } catch (e) {
+      return <ApprovalData>[];
+    }
+  }
+}

@@ -1,0 +1,15 @@
+import 'package:tcs_e_office/feature/private_app_shell/leave_management/domain/repositories/leave_repository_interface.dart';
+import 'package:tcs_e_office/feature/private_app_shell/leave_management/data/models/leave_request_model.dart';
+
+class GetListOffUseCase {
+  final LeaveRepositoryInterface repository;
+  GetListOffUseCase(this.repository);
+
+  Future<List<LeaveRequest>?> call(
+    DateTime firstDayOfMonth,
+    DateTime lastDayOfMonth, [
+    int pageIndex = 1,
+  ]) {
+    return repository.getListOff(firstDayOfMonth, lastDayOfMonth, pageIndex);
+  }
+}
