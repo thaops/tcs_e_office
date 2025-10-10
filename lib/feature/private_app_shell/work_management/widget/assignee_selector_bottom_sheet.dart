@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
@@ -17,10 +18,65 @@ Future<void> showAssigneeSelectorBottomSheet(
   final RxString keyword = ''.obs;
   final RxSet<String> selected = <String>{}.obs;
   final RxSet<String> expanded = <String>{}.obs;
+  Timer? _debounceTimer; // Timer cho debounce
+  final TextEditingController _searchController =
+      TextEditingController(); // Controller cho search field
 
   // Khởi tạo sẵn những người đã chọn
   if (initialSelectedCodes.isNotEmpty) {
     selected.addAll(initialSelectedCodes);
+  }
+
+  // Reset search state khi mở bottom sheet
+  void _resetSearchState() {
+    _searchController.clear();
+    keyword.value = '';
+    _debounceTimer?.cancel();
+    // Reset data về trạng thái ban đầu với delay nhỏ để đảm bảo UI đã render
+    Future.microtask(() {
+      try {
+        c.searchEmployees('');
+      } catch (e) {
+        debugPrint('Controller không hỗ trợ search: $e');
+      }
+    });
+  }
+
+  // Gọi reset ngay khi mở bottom sheet
+  _resetSearchState();
+
+  // Thêm listener để update UI khi text thay đổi
+  _searchController.addListener(() {
+    // Trigger UI update khi text thay đổi
+    keyword.value = _searchController.text;
+  });
+
+  // Function để xử lý search với debounce
+  void _handleSearch(String value) {
+    final trimmedValue = value.trim();
+    // keyword.value đã được set trong listener, không cần set lại
+
+    // Hủy timer cũ nếu có
+    _debounceTimer?.cancel();
+
+    // Nếu search rỗng, gọi ngay lập tức để reset data
+    if (trimmedValue.isEmpty) {
+      try {
+        c.searchEmployees('');
+      } catch (e) {
+        debugPrint('Controller không hỗ trợ search: $e');
+      }
+      return;
+    }
+
+    // Tạo timer mới với delay 500ms cho search có keyword
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      try {
+        c.searchEmployees(trimmedValue);
+      } catch (e) {
+        debugPrint('Controller không hỗ trợ search: $e');
+      }
+    });
   }
 
   await showModalBottomSheet(
@@ -31,129 +87,338 @@ Future<void> showAssigneeSelectorBottomSheet(
     isDismissible: true,
     useSafeArea: true,
     builder: (ctx) {
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        height: MediaQuery.of(ctx).size.height * 0.85,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+      return PopScope(
+        canPop: true,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            // Chỉ cancel timer khi bottom sheet bị đóng
+            _debounceTimer?.cancel();
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          height: MediaQuery.of(ctx).size.height * 0.85,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 20,
+                offset: const Offset(0, -8),
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 20,
-              offset: const Offset(0, -8),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Center(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    child: IconButton(
-                      icon: const Icon(Icons.close, color: AppColors.colorIcon),
-                      onPressed: () => Navigator.of(ctx).pop(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Search
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                onChanged: (v) => keyword.value = v.trim(),
-                decoration: const InputDecoration(
-                  hintText: 'Nhập từ khóa…',
-                  prefixIcon: Icon(Icons.search, color: AppColors.colorIcon),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFE0E0E0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFE0E0E0)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.primary),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Tree list
-            Expanded(
-              child:
-                  c.departmentTree.isEmpty
-                      ? _buildSkeletonLoading()
-                      : SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          children:
-                              c.departmentTree
-                                  .map<Widget>(
-                                    (node) => _DeptNode(
-                                      node: node,
-                                      keyword: keyword,
-                                      expanded: expanded,
-                                      selected: selected,
-                                      excludedEmployeeCodes:
-                                          excludedEmployeeCodes,
-                                    ),
-                                  )
-                                  .toList(),
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Center(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: AppColors.primary,
                         ),
                       ),
-            ),
-
-            // Confirm button
-            SafeArea(
-              top: false,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                child: ElevatedButton(
-                  onPressed: () {
-                    onConfirm(selected.toList());
-                    Navigator.of(ctx).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.yellow,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                  child: const Text(
-                    'Xác nhận',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                    Positioned(
+                      right: 0,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          color: AppColors.colorIcon,
+                        ),
+                        onPressed: () {
+                          _debounceTimer?.cancel(); // Chỉ cancel timer
+                          Navigator.of(ctx).pop();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Search
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Obx(
+                  () => TextField(
+                    controller: _searchController,
+                    onChanged: _handleSearch,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Tìm kiếm nhân viên...',
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      prefixIcon: Container(
+                        padding: const EdgeInsets.all(12),
+                        child: Icon(
+                          Icons.search_rounded,
+                          color:
+                              c.searching.value
+                                  ? AppColors.primary
+                                  : Colors.grey.shade600,
+                          size: 22,
+                        ),
+                      ),
+                      suffixIcon:
+                          c.searching.value
+                              ? Container(
+                                padding: const EdgeInsets.all(12),
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              : _searchController.text.isNotEmpty
+                              ? IconButton(
+                                icon: Icon(
+                                  Icons.clear_rounded,
+                                  color: Colors.grey.shade600,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  // Clear text field và reset data ngay lập tức
+                                  _searchController
+                                      .clear(); // keyword.value sẽ được update qua listener
+                                  _debounceTimer?.cancel();
+                                  try {
+                                    c.searchEmployees('');
+                                  } catch (e) {
+                                    debugPrint(
+                                      'Controller không hỗ trợ search: $e',
+                                    );
+                                  }
+                                },
+                                padding: const EdgeInsets.all(12),
+                                constraints: const BoxConstraints(),
+                              )
+                              : null,
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade200,
+                          width: 1,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 2,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Colors.red.shade300,
+                          width: 1,
+                        ),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Colors.red.shade400,
+                          width: 2,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+
+              // Tree list
+              Expanded(
+                child: Obx(() {
+                  // Hiển thị loading khi đang search
+                  if (c.searching.value) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 3,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Đang tìm kiếm nhân viên...',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Vui lòng chờ trong giây lát',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // Hiển thị skeleton khi chưa có dữ liệu
+                  if (c.departmentTree.isEmpty) {
+                    // Nếu đang có keyword thì hiển thị empty state
+                    if (keyword.value.isNotEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              child: Icon(
+                                Icons.search_off_rounded,
+                                size: 48,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Không tìm thấy nhân viên',
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Thử tìm kiếm với từ khóa khác',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    // Nếu không có keyword thì hiển thị skeleton loading
+                    return _buildSkeletonLoading();
+                  }
+
+                  // Hiển thị danh sách
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children:
+                          c.departmentTree
+                              .map<Widget>(
+                                (node) => _DeptNode(
+                                  node: node,
+                                  keyword: keyword,
+                                  expanded: expanded,
+                                  selected: selected,
+                                  excludedEmployeeCodes: excludedEmployeeCodes,
+                                ),
+                              )
+                              .toList(),
+                    ),
+                  );
+                }),
+              ),
+
+              // Confirm button
+              SafeArea(
+                top: false,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _debounceTimer?.cancel(); // Chỉ cancel timer
+                      onConfirm(selected.toList());
+                      Navigator.of(ctx).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.yellow,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Xác nhận',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     },
@@ -172,10 +437,11 @@ Widget _buildSkeletonLoading() {
 Widget _buildSkeletonItem() {
   return Container(
     margin: const EdgeInsets.only(top: 8),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     decoration: BoxDecoration(
-      color: Colors.grey.shade100,
-      borderRadius: BorderRadius.circular(6),
+      color: Colors.grey.shade50,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.grey.shade200, width: 1),
     ),
     child: Row(
       children: [
@@ -185,10 +451,10 @@ Widget _buildSkeletonItem() {
           height: 20,
           decoration: BoxDecoration(
             color: Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(6),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 16),
         // Skeleton text
         Expanded(
           child: Column(
@@ -199,16 +465,16 @@ Widget _buildSkeletonItem() {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Container(
                 height: 12,
                 width: 120,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
             ],
@@ -220,7 +486,7 @@ Widget _buildSkeletonItem() {
           height: 20,
           decoration: BoxDecoration(
             color: Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(6),
           ),
         ),
       ],

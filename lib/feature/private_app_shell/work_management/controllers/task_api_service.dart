@@ -7,6 +7,31 @@ import '../models/task_detail_model.dart';
 class TaskApiService {
   final DioApi _dioApi = DioApi();
 
+  /// Search employees by department with keyword
+  Future<List<DepartmentNode>> searchEmployeesByDepartment(
+    String keyword,
+  ) async {
+    try {
+      final res = await _dioApi.get(
+        ApiEndpoints.searchEmployeesByDepartment(keyword),
+      );
+
+      // Sử dụng ApiResponseHandler để parse response
+      final result = ApiResponseHandler.handleListResponse<DepartmentNode>(
+        res,
+        DepartmentNode.fromJson,
+      );
+
+      if (result.isError) {
+        throw Exception('Lỗi tìm kiếm nhân viên: ${result.error}');
+      }
+
+      return result.data ?? <DepartmentNode>[];
+    } catch (e) {
+      throw Exception('Không thể tìm kiếm nhân viên: $e');
+    }
+  }
+
   /// Load metadata (priorities, employees, departments)
   Future<Map<String, dynamic>> loadMetadata() async {
     try {

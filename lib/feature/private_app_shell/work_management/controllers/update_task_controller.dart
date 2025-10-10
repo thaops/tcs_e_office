@@ -18,6 +18,7 @@ class UpdateTaskController extends GetxController {
   final RxList<PriorityOption> priorities = <PriorityOption>[].obs;
 
   final RxBool loading = false.obs;
+  final RxBool searching = false.obs; // Thêm state cho search
   final RxString error = ''.obs;
   final RxString success = ''.obs;
 
@@ -53,8 +54,11 @@ class UpdateTaskController extends GetxController {
     selectedPriority.value ??= PriorityOption(value: 3, label: 'Bình thường');
   }
 
-  Future<void> _loadMeta() async {
-    loading.value = true;
+  Future<void> _loadMeta({bool isSearchReset = false}) async {
+    // Chỉ set loading = true nếu không phải search reset
+    if (!isSearchReset) {
+      loading.value = true;
+    }
     error.value = '';
     try {
       final metadata = await _apiService.loadMetadata();
@@ -69,7 +73,40 @@ class UpdateTaskController extends GetxController {
     } catch (e) {
       error.value = e.toString().replaceFirst('Exception: ', '');
     } finally {
-      loading.value = false;
+      if (!isSearchReset) {
+        loading.value = false;
+      }
+    }
+  }
+
+  /// Search employees by department with keyword
+  Future<void> searchEmployees(String keyword) async {
+    final trimmedKeyword = keyword.trim();
+
+    if (trimmedKeyword.isEmpty) {
+      // Nếu keyword rỗng, load lại dữ liệu gốc
+      searching.value = true;
+      try {
+        await _loadMeta(isSearchReset: true);
+      } catch (e) {
+        error.value = e.toString().replaceFirst('Exception: ', '');
+      } finally {
+        searching.value = false;
+      }
+      return;
+    }
+
+    searching.value = true;
+    error.value = '';
+    try {
+      final searchResults = await _apiService.searchEmployeesByDepartment(
+        trimmedKeyword,
+      );
+      departmentTree.assignAll(searchResults);
+    } catch (e) {
+      error.value = e.toString().replaceFirst('Exception: ', '');
+    } finally {
+      searching.value = false;
     }
   }
 

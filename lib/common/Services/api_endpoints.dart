@@ -72,6 +72,10 @@ class ApiEndpoints {
   static String employeesByDepartment =
       "${Config.baseUrl}/document/get-employee-by-department";
 
+  // search employees by department with keyword
+  static String searchEmployeesByDepartment(String keyword) =>
+      "${Config.baseUrl}/document/get-employee-by-department?keyword=${Uri.encodeComponent(keyword)}";
+
   // departments
   static String departments =
       "${Config.baseUrl}/employee/get-list-employee-of-department";
