@@ -11,8 +11,7 @@ Future<void> showAssigneeSelectorBottomSheet(
   required void Function(List<String> selectedEmployeeCodes) onConfirm,
   List<String> initialSelectedCodes = const [],
   String title = 'Chọn người thực hiện', // Thêm parameter cho title
-  List<String> excludedEmployeeCodes =
-      const [], 
+  List<String> excludedEmployeeCodes = const [],
 }) async {
   final c = controller;
   final RxString keyword = ''.obs;
@@ -27,22 +26,22 @@ Future<void> showAssigneeSelectorBottomSheet(
     selected.addAll(initialSelectedCodes);
   }
 
-  // Reset search state khi mở bottom sheet
+  // Reset search state khi mở bottom sheet (optimized for instant opening)
   void _resetSearchState() {
     _searchController.clear();
     keyword.value = '';
     _debounceTimer?.cancel();
-    // Reset data về trạng thái ban đầu với delay nhỏ để đảm bảo UI đã render
-    Future.microtask(() {
+    // Load data trong background, không block UI
+    Future.microtask(() async {
       try {
-        c.searchEmployees('');
+        await c.searchEmployees(''); // Load data async
       } catch (e) {
         debugPrint('Controller không hỗ trợ search: $e');
       }
     });
   }
 
-  // Gọi reset ngay khi mở bottom sheet
+  // Gọi reset ngay khi mở bottom sheet (không await)
   _resetSearchState();
 
   // Thêm listener để update UI khi text thay đổi
@@ -425,72 +424,91 @@ Future<void> showAssigneeSelectorBottomSheet(
   );
 }
 
-/// Widget skeleton loading cho danh sách departments
+/// Widget skeleton loading cho danh sách departments (with smooth animation)
 Widget _buildSkeletonLoading() {
   return SingleChildScrollView(
     padding: const EdgeInsets.symmetric(horizontal: 16),
-    child: Column(children: List.generate(3, (index) => _buildSkeletonItem())),
+    child: Column(
+      children: List.generate(
+        5,
+        (index) => _buildSkeletonItem(index),
+      ), // Tăng lên 5 items
+    ),
   );
 }
 
-/// Widget skeleton cho một item
-Widget _buildSkeletonItem() {
-  return Container(
-    margin: const EdgeInsets.only(top: 8),
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    decoration: BoxDecoration(
-      color: Colors.grey.shade50,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Colors.grey.shade200, width: 1),
-    ),
-    child: Row(
-      children: [
-        // Skeleton checkbox
-        Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(6),
-          ),
-        ),
-        const SizedBox(width: 16),
-        // Skeleton text
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 16,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(8),
+/// Widget skeleton cho một item (with shimmer effect)
+Widget _buildSkeletonItem(int index) {
+  return TweenAnimationBuilder<double>(
+    duration: Duration(
+      milliseconds: 600 + (index * 100),
+    ), // Staggered animation
+    tween: Tween(begin: 0.0, end: 1.0),
+    builder: (context, value, child) {
+      return Opacity(
+        opacity: value,
+        child: Transform.translate(
+          offset: Offset(0, 20 * (1 - value)), // Slide up animation
+          child: Container(
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200, width: 1),
+            ),
+            child: Row(
+              children: [
+                // Skeleton checkbox
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                height: 12,
-                width: 120,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(6),
+                const SizedBox(width: 16),
+                // Skeleton text
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 16,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        height: 12,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                // Skeleton expand icon
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        // Skeleton expand icon
-        Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(6),
-          ),
-        ),
-      ],
-    ),
+      );
+    },
   );
 }
 

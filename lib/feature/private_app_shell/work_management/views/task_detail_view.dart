@@ -373,11 +373,49 @@ class _TaskDetailViewState extends State<TaskDetailView> {
 }
 
 /// Controller với data thực tế để sử dụng với assignee selector
-/// Cần có departmentTree property để assignee selector hoạt động
+/// Cần có departmentTree và searching properties để assignee selector hoạt động
 class _ControllerWithData {
   final List<dynamic> _departmentTree;
+  final RxBool _searching = false.obs;
+  static bool _globalInitialized =
+      false; // Static flag để cache across instances
+  final TaskApiService _apiService = TaskApiService(); // Thêm API service
 
   _ControllerWithData(this._departmentTree);
 
   List<dynamic> get departmentTree => _departmentTree;
+  RxBool get searching => _searching;
+
+  /// Method để search employees (real API implementation)
+  Future<void> searchEmployees(String keyword) async {
+    final trimmedKeyword = keyword.trim();
+
+    // Nếu keyword rỗng và đã khởi tạo globally, skip hoàn toàn
+    if (trimmedKeyword.isEmpty && _globalInitialized) {
+      return; // Skip reset nếu đã có data globally
+    }
+
+    // Chỉ hiển thị loading khi có keyword thực sự
+    if (trimmedKeyword.isNotEmpty) {
+      _searching.value = true;
+      try {
+        // Gọi API thực sự để search employees
+        final searchResults = await _apiService.searchEmployeesByDepartment(
+          trimmedKeyword,
+        );
+        // Update departmentTree với kết quả search
+        _departmentTree.clear();
+        _departmentTree.addAll(searchResults);
+        print('🔍 Search results: ${searchResults.length} departments found');
+      } catch (e) {
+        print('🔍 Search error: $e');
+      } finally {
+        _searching.value = false;
+      }
+    } else {
+      // Lần đầu khởi tạo - không cần loading vì data đã sẵn sàng
+      // Chỉ đánh dấu đã khởi tạo globally
+      _globalInitialized = true;
+    }
+  }
 }
