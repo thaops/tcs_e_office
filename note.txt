@@ -1,1 +1,75 @@
+🔹 Cài đặt ban đầu
+dart pub global activate shorebird_cli
+shorebird init
+shorebird doctor
+shorebird login
+
+
+Sau đó cấu hình project Flutter bình thường (đảm bảo chạy được flutter run).
+
+🤖 II. CHO ANDROID
+🔧 1. Tạo bản release đầu tiên
+
+Dùng khi muốn tạo bản build .apk hoặc .aab có khả năng OTA.
+
+shorebird release android
+
+
+Kết quả:
+
+.apk: build/app/outputs/flutter-apk/app-release.apk
+
+.aab: build/app/outputs/bundle/release/app-release.aab
+
+Upload .aab lên Google Play như bình thường.
+
+🧩 2. Tạo patch (OTA update)
+
+Sau khi sửa code Dart (không sửa asset):
+
 shorebird patch android --release-version=1.0.0+1
+
+
+Lưu ý:
+
+1.0.0+1 phải trùng với versionName + versionCode trong pubspec.yaml.
+
+Patch chỉ chứa file Dart được thay đổi.
+
+🧪 3. Test OTA patch trên thiết bị thật
+
+Cài bản release trước (từ .apk hoặc Store), sau đó:
+
+Sửa code Dart → ví dụ đổi chữ “Hello” thành “Xin chào”.
+
+Chạy patch như trên.
+
+Mở app → log terminal sẽ hiển thị:
+
+Shorebird: Checking for updates...
+Shorebird: Update available, downloading patch...
+Shorebird: Patch applied successfully!
+
+⚠️ 4. Khi nào KHÔNG dùng patch
+Loại thay đổi	Hành động
+Icon app, hình ảnh, font	🚫 Build lại bằng shorebird release
+Thay đổi native (AndroidManifest, plugin, Gradle...)	🚫 Build lại
+Sửa code Dart	✅ Patch được
+🍎 III. CHO iOS
+🔧 1. Tạo bản release đầu tiên
+shorebird release ios
+
+
+Sau đó upload .ipa lên TestFlight hoặc App Store như thường.
+
+Shorebird SDK sẽ được nhúng vào app để quản lý patch OTA.
+
+🧩 2. Tạo patch cho iOS
+shorebird patch ios --release-version=1.0.0+1
+
+
+Lưu ý:
+
+iOS patch hoạt động tương tự Android.
+
+OTA chỉ chạy khi app được build từ shorebird release.
