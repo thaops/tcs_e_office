@@ -66,7 +66,7 @@
 //     storageBucket: 'nppersonnel-c2968.appspot.com',
 //     androidClientId: '273987515815-k7jeil1mpnb7ibhefcthunoq9rnc7ott.apps.googleusercontent.com',
 //     iosClientId: '273987515815-vlilcs1e5dbivi6cfn6scvgkan4vsdql.apps.googleusercontent.com',
-//     iosBundleId: 'com.example.hocflutter',
+//     iosBundleId: 'com.nps.tcs',
 //   );
 
 //   static const FirebaseOptions macos = FirebaseOptions(
@@ -77,7 +77,7 @@
 //     storageBucket: 'nppersonnel-c2968.appspot.com',
 //     androidClientId: '273987515815-k7jeil1mpnb7ibhefcthunoq9rnc7ott.apps.googleusercontent.com',
 //     iosClientId: '273987515815-vlilcs1e5dbivi6cfn6scvgkan4vsdql.apps.googleusercontent.com',
-//     iosBundleId: 'com.example.hocflutter',
+//     iosBundleId: 'com.nps.tcs',
 //   );
 
 //   static const FirebaseOptions windows = FirebaseOptions(

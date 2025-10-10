@@ -12,7 +12,7 @@ Future<void> showAssigneeSelectorBottomSheet(
   List<String> initialSelectedCodes = const [],
   String title = 'Chọn người thực hiện', // Thêm parameter cho title
   List<String> excludedEmployeeCodes =
-      const [], // Thêm parameter để loại trừ những người đã chọn ở role khác
+      const [], 
 }) async {
   final c = controller;
   final RxString keyword = ''.obs;
