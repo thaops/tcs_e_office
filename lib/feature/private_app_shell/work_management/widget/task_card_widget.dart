@@ -32,19 +32,22 @@ class TaskCardStyles {
 class AppDecorations {
   static final cardDecoration = BoxDecoration(
     color: Colors.white,
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: AppColors.bacgroundApp, width: 1),
+    borderRadius: BorderRadius.circular(10), // Tăng border radius
+    border: Border.all(
+      color: const Color(0xFFE8E8E8), // Border nhẹ hơn
+      width: 0.5,
+    ),
     boxShadow: [
       BoxShadow(
-        color: Colors.black.withOpacity(0.05),
-        blurRadius: 4,
-        offset: const Offset(0, 2),
+        color: Colors.black.withOpacity(0.03), // Giảm opacity shadow
+        blurRadius: 3, // Giảm blur radius
+        offset: const Offset(0, 1), // Giảm offset
       ),
     ],
   );
 
   static final innerDecoration = BoxDecoration(
-    borderRadius: BorderRadius.circular(8),
+    borderRadius: BorderRadius.circular(10), // Tăng border radius
     border: Border(left: BorderSide(color: AppColors.primary, width: 3)),
   );
 }
@@ -58,7 +61,7 @@ class TaskCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10), // Giảm margin
       decoration: AppDecorations.cardDecoration,
       child: InkWell(
         onTap: () {
@@ -68,26 +71,29 @@ class TaskCardWidget extends StatelessWidget {
             ),
           );
         },
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10), // Tăng border radius
         child: Container(
           decoration: AppDecorations.innerDecoration,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12), // Giảm padding từ 16 xuống 12
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildTaskTitle(),
                 if (task.note.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6), // Giảm spacing
                   _buildTaskDescription(),
                 ],
-                const SizedBox(height: 5),
+                const SizedBox(height: 8), // Tăng spacing
 
-                Divider(color: AppColors.colorBacklog),
-                const SizedBox(height: 5),
+                Divider(
+                  color: AppColors.colorBacklog,
+                  height: 1, // Giảm height divider
+                ),
+                const SizedBox(height: 8), // Tăng spacing
 
                 _buildTaskInfo(),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10), // Giảm spacing
                 _buildStatusAndPriority(),
               ],
             ),
@@ -135,10 +141,23 @@ class TaskCardWidget extends StatelessWidget {
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.colorBacklog),
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE8F4F8),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Icon(icon, size: 12, color: const Color(0xFF006884)),
+        ),
         const SizedBox(width: 8),
         Text(label, style: TaskCardStyles.infoLabel),
-        Text(value, style: TaskCardStyles.infoValue),
+        Expanded(
+          child: Text(
+            value,
+            style: TaskCardStyles.infoValue,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }
@@ -178,13 +197,26 @@ class TaskCardWidget extends StatelessWidget {
   }
 
   Widget _buildFooterIcon(IconData icon, String count) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: AppColors.textSecondary),
-        const SizedBox(width: 4),
-        Text(count, style: TaskCardStyles.footerText),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: const Color(0xFF757575)),
+          const SizedBox(width: 4),
+          Text(
+            count,
+            style: TaskCardStyles.footerText.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -37,7 +37,7 @@ class _AssigneesSectionState extends State<AssigneesSection> {
             },
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6), // Chuẩn hóa spacing
         if (_isExpanded) ...[
           _assigneeGroup(
             'Xử lý chính',
@@ -62,15 +62,25 @@ class _AssigneesSectionState extends State<AssigneesSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 12, // Giảm font size
+          ),
+        ),
+        const SizedBox(height: 6), // Giảm spacing
         if (assignees.isEmpty)
           Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.only(bottom: 6), // Giảm margin
+            padding: const EdgeInsets.all(8), // Giảm padding
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
+              color: const Color(0xFFFAFAFA), // Background nhạt hơn
               borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: const Color(0xFFE8E8E8), // Thêm border nhẹ
+                width: 0.5,
+              ),
             ),
             child: Row(
               children: [
@@ -129,10 +139,10 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                   : null,
           child: Container(
             margin: EdgeInsets.only(
-              left: level * 20.0, // Indent theo level
-              bottom: 8,
+              left: level * 16.0, // Giảm indent từ 20 xuống 16
+              bottom: 6, // Giảm margin bottom
             ),
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8), // Giảm padding từ 10 xuống 8
             decoration: BoxDecoration(
               color:
                   isCompleted
@@ -142,8 +152,10 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                       ? Colors.red.withOpacity(
                         0.1,
                       ) // Background đỏ nhẹ cho quá hạn
-                      : AppColors.white, // Màu trắng cho các trạng thái khác
-              borderRadius: BorderRadius.circular(8),
+                      : const Color(
+                        0xFFFAFAFA,
+                      ), // Background nhạt cho các trạng thái khác
+              borderRadius: BorderRadius.circular(6), // Giảm border radius
               border: Border.all(
                 color:
                     isCompleted
@@ -151,16 +163,11 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                             .primary // Viền màu chính cho hoàn thành
                         : isOverdue
                         ? Colors.red.withOpacity(0.3) // Viền đỏ nhẹ cho quá hạn
-                        : AppColors.grey, // Viền xám cho các trạng thái khác
-                width: 0.8,
+                        : const Color(
+                          0xFFE8E8E8,
+                        ), // Border nhẹ hơn cho các trạng thái khác
+                width: 0.5, // Giảm border width
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Row(
               children: [

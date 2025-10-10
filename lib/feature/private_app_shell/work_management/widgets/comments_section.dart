@@ -23,59 +23,92 @@ class CommentsSection extends StatelessWidget {
       children: [
         SectionHeader(
           title: 'Thông tin trao đổi',
-          icon: Icons.forum_outlined,
+          icon: Icons.chat_bubble_outline,
           trailing: IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => _showCommentDialog(context),
           ),
         ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE0E0E0)),
-          ),
-          child: Column(
-            children:
-                comments.map((c) {
-                  return Column(
-                    children: [
-                      ListTile(
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              c.creator,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            Text(
-                              _formatDateTime(c.createdDate),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF666666),
-                              ),
-                            ),
-                          ],
-                        ),
-                        subtitle: Text(
-                          c.content,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF666666),
-                          ),
+        const SizedBox(height: 6), // Giảm spacing
+
+        comments.isEmpty
+            ? Container(
+              padding: const EdgeInsets.all(16), // Giảm padding
+              child: const Center(
+                child: Text(
+                  'Chưa có thông tin trao đổi',
+                  style: TextStyle(
+                    color: Color(0xFF757575),
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            )
+            : Column(
+              children:
+                  comments.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final comment = entry.value;
+                    final isLast = index == comments.length - 1;
+
+                    return Container(
+                      margin: EdgeInsets.only(
+                        bottom:
+                            isLast ? 0 : 6, // Khoảng cách 6px giữa các items
+                      ),
+                      padding: const EdgeInsets.all(
+                        8,
+                      ), // Giảm padding từ 10 xuống 8
+                      decoration: BoxDecoration(
+                        color: Colors.white, // Background trắng cho mỗi comment
+                        borderRadius: BorderRadius.circular(6), // Border radius
+                        border: Border.all(
+                          color: const Color(0xFFE8E8E8),
+                          width: 0.5,
                         ),
                       ),
-                      const Divider(height: 1, color: Color(0xFFE0E0E0)),
-                    ],
-                  );
-                }).toList(),
-          ),
-        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header với tên và thời gian
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                comment.creator,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12, // Giảm font size
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              Text(
+                                _formatDateTime(comment.createdDate),
+                                style: const TextStyle(
+                                  fontSize: 11, // Giảm font size
+                                  color: Color(0xFF666666),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 6,
+                          ), // Khoảng cách giữa header và content
+                          // Nội dung comment
+                          Text(
+                            comment.content,
+                            style: const TextStyle(
+                              fontSize: 12, // Giảm font size
+                              color: Color(0xFF333333),
+                              height: 1.4, // Line height
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+            ),
       ],
     );
   }

@@ -20,20 +20,26 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: BorderRadius.circular(6),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 0),
+        padding: const EdgeInsets.symmetric(
+          vertical: 0,
+        ), // Thêm padding vertical
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFF006884), size: 20),
-            const SizedBox(width: 8),
+            Icon(
+              icon,
+              color: const Color(0xFF006884),
+              size: 18,
+            ), // Giảm icon size
+            const SizedBox(width: 6), // Giảm spacing
             Expanded(
               child: Text(
                 title,
                 style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: 13, // Giảm font size
                 ),
               ),
             ),

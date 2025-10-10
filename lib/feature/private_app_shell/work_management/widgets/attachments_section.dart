@@ -36,72 +36,92 @@ class _AttachmentsSectionState extends State<AttachmentsSection> {
             },
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6), // Chuẩn hóa spacing
         if (_isExpanded)
-          Column(
-            children:
-                widget.attachments.map((f) {
-                  return Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _handleAttachmentTap(f),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
+          widget.attachments.isEmpty
+              ? Container(
+                padding: const EdgeInsets.all(16), // Giảm padding
+                child: const Center(
+                  child: Text(
+                    'Chưa có tệp đính kèm',
+                    style: TextStyle(
+                      color: Color(0xFF757575),
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              )
+              : Column(
+                children:
+                    widget.attachments.map((f) {
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _handleAttachmentTap(f),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: const Color(0xFFE0E0E0),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            _getFileIcon(f.type),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    f.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _formatSize(f.size),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF757575),
-                                    ),
-                                  ),
-                                ],
+                          child: Container(
+                            margin: const EdgeInsets.only(
+                              bottom: 6,
+                            ), // Giảm margin
+                            padding: const EdgeInsets.all(
+                              8,
+                            ), // Giảm padding từ 10 xuống 8
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFAFAFA), // Background nhạt
+                              borderRadius: BorderRadius.circular(
+                                6,
+                              ), // Border radius nhỏ hơn
+                              border: Border.all(
+                                color: const Color(
+                                  0xFFE8E8E8,
+                                ), // Border nhẹ hơn
+                                width: 0.5,
                               ),
                             ),
-                            const Icon(
-                              Icons.chevron_right,
-                              color: Color(0xFF006884),
+                            child: Row(
+                              children: [
+                                _getFileIcon(f.type),
+                                const SizedBox(width: 8), // Giảm spacing
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        f.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize:
+                                              12, // Thêm font size cho title
+                                          color: Color(0xFF333333),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3), // Giảm spacing
+                                      Text(
+                                        _formatSize(f.size),
+                                        style: const TextStyle(
+                                          fontSize: 11, // Giảm font size
+                                          color: Color(0xFF757575),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.chevron_right,
+                                  color: Color(0xFF006884),
+                                  size: 18, // Giảm icon size
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-          ),
+                      );
+                    }).toList(),
+              ),
       ],
     );
   }
@@ -153,24 +173,48 @@ class _AttachmentsSectionState extends State<AttachmentsSection> {
         type.contains('jpeg') ||
         type.contains('png') ||
         type.contains('gif')) {
-      return const Icon(Icons.image, color: Color(0xFF006884), size: 24);
+      return const Icon(
+        Icons.image,
+        color: Color(0xFF006884),
+        size: 20,
+      ); // Giảm từ 24 xuống 20
     } else if (type.contains('pdf')) {
-      return const Icon(Icons.picture_as_pdf, color: Colors.red, size: 24);
+      return const Icon(
+        Icons.picture_as_pdf,
+        color: Colors.red,
+        size: 20,
+      ); // Giảm từ 24 xuống 20
     } else if (type.contains('doc') || type.contains('docx')) {
-      return const Icon(Icons.description, color: Colors.blue, size: 24);
+      return const Icon(
+        Icons.description,
+        color: Colors.blue,
+        size: 20,
+      ); // Giảm từ 24 xuống 20
     } else if (type.contains('xls') || type.contains('xlsx')) {
-      return const Icon(Icons.table_chart, color: Colors.green, size: 24);
+      return const Icon(
+        Icons.table_chart,
+        color: Colors.green,
+        size: 20,
+      ); // Giảm từ 24 xuống 20
     } else if (type.contains('ppt') || type.contains('pptx')) {
-      return const Icon(Icons.slideshow, color: Colors.orange, size: 24);
+      return const Icon(
+        Icons.slideshow,
+        color: Colors.orange,
+        size: 20,
+      ); // Giảm từ 24 xuống 20
     } else if (type.contains('zip') ||
         type.contains('rar') ||
         type.contains('7z')) {
-      return const Icon(Icons.archive, color: Color(0xFF006884), size: 24);
+      return const Icon(
+        Icons.archive,
+        color: Color(0xFF006884),
+        size: 20,
+      ); // Giảm từ 24 xuống 20
     } else {
       return const Icon(
         Icons.insert_drive_file,
         color: Color(0xFF006884),
-        size: 24,
+        size: 20, // Giảm từ 24 xuống 20
       );
     }
   }

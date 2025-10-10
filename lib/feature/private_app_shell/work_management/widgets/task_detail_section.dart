@@ -18,15 +18,18 @@ class TaskDetailSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16), // Giảm margin từ 16 xuống 12
       child: TaskContainer(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             child,
             if (showDivider) ...[
-              const SizedBox(height: 6),
-              Divider(color: AppColors.colorBacklog),
+              const SizedBox(height: 4), // Giảm spacing
+              Divider(
+                color: AppColors.colorBacklog,
+                height: 1,
+              ), // Giảm height divider
             ],
           ],
         ),
