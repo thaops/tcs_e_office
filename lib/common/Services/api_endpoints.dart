@@ -13,6 +13,30 @@ class ApiEndpoints {
   static String loginFrame = "${Config.baseUrl}/users/login";
 
   //task
+  static String getTasks = "${Config.baseUrl}/documenttask/get-tasks";
+  static String getTaskById(String taskId) =>
+      "${Config.baseUrl}/documenttask/get-task-by-id/$taskId"; // detail endpoint
+  static String createTask =
+      "${Config.baseUrl}/documenttask/create-task"; // POST
+  static String updateTask(String taskId) =>
+      "${Config.baseUrl}/documenttask/update-task/$taskId"; // POST
+  static String completeTask(String taskId) =>
+      "${Config.baseUrl}/documenttask/complete-task/$taskId"; // POST
+  static String forwardTask =
+      "${Config.baseUrl}/documenttask/forward-task"; // POST
+  static String getPriorityOptions =
+      "${Config.baseUrl}/documenttask/get-priority-options"; // GET
+  static String getStatusOptions =
+      "${Config.baseUrl}/documenttask/get-status-options"; // GET
+  static String getRoleOptions =
+      "${Config.baseUrl}/documenttask/get-role-options"; // GET
+  static String getTaskCount =
+      "${Config.baseUrl}/documenttask/get-count-response"; // GET
+
+  // comment endpoints
+  static String addComment = "${Config.baseUrl}/document/comment-document";
+  static String getComments(String documentId) =>
+      "${Config.baseUrl}/document/comments/$documentId";
 
   // profile
   static String profile = "${Config.baseUrl}/user/get-info-mine";
@@ -43,6 +67,10 @@ class ApiEndpoints {
 
   static String employees =
       "${Config.baseUrl}/employee/get-list-employee?pageIndex=1&pageSize=9999";
+
+  // departments + employees tree for selector
+  static String employeesByDepartment =
+      "${Config.baseUrl}/document/get-employee-by-department";
 
   // departments
   static String departments =

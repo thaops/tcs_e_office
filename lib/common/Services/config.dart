@@ -8,10 +8,10 @@ class Config {
   static const String _manualEnvKey = 'manual_environment_set';
   // Default URLs
   static const String _defaultProdBaseUrl =
-      "https://api-tcs-uat.azurewebsites.net/api";
+      "https://api-tcs-dev.azurewebsites.net/api";
   // "https://namphuong-api.azurewebsites.net/api";
   static const String _defaultDevBaseUrl =
-      "https://namphuong-api-dev.azurewebsites.net/api";
+      "https://api-tcs-dev.azurewebsites.net/api";
 
   // Internal helper to compute current default based on awaiting flag
   static String _currentDefaultBaseUrl(GetStorage storage) {

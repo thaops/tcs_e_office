@@ -54,12 +54,7 @@ class SignOutClear extends GetxService {
     } catch (e) {
       // Log error nhưng vẫn navigate về login
       print('Error during sign out: $e');
-      Get.snackbar(
-        'Lỗi',
-        'Có lỗi xảy ra khi đăng xuất, nhưng bạn vẫn có thể tiếp tục',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 3),
-      );
+ 
 
       // Vẫn navigate về login ngay cả khi có lỗi
       if (Get.context != null) {

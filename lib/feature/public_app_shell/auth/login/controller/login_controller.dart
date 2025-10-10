@@ -147,7 +147,6 @@ class LoginController extends GetxController {
       }
     } catch (e) {
       print("Lỗi loginWithMicrosoftCode: $e");
-      Get.snackbar("Thông báo", "Đăng nhập thất bại Vui lòng thử lại");
     } finally {
       isLoadingMicrosoft.value = false;
       Navigator.pop(context);

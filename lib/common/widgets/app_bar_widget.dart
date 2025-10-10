@@ -55,7 +55,7 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       // toolbarHeight: heightAppBar,
-      backgroundColor: backgroundColor ?? AppColors.white,
+      backgroundColor: backgroundColor ?? AppColors.primary,
       surfaceTintColor: Colors.transparent,
       leading:
           isBack == false
@@ -66,7 +66,7 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
                 },
                 icon: Icon(
                   Icons.arrow_back_ios,
-                  color: AppColors.black,
+                  color: AppColors.white,
                   size: AppSizes.iconMedium,
                 ),
               ),
@@ -78,7 +78,7 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
                 text: title!,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: AppColors.black,
+                color: AppColors.white,
               ),
       actions: [
         badgeIcon != null ? badgeIcon! : const SizedBox(),
@@ -87,7 +87,7 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
               onPressed: () {
                 functionThird?.call();
               },
-              icon: Icon(iconRightthird, color: colorThird),
+              icon: Icon(iconRightthird, color: colorThird ?? AppColors.white),
             )
             : const SizedBox(),
 
@@ -98,7 +98,7 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
               },
               icon: Icon(
                 iconRightSecond,
-                color: colorSecond,
+                color: colorSecond ?? AppColors.white,
                 size: AppSizes.iconMedium,
               ),
             )
@@ -110,7 +110,7 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
               },
               icon: Icon(
                 iconRightfirst,
-                color: colorfirst,
+                color: colorfirst ?? AppColors.white,
                 size: AppSizes.iconMedium,
               ),
             )

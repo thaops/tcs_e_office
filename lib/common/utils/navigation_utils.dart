@@ -53,9 +53,9 @@ class NavigationUtils {
   ) {
     switch (type) {
       case NotificationType.leaveRequest:
-        return (route: AppRouter.leaveDetail, arguments: {'leaveId': id});
+        return (route: AppRouter.main, arguments: {'leaveId': id});
       case NotificationType.task: // Xử lý trường hợp thông báo nhiệm vụ
-        return (route: AppRouter.profileAnnualGoals, arguments: {'taskId': id});
+        return (route: AppRouter.profile, arguments: {'taskId': id});
       default: // Xử lý các loại thông báo khác hoặc không xác định
         return (route: AppRouter.main, arguments: null);
     }

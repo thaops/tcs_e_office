@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:calendar_view/calendar_view.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -181,6 +182,31 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
+    // Kiểm tra nếu là iOS thì sử dụng CupertinoApp
+    if (Platform.isIOS) {
+      return GetCupertinoApp(
+        home: SplashScreen(initialDeepLink: widget.initialDeepLink),
+        getPages: AppRouter.routes,
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.cupertinoLightTheme,
+        navigatorKey: NavigationUtils.navigatorKey,
+        onUnknownRoute: (settings) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Get.offAllNamed(AppRouter.main);
+          });
+          return GetPageRoute(
+            settings: settings,
+            page: () => const SizedBox.shrink(),
+          );
+        },
+        unknownRoute: GetPage(
+          name: '/unknown',
+          page: () => SplashScreen(initialDeepLink: widget.initialDeepLink),
+        ),
+      );
+    }
+
+    // Sử dụng MaterialApp cho Android và các platform khác
     return GetMaterialApp(
       home: SplashScreen(initialDeepLink: widget.initialDeepLink),
       getPages: AppRouter.routes,

@@ -18,10 +18,18 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:tcs_e_office/common/share/auth/sign_out_clear.dart';
 
+// Cache keys cho user data
+class UserCacheKeys {
+  static const String userName = 'cached_user_name';
+  static const String userFullName = 'cached_user_full_name';
+  static const String userAvatar = 'cached_user_avatar';
+}
+
 class ProfileLogic extends GetxController {
   late final SignOutClear _signOutClear;
   DioApi dioApi = DioApi();
   final AuthService _authService = AuthService();
+  final GetStorage _storage = GetStorage();
 
   final profile = Rx<Profile?>(null);
   int _clickCount = 0;
@@ -35,6 +43,10 @@ class ProfileLogic extends GetxController {
   final RxString version = ''.obs;
   final RxInt tapCount = 0.obs;
 
+  // Cached user data để hiển thị ngay lập tức
+  final RxString cachedUserName = ''.obs;
+  final RxString cachedUserFullName = ''.obs;
+
   // Getter an toàn để tránh lỗi null check
   bool get isLoadingSafe => isloading.value;
   String get versionSafe => version.value;
@@ -47,9 +59,59 @@ class ProfileLogic extends GetxController {
     // SignOutClear đã được khởi tạo trong main.dart
     _signOutClear = Get.find<SignOutClear>();
 
+    // Load cached user data ngay lập tức
+    _loadCachedUserData();
+
     userProfileData.clear();
     getProfile();
     initPackageInfo();
+  }
+
+  /// Load cached user data từ local storage
+  void _loadCachedUserData() {
+    final cachedName = _storage.read(UserCacheKeys.userName) as String? ?? '';
+    final cachedFullName =
+        _storage.read(UserCacheKeys.userFullName) as String? ?? '';
+
+    cachedUserName.value = cachedName;
+    cachedUserFullName.value = cachedFullName;
+  }
+
+  /// Cache user data vào local storage
+  void _cacheUserData(String? userName, String? fullName) {
+    if (userName != null && userName.isNotEmpty) {
+      _storage.write(UserCacheKeys.userName, userName);
+      cachedUserName.value = userName;
+    }
+    if (fullName != null && fullName.isNotEmpty) {
+      _storage.write(UserCacheKeys.userFullName, fullName);
+      cachedUserFullName.value = fullName;
+    }
+  }
+
+  /// Get display name với fallback từ cache
+  String getDisplayName() {
+    final user = profile.value?.user;
+    final fullName = user?.fullName;
+    final userName = user?.username;
+
+    // Ưu tiên: fullName từ API > userName từ API > cached fullName > cached userName
+    if (fullName != null && fullName.isNotEmpty) {
+      _cacheUserData(userName, fullName);
+      return fullName;
+    }
+    if (userName != null && userName.isNotEmpty) {
+      _cacheUserData(userName, fullName);
+      return userName;
+    }
+    if (cachedUserFullName.value.isNotEmpty) {
+      return cachedUserFullName.value;
+    }
+    if (cachedUserName.value.isNotEmpty) {
+      return cachedUserName.value;
+    }
+
+    return 'Người dùng'; // Fallback cuối cùng
   }
 
   Future<void> initPackageInfo() async {
@@ -447,5 +509,12 @@ class ProfileLogic extends GetxController {
     userProfileData.clear();
     summaryData.clear();
     userId.value = null;
+
+    // Clear cached data
+    cachedUserName.value = '';
+    cachedUserFullName.value = '';
+    _storage.remove(UserCacheKeys.userName);
+    _storage.remove(UserCacheKeys.userFullName);
+    _storage.remove(UserCacheKeys.userAvatar);
   }
 }

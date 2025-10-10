@@ -65,11 +65,9 @@ class ShowDialogSetUrl {
                               dioApi = DioApi();
                               Get.back();
                               tapCount.value = 0;
-                              Get.snackbar('Success', 'Base URL updated');
                             } else {
                               Get.back();
-                              Get.snackbar(
-                                  'Info', 'No changes made to Base URL');
+                            
                               tapCount.value = 0;
                             }
                           },

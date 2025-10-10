@@ -1,6 +1,4 @@
 import 'package:get/get.dart';
-import 'package:tcs_e_office/feature/private_app_shell/leave_management/logic/leave_list_controller.dart';
-import 'package:tcs_e_office/feature/private_app_shell/leave_management/logic/leave_filter_controller.dart';
 import 'package:tcs_e_office/feature/private_app_shell/filter_user/controller/filter_user_controller.dart';
 import 'package:tcs_e_office/feature/private_app_shell/profile/logic/profile_logic.dart';
 
@@ -9,18 +7,7 @@ class ControllerCacheClear {
   /// Clear tất cả controllers và reset state (KHÔNG reset GetX hoàn toàn)
   static void clearControllersOnly() {
     try {
-      // Clear Leave Management Controllers
-      if (Get.isRegistered<LeaveListController>()) {
-        final leaveListController = Get.find<LeaveListController>();
-        leaveListController.listOff.clear();
-        leaveListController.isDataLoaded = false;
-        leaveListController.months.clear();
-      }
 
-      if (Get.isRegistered<LeaveFilterController>()) {
-        final leaveFilterController = Get.find<LeaveFilterController>();
-        leaveFilterController.resetFilters();
-      }
 
       // Clear Filter User Controller
       if (Get.isRegistered<FilterUserController>()) {
@@ -44,19 +31,6 @@ class ControllerCacheClear {
   /// Clear tất cả controllers và reset state (DÀNH CHO TRƯỜNG HỢP ĐẶC BIỆT)
   static void clearAllControllers() {
     try {
-      // Clear Leave Management Controllers
-      if (Get.isRegistered<LeaveListController>()) {
-        final leaveListController = Get.find<LeaveListController>();
-        leaveListController.listOff.clear();
-        leaveListController.isDataLoaded = false;
-        leaveListController.months.clear();
-      }
-
-      if (Get.isRegistered<LeaveFilterController>()) {
-        final leaveFilterController = Get.find<LeaveFilterController>();
-        leaveFilterController.resetFilters();
-      }
-
       // Clear Filter User Controller
       if (Get.isRegistered<FilterUserController>()) {
         final filterUserController = Get.find<FilterUserController>();
@@ -80,17 +54,6 @@ class ControllerCacheClear {
   /// Clear chỉ leave management controllers
   static void clearLeaveControllers() {
     try {
-      if (Get.isRegistered<LeaveListController>()) {
-        final controller = Get.find<LeaveListController>();
-        controller.listOff.clear();
-        controller.isDataLoaded = false;
-        controller.months.clear();
-      }
-
-      if (Get.isRegistered<LeaveFilterController>()) {
-        final controller = Get.find<LeaveFilterController>();
-        controller.resetFilters();
-      }
     } catch (e) {
       print('Error clearing leave controllers: $e');
     }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:tcs_e_office/common/widgets/app_bar_widget.dart';
 import 'package:tcs_e_office/common/widgets/loading_overlay.dart';
 import 'package:tcs_e_office/common/widgets/text_widget.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
@@ -43,7 +44,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
         isLoading: controllerProfile.isLoadingSafe,
         child: Scaffold(
           backgroundColor: Colors.white,
-          appBar: _buildAppBar(),
+          appBar: AppBarWidget(isBack: false, title: 'Thông tin cá nhân'),
           body: RefreshIndicator(
             onRefresh: () async {
               await controllerProfile.loadUserData();
@@ -57,24 +58,6 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leading: IconButton(
-        onPressed: () => Get.back(),
-        icon: Icon(Icons.arrow_back_ios, color: AppColors.black),
-      ),
-      title: TextWidget(
-        text: 'Thông tin cá nhân',
-        fontSize: 18.sp,
-        fontWeight: FontWeight.w600,
-        color: AppColors.black,
-      ),
-      centerTitle: true,
     );
   }
 

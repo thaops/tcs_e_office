@@ -3,11 +3,12 @@ import 'package:lottie/lottie.dart';
 import 'package:tcs_e_office/common/img/img.dart';
 import 'package:tcs_e_office/common/widgets/loading_overlay.dart';
 import 'package:tcs_e_office/common/widgets/text_widget.dart';
+import 'package:tcs_e_office/common/widgets/app_bar_widget.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import 'package:tcs_e_office/feature/private_app_shell/profile/logic/profile_logic.dart';
 import 'package:flutter/material.dart';
 import 'package:tcs_e_office/feature/private_app_shell/profile/widget/user_profile.dart';
-import 'package:tcs_e_office/router/app_router.dart';
+import 'package:tcs_e_office/feature/private_app_shell/profile/widget/summary_user_profile.dart';
 import 'package:tcs_e_office/src/api/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -53,7 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         isLoading: controllerProfile.isLoadingSafe,
         child: Scaffold(
           backgroundColor: Colors.white,
-          appBar: _buildAppBar(controllerProfile, context),
+          appBar: _buildAppBar(),
           body: RefreshIndicator(
             onRefresh: () async {
               await controllerProfile.loadUserData();
@@ -160,27 +161,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Padding(
                 padding: EdgeInsets.only(top: 16.r),
                 child: Column(
-                  spacing: 36.r,
-                  children: [
-                    _buildRouterProfile(
-                      () => Get.toNamed(AppRouter.profileDetail),
-                      'Thông tin cá nhân',
-                    ),
-                    _buildRouterProfile(() {
-                      Get.toNamed(AppRouter.summaryDayOff);
-                    }, 'Theo dõi ngày phép'),
-                    _buildRouterProfile(() {
-                      Get.toNamed(AppRouter.profileAnnualGoals);
-                    }, 'Nguyện vọng phép năm'),
-                  ],
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [_buildPersonalInfoSection(controllerProfile)],
                 ),
               ),
-              SizedBox(height: 120.r),
-              if (widget.flag != true)
+              SizedBox(height: 40.r),
+              if (widget.flag != true) ...[
+                _buildLogoutButton(controllerProfile, context),
+                SizedBox(height: 40.r),
                 Padding(
                   padding: EdgeInsets.only(bottom: 24.r),
                   child: _buildVision(controllerProfile, context, isVision),
                 ),
+              ],
             ],
           ),
         ),
@@ -188,15 +181,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildRouterProfile(VoidCallback onTap, String title) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildPersonalInfoSection(ProfileLogic controllerProfile) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 0.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextWidget(text: title, fontSize: 16.sp, fontWeight: FontWeight.w400),
-          Icon(Icons.arrow_forward_ios, size: 16.sp),
+          Obx(() {
+            if (controllerProfile.summaryData.isNotEmpty) {
+              return Column(
+                children:
+                    controllerProfile.summaryData.map((data) {
+                      return SummaryUserProfile(
+                        title: data['title']?.toString() ?? '',
+                        subtitle: data['subtitle']?.toString() ?? '',
+                        textAlign: TextAlign.right,
+                      );
+                    }).toList(),
+              );
+            }
+
+            return _buildFallbackPersonalInfo(controllerProfile);
+          }),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFallbackPersonalInfo(ProfileLogic controllerProfile) {
+    final user = controllerProfile.profile.value?.user;
+    if (user == null) {
+      return Center(
+        child: TextWidget(
+          text: "Không có thông tin để hiển thị",
+          color: AppColors.grey,
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        SummaryUserProfile(title: "Họ Tên", subtitle: user.fullName ?? ''),
+        if ((user.email ?? '').isNotEmpty)
+          SummaryUserProfile(title: "Email", subtitle: user.email!),
+        if ((user.jobTitle ?? '').isNotEmpty)
+          SummaryUserProfile(title: "Phòng ban", subtitle: user.jobTitle!),
+
+        if ((user.hrId ?? 0) != 0)
+          SummaryUserProfile(
+            title: "Mã nhân viên",
+            subtitle: user.hrId.toString(),
+          ),
+        if ((user.jobTitleCode ?? '').isNotEmpty)
+          SummaryUserProfile(
+            title: "Ngày bắt đầu",
+            subtitle: (user.workStartDate ?? user.createdDate).toString(),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildLogoutButton(
+    ProfileLogic controllerProfile,
+    BuildContext context,
+  ) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(horizontal: 0.w),
+      child: ElevatedButton.icon(
+        onPressed: () => controllerProfile.signOut(context),
+        icon: Icon(Icons.logout, color: Colors.white),
+        label: TextWidget(
+          text: 'Đăng xuất',
+          color: Colors.white,
+          fontSize: 16.sp,
+          fontWeight: FontWeight.w500,
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.colorRed,
+          padding: EdgeInsets.symmetric(vertical: 12.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+        ),
       ),
     );
   }
@@ -352,34 +419,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  AppBar _buildAppBar(ProfileLogic controllerProfile, BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      leading:
-          widget.flag != true
-              ? SizedBox()
-              : IconButton(
-                onPressed: () {
-                  Get.back();
-                },
-                icon: Icon(Icons.arrow_back_ios),
-              ),
-      title: TextWidget(
-        text: 'Trang cá nhân',
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-      ),
-      centerTitle: true,
-      actions: [
-        widget.flag == true
-            ? Container(width: 0)
-            : IconButton(
-              icon: Icon(Icons.logout, color: AppColors.colorRed),
-              onPressed: () {
-                controllerProfile.signOut(context);
-              },
-            ),
-      ],
-    );
+  PreferredSizeWidget _buildAppBar() {
+    return AppBarWidget(isBack: widget.flag == true, title: 'Trang cá nhân');
   }
 }

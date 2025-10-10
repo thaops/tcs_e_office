@@ -71,12 +71,7 @@ class InAppUpdateUtil {
         );
       }
     } catch (e) {
-      print('Lỗi không xác định: $e');
-      Get.snackbar(
-        'Lỗi không xác định',
-        'Đã xảy ra lỗi khi kiểm tra cập nhật.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+   
     }
   }
 }

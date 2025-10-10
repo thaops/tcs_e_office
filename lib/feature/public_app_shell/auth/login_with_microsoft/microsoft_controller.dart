@@ -11,7 +11,6 @@ class MicrosoftController extends GetxController {
     print("urlMicrosoft: $urlMicrosoft");
 
     if (urlMicrosoft.isEmpty) {
-      Get.snackbar('Error', 'Microsoft login URL is missing', snackPosition: SnackPosition.BOTTOM);
       Get.back();
       return;
     }

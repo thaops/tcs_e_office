@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const primary = Color.fromARGB(255, 254, 133, 51);
+  // static const primary = Color.fromARGB(255, 254, 133, 51);
+  static const primary = Color.fromARGB(255, 19, 87, 105);
   static const lightBackground = Color(0xffF2F2F2);
   static const darkBackground = Color(0xff0D0C0C);
   static const grey = Color(0xffBEBEBE);
@@ -44,11 +45,9 @@ class AppColors {
   static const colorNormal = Color.fromRGBO(17, 227, 28, 1);
   static const colorLow = Color.fromRGBO(128, 128, 128, 1);
 
-
   static const kanbanBackground = Color.fromRGBO(246, 250, 253, 1);
 
-
-// static const backgroundisupdate = Colors.grey.shade400;
+  // static const backgroundisupdate = Colors.grey.shade400;
 
   //rgba(255, 255, 255, 0.5)
   static const subtitle = Color.fromARGB(207, 192, 192, 179);
@@ -69,7 +68,52 @@ class AppColors {
   static final iconFlight = Color(0xffE86339);
   static final borderSignature = Color(0xffD4D6DD);
 
-static const colorApi = Color(0xFF0288D1); // Blue Deep Sky
+  // Work management - status colors
+  // Hoàn thành - Xanh lá
+  static const statusCompleted = Color(0xFF4CAF50);
+  static const statusCompletedBg = Color(0xFFE8F5E8);
+
+  // Đang thực hiện - Cam
+  static const statusInProgress = Color(0xFFFF9800);
+  static const statusInProgressBg = Color(0xFFFFF3E0);
+
+  // Quá hạn - Đỏ
+  static const statusOverdue = Color(0xFFF44336);
+  static const statusOverdueBg = Color(0xFFFFEBEE);
+
+  // Work management - priority colors
+  // Khẩn cấp - Đỏ đậm
+  static const priorityCritical = Color(0xFFD32F2F);
+  static const priorityCriticalBg = Color(0xFFFFEBEE);
+
+  // Cao - Cam
+  static const priorityHigh = Color(0xFFFF5722);
+  static const priorityHighBg = Color(0xFFFFF3E0);
+
+  // Trung bình - Vàng
+  static const priorityMedium = Color(0xFFFF9800);
+  static const priorityMediumBg = Color(0xFFFFF8E1);
+
+  // Bình thường - Xanh
+  static const priorityNormal = Color(0xFF2196F3);
+  static const priorityNormalBg = Color(0xFFE3F2FD);
+
+  // Thấp - Xám
+  static const priorityLow = Color(0xFF9E9E9E);
+  static const priorityLowBg = Color(0xFFF5F5F5);
+
+  // Work management - text colors
+  static const textCompleted = Color(0xFF2E7D32);
+  static const textOverdue = Color(0xFFD32F2F);
+  static const textInProgress = Color(0xFFE65100);
+  static const textCritical = Color(0xFFB71C1C);
+  static const textHigh = Color(0xFFD84315);
+  static const textMedium = Color(0xFFE65100);
+  static const textNormal = Color(0xFF1565C0);
+  static const textLow = Color(0xFF616161);
+  static const textSecondary = Color(0xFF9E9E9E);
+
+  static const colorApi = Color(0xFF0288D1); // Blue Deep Sky
   static const colorWeb = Color(0xFF7B1FA2); // Purple
   static const colorMobile = Color(0xFF388E3C); // Green Dark
   static const colorTester = Color(0xFFFBC02D); // Yellow Amber
@@ -79,8 +123,5 @@ static const colorApi = Color(0xFF0288D1); // Blue Deep Sky
   static const colorOther = Color.fromRGBO(53, 44, 99, 1);
   static const colorDesign = Color.fromARGB(255, 137, 236, 206);
 
-  static const List<Color> gradientColors = [
-    primary,
-    white,
-  ];
+  static const List<Color> gradientColors = [primary, white];
 }

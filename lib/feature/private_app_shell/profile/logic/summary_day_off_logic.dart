@@ -32,21 +32,9 @@ class SummaryDayOffLogic extends GetxController {
         summaryData.value = response.data;
       } else {
         summaryData.value = null;
-        Get.snackbar(
-          'Lỗi',
-          response.message.isNotEmpty
-              ? response.message
-              : 'Không thể tải dữ liệu tổng hợp ngày phép',
-          snackPosition: SnackPosition.BOTTOM,
-        );
       }
     } catch (e) {
       summaryData.value = null;
-      Get.snackbar(
-        'Lỗi',
-        'Có lỗi xảy ra khi tải dữ liệu: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
     } finally {
       isLoading.value = false;
     }

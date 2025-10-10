@@ -88,7 +88,7 @@ class AppTextStyles {
 
   // Body text
   static TextStyle get bodyLarge =>
-      GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w400, height: 1.5);
+      GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w500, height: 1.5);
 
   static TextStyle get bodyMedium =>
       GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400, height: 1.4);

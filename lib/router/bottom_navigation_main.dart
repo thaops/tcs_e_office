@@ -2,10 +2,10 @@ import 'package:get/get.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import 'package:tcs_e_office/feature/private_app_shell/profile/logic/profile_logic.dart';
 import 'package:flutter/material.dart';
-import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:tcs_e_office/feature/private_app_shell/profile/view/profile_screen.dart';
-import 'package:tcs_e_office/feature/private_app_shell/leave_management/view/leave_request_list_screen.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:tcs_e_office/feature/private_app_shell/work_management/view/work_management_tab.dart';
+import 'package:tcs_e_office/feature/private_app_shell/home/view/home_tab.dart';
+import 'package:tcs_e_office/common/services/navigation_service.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -19,61 +19,19 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     Get.put(ProfileLogic());
+    // Register callback để NavigationService có thể switch tab
+    NavigationService.setTabChangeCallback(_onTabTapped);
   }
 
   int _selectedIndex = 0;
-  final PageController _pageController = PageController();
 
   final List<Widget> _screens = [
-    LeaveScreen(onUpdateCallback: (bool) {}),
+    const HomeTab(),
+    WorkManagementTab(),
     ProfileScreen(),
   ];
 
-  final List<SalomonBottomBarItem> selectedItem = [
-    // SalomonBottomBarItem(
-    //   icon: Icon(Icons.person, size: 24),
-    //   title: Text("Task",
-    //       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-    //   selectedColor: Colors.blueAccent,
-    // ),
-    SalomonBottomBarItem(
-      icon: Icon(Icons.list, size: 24),
-      title: Text(
-        "Xin phép",
-        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-      ),
-      selectedColor: AppColors.primary,
-    ),
-    // SalomonBottomBarItem(
-    //   icon: Icon(Icons.support_agent_rounded, size: 24),
-    //   title: Text("Hỗ trợ",
-    //       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-    //   selectedColor: Colors.orange,
-    // ),
-    // SalomonBottomBarItem(
-    //   icon: Icon(Icons.people, size: 24),
-    //   title: Text("Nhân viên",
-    //       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-    //   selectedColor: Colors.purple,
-    // ),
-    SalomonBottomBarItem(
-      icon: Icon(Icons.person, size: 24),
-      title: Text(
-        "Cá nhân",
-        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-      ),
-      selectedColor: AppColors.primary,
-    ),
-  ];
-
   void _onTabTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    _pageController.jumpToPage(index);
-  }
-
-  void _onPageChanged(int index) {
     setState(() {
       _selectedIndex = index;
     });
@@ -81,42 +39,63 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void dispose() {
-    _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: _onPageChanged,
-        children: _screens,
-        physics: NeverScrollableScrollPhysics(),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
-        child: Container(
-          margin: EdgeInsets.only(left: 16, right: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFAFAFA), // Sửa lỗi cú pháp màu sắc
-            shape: BoxShape.rectangle,
-            borderRadius: BorderRadius.circular(30),
-            // boxShadow: [
-            //   BoxShadow(
-            //     color: Colors.grey.withOpacity(0.5),
-            //     spreadRadius: 2,
-            //     blurRadius: 7,
-            //     offset: Offset(0, 3),
-            //   ),
-            // ]
+      body: IndexedStack(index: _selectedIndex, children: _screens),
+      bottomNavigationBar: Container(
+        color: Colors.white,
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            navigationBarTheme: NavigationBarThemeData(
+              labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>((
+                Set<WidgetState> states,
+              ) {
+                if (states.contains(WidgetState.selected)) {
+                  return TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  );
+                }
+                return TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                );
+              }),
+            ),
           ),
-          child: SalomonBottomBar(
-            currentIndex: _selectedIndex,
-            onTap: _onTabTapped,
-            unselectedItemColor: Colors.grey,
-            itemPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 10.w),
-            items: selectedItem,
+          child: NavigationBar(
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: _onTabTapped,
+            backgroundColor: Colors.white,
+            surfaceTintColor: Colors.white,
+            indicatorColor: AppColors.primary.withOpacity(0.8),
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            destinations: [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined, color: Colors.grey.shade600),
+                selectedIcon: Icon(Icons.home_rounded, color: Colors.white),
+                label: 'Trang chủ',
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.list_alt_outlined,
+                  color: Colors.grey.shade600,
+                ),
+                selectedIcon: Icon(Icons.list_alt_rounded, color: Colors.white),
+                label: 'Công việc',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline, color: Colors.grey.shade600),
+                selectedIcon: Icon(Icons.person_rounded, color: Colors.white),
+                label: 'Cá nhân',
+              ),
+            ],
           ),
         ),
       ),
