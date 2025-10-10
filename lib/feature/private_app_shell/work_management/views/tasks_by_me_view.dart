@@ -18,7 +18,10 @@ class TasksByMeView extends StatelessWidget {
       }
 
       if (controller.filteredTasksByMe.isEmpty) {
-        return _buildEmptyState(controller);
+        return RefreshIndicator(
+          onRefresh: controller.refresh,
+          child: _buildEmptyState(controller),
+        );
       }
 
       return RefreshIndicator(
@@ -56,59 +59,68 @@ class TasksByMeView extends StatelessWidget {
   }
 
   Widget _buildEmptyState(WorkManagementController controller) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.assignment_outlined,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Chưa có công việc nào',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Bạn chưa giao công việc nào cho ai',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () async {
-              const assignerCode = '';
-              final created = await Get.to(
-                () => const CreateTaskView(assignerCode: assignerCode),
-              );
-              if (created == true) {
-                controller.loadTasksByMe(refresh: true);
-              }
-            },
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Tạo công việc mới'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2C5F5F),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        height: MediaQuery.of(Get.context!).size.height * 0.7,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.assignment_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
               ),
-            ),
+              const SizedBox(height: 24),
+              Text(
+                'Chưa có công việc nào',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Bạn chưa giao công việc nào cho ai',
+                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  const assignerCode = '';
+                  final created = await Get.to(
+                    () => const CreateTaskView(assignerCode: assignerCode),
+                  );
+                  if (created == true) {
+                    controller.loadTasksByMe(refresh: true);
+                  }
+                },
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Tạo công việc mới'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2C5F5F),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

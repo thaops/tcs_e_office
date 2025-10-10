@@ -177,33 +177,33 @@ class HomeTab extends StatelessWidget {
                         SizedBox(height: 12.h),
 
                         // Nhóm 3: Văn bản đến (giữ nguyên hardcode vì chưa có API)
-                        TaskGroupSection(
-                          title: 'Văn bản đến',
-                          totalCount: 0,
-                          children: [
-                            TaskItemCard(
-                              icon: Icons.description_outlined,
-                              iconColor: const Color(0xFF4CAF50), // Green
-                              title: 'Văn bản chưa xử lý',
-                              count: 0,
-                              countColor: const Color(0xFF4CAF50),
-                            ),
-                            TaskItemCard(
-                              icon: Icons.assignment_outlined,
-                              iconColor: const Color(0xFF9C27B0), // Purple
-                              title: 'Văn bản đang xử lý',
-                              count: 0,
-                              countColor: const Color(0xFF9C27B0),
-                            ),
-                            TaskItemCard(
-                              icon: Icons.check_circle_outline,
-                              iconColor: const Color(0xFF607D8B), // Blue Grey
-                              title: 'Văn bản đã xử lý',
-                              count: 0,
-                              countColor: const Color(0xFF607D8B),
-                            ),
-                          ],
-                        ),
+                        // TaskGroupSection(
+                        //   title: 'Văn bản đến',
+                        //   totalCount: 0,
+                        //   children: [
+                        //     TaskItemCard(
+                        //       icon: Icons.description_outlined,
+                        //       iconColor: const Color(0xFF4CAF50), // Green
+                        //       title: 'Văn bản chưa xử lý',
+                        //       count: 0,
+                        //       countColor: const Color(0xFF4CAF50),
+                        //     ),
+                        //     TaskItemCard(
+                        //       icon: Icons.assignment_outlined,
+                        //       iconColor: const Color(0xFF9C27B0), // Purple
+                        //       title: 'Văn bản đang xử lý',
+                        //       count: 0,
+                        //       countColor: const Color(0xFF9C27B0),
+                        //     ),
+                        //     TaskItemCard(
+                        //       icon: Icons.check_circle_outline,
+                        //       iconColor: const Color(0xFF607D8B), // Blue Grey
+                        //       title: 'Văn bản đã xử lý',
+                        //       count: 0,
+                        //       countColor: const Color(0xFF607D8B),
+                        //     ),
+                        //   ],
+                        // ),
                       ],
                     ),
                   ),

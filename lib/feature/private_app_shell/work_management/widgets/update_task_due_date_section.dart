@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/update_task_controller.dart';
-import 'task_form_section.dart';
 
 /// Widget cho phần ngày bắt đầu và hết hạn (Update version)
 class UpdateTaskDueDateSection extends StatelessWidget {
@@ -11,35 +10,33 @@ class UpdateTaskDueDateSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = Get.find<UpdateTaskController>();
 
-    return TaskFormSection(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _labelRequired('Ngày bắt đầu'),
-          const SizedBox(height: 6),
-          Obx(
-            () => _dateField(
-              context,
-              'Chọn ngày bắt đầu',
-              c.startDate.value,
-              (date) => c.startDate.value = date,
-              isDueDate: false,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _labelRequired('Ngày bắt đầu'),
+        const SizedBox(height: 6),
+        Obx(
+          () => _dateField(
+            context,
+            'Chọn ngày bắt đầu',
+            c.startDate.value,
+            (date) => c.startDate.value = date,
+            isDueDate: false,
           ),
-          const SizedBox(height: 16),
-          _labelRequired('Ngày hết hạn'),
-          const SizedBox(height: 6),
-          Obx(
-            () => _dateField(
-              context,
-              'Chọn ngày hết hạn',
-              c.dueDate.value,
-              (date) => c.dueDate.value = date,
-              isDueDate: true,
-            ),
+        ),
+        const SizedBox(height: 16),
+        _labelRequired('Ngày hết hạn'),
+        const SizedBox(height: 6),
+        Obx(
+          () => _dateField(
+            context,
+            'Chọn ngày hết hạn',
+            c.dueDate.value,
+            (date) => c.dueDate.value = date,
+            isDueDate: true,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

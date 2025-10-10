@@ -68,7 +68,8 @@ class UpdateTaskController extends GetxController {
       departmentTree.assignAll(metadata['departments'] as List<DepartmentNode>);
 
       if (priorities.isNotEmpty) {
-        selectedPriority.value = priorities.first;
+        // Set default là item cuối (bình thường) thay vì item đầu (khẩn cấp)
+        selectedPriority.value = priorities.last;
       }
     } catch (e) {
       error.value = e.toString().replaceFirst('Exception: ', '');

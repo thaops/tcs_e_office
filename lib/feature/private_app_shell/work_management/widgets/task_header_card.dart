@@ -109,6 +109,7 @@ class TaskHeaderCard extends StatelessWidget {
                 ),
               ),
             ],
+            const SizedBox(height: 12),
           ],
         ),
       ),

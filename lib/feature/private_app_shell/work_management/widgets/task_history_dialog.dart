@@ -3,15 +3,25 @@ import '../models/task_detail_model.dart';
 
 class TaskHistoryDialog extends StatelessWidget {
   final List<TaskHistory> histories;
+  final String tabType; // 'assigned_by_me' hoặc 'assigned_to_me'
 
-  const TaskHistoryDialog({super.key, required this.histories});
+  const TaskHistoryDialog({
+    super.key,
+    required this.histories,
+    required this.tabType,
+  });
 
-  static void show(BuildContext context, List<TaskHistory> histories) {
+  static void show(
+    BuildContext context,
+    List<TaskHistory> histories,
+    String tabType,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => TaskHistoryDialog(histories: histories),
+      builder:
+          (ctx) => TaskHistoryDialog(histories: histories, tabType: tabType),
     );
   }
 
@@ -40,10 +50,10 @@ class TaskHistoryDialog extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                const Center(
+                Center(
                   child: Text(
-                    'Tiến trình xử lý',
-                    style: TextStyle(
+                    _getDialogTitle(),
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF006884),
@@ -95,6 +105,17 @@ class TaskHistoryDialog extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getDialogTitle() {
+    switch (tabType) {
+      case 'assigned_by_me':
+        return 'Lịch sử';
+      case 'assigned_to_me':
+        return 'Tiến trình xử lý';
+      default:
+        return 'Tiến trình xử lý';
+    }
   }
 }
 

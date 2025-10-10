@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tcs_e_office/common/widgets/app_dialog.dart';
+import 'package:tcs_e_office/common/widgets/success_dialog.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import '../controllers/create_task_controller.dart';
 
@@ -69,8 +70,19 @@ class TaskSubmitButton extends StatelessWidget {
     final ok = await c.submit(assignerCode: assignerCode);
 
     if (ok) {
-      onSuccess?.call();
-      Get.back(result: true);
+      // Hiển thị success dialog trước khi đóng màn hình
+      await SuccessDialogWithBackdrop.show(
+        context: context,
+        title: 'Thành công',
+        message: 'Tạo công việc thành công',
+        buttonText: 'Đóng',
+        autoClose: true,
+        autoCloseDelay: const Duration(seconds: 2),
+        onClose: () {
+          onSuccess?.call();
+          Get.back(result: true);
+        },
+      );
     } else {
       final err = c.error.value;
       // Chỉ hiển thị popup nếu lỗi không phải là validate form (đã hiển thị inline)

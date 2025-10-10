@@ -78,7 +78,7 @@ class WorkManagementController extends GetxController {
       final request = TaskRequest(
         pageIndex: currentPageByMe.value,
         pageSize: pageSize,
-        type: 2, // Việc tôi giao
+        type: 2,
         keyword:
             searchQueryByMe.value.isNotEmpty ? searchQueryByMe.value : null,
         startDate: filterByMe.value.startDate,
@@ -299,6 +299,7 @@ class WorkManagementController extends GetxController {
     FilterModel filter,
   ) {
     // Chỉ filter client-side nếu có status, priority, hoặc role
+    // Date filtering được thực hiện ở server nên không cần filter client-side
     final hasClientSideFilter =
         filter.status != null || filter.priority != null || filter.role != null;
 
@@ -347,14 +348,145 @@ class WorkManagementController extends GetxController {
     }
   }
 
+  // Áp dụng filter cho tab cụ thể (dùng khi navigation từ home)
+  void applyFilterForTab(FilterModel newFilter, int targetTab) {
+    if (targetTab == 0) {
+      // Áp dụng cho tab "Việc tôi giao"
+      filterByMe.value = newFilter;
+      // Nếu có date filter, reload data từ server
+      if (newFilter.startDate != null || newFilter.dueDate != null) {
+        loadTasksByMe(refresh: true);
+      } else {
+        _applyFilterByMe();
+      }
+    } else {
+      // Áp dụng cho tab "Việc giao đến tôi"
+      filterToMe.value = newFilter;
+      // Nếu có date filter, reload data từ server
+      if (newFilter.startDate != null || newFilter.dueDate != null) {
+        loadTasksToMe(refresh: true);
+      } else {
+        _applyFilterToMe();
+      }
+    }
+  }
+
   // Reset filter cho tab hiện tại
   void resetFilter() {
     if (currentTab.value == 0) {
+      // Reset filter về empty state
       filterByMe.value = FilterModel.empty();
-      _applyFilterByMe();
+      // Reload data từ server với filter empty
+      _loadTasksByMeWithoutFilter(refresh: true);
     } else {
+      // Reset filter về empty state
       filterToMe.value = FilterModel.empty();
-      _applyFilterToMe();
+      // Reload data từ server với filter empty
+      _loadTasksToMeWithoutFilter(refresh: true);
+    }
+  }
+
+  // Load tasks by me với filter empty (để reset)
+  Future<void> _loadTasksByMeWithoutFilter({bool refresh = false}) async {
+    if (refresh) {
+      currentPageByMe.value = 1;
+      tasksByMe.clear();
+    }
+
+    try {
+      isLoadingByMe.value = true;
+
+      final request = TaskRequest(
+        pageIndex: currentPageByMe.value,
+        pageSize: pageSize,
+        type: 2, // Việc tôi giao
+        keyword:
+            searchQueryByMe.value.isNotEmpty ? searchQueryByMe.value : null,
+        startDate: null, // Không có date filter
+        dueDate: null, // Không có date filter
+      );
+
+      final response = await _dioApi.post(
+        ApiEndpoints.getTasks,
+        data: request.toJson(),
+      );
+      print('responsesss: ${response.data}');
+
+      if (response.statusCode == 200) {
+        final taskResponse = TaskResponse.fromJson(response.data);
+
+        if (refresh) {
+          _originalTasksByMe.value = taskResponse.data;
+          _applyFilterByMe();
+        } else {
+          _originalTasksByMe.addAll(taskResponse.data);
+          _applyFilterByMe();
+        }
+
+        totalRecordByMe.value = taskResponse.totalRecord;
+      } else {
+        throw Exception('Failed to load tasks: ${response.statusCode}');
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Lỗi',
+        'Không thể tải danh sách công việc: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoadingByMe.value = false;
+    }
+  }
+
+  // Load tasks to me với filter empty (để reset)
+  Future<void> _loadTasksToMeWithoutFilter({bool refresh = false}) async {
+    if (refresh) {
+      currentPageToMe.value = 1;
+      tasksToMe.clear();
+    }
+
+    try {
+      isLoadingToMe.value = true;
+
+      final request = TaskRequest(
+        pageIndex: currentPageToMe.value,
+        pageSize: pageSize,
+        type: 1, // Việc giao đến tôi
+        keyword:
+            searchQueryToMe.value.isNotEmpty ? searchQueryToMe.value : null,
+        startDate: null, // Không có date filter
+        dueDate: null, // Không có date filter
+      );
+
+      final response = await _dioApi.post(
+        ApiEndpoints.getTasks,
+        data: request.toJson(),
+      );
+      print('responsesss: ${response.data}');
+
+      if (response.statusCode == 200) {
+        final taskResponse = TaskResponse.fromJson(response.data);
+
+        if (refresh) {
+          _originalTasksToMe.value = taskResponse.data;
+          _applyFilterToMe();
+        } else {
+          _originalTasksToMe.addAll(taskResponse.data);
+          _applyFilterToMe();
+        }
+
+        totalRecordToMe.value = taskResponse.totalRecord;
+      } else {
+        throw Exception('Failed to load tasks: ${response.statusCode}');
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Lỗi',
+        'Không thể tải danh sách công việc: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoadingToMe.value = false;
     }
   }
 

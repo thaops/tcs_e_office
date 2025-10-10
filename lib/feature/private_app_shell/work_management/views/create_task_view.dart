@@ -42,7 +42,7 @@ class _CreateTaskViewState extends State<CreateTaskView> {
           c.documentId = widget.documentId;
         }
         return Scaffold(
-          backgroundColor: const Color(0xFFF9FAFB),
+          backgroundColor: const Color(0xFFF8F9FA),
           resizeToAvoidBottomInset:
               false, // Ngăn auto scroll khi keyboard xuất hiện
           appBar: AppBarWidget(
@@ -68,14 +68,11 @@ class _CreateTaskViewState extends State<CreateTaskView> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const TaskTitleSection(),
-                        const SizedBox(height: 8),
-                        const TaskDueDateSection(),
-                        const SizedBox(height: 8),
                         const TaskPrioritySection(),
-                        const SizedBox(height: 8),
+                        const TaskDueDateSection(),
                         const TaskAttachmentSection(),
-                        const SizedBox(height: 8),
                         const TaskAssigneeSection(),
+                        const SizedBox(height: 16), // Thêm spacing cuối
                       ],
                     ),
                   ),

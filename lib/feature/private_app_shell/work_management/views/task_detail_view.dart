@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:tcs_e_office/common/widgets/app_bar_widget.dart';
 import 'package:tcs_e_office/common/widgets/error_404_widget.dart';
+import 'package:tcs_e_office/common/widgets/success_dialog.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import 'package:tcs_e_office/common/share/cache/my_id.dart';
 import '../controllers/task_detail_controller.dart';
@@ -205,10 +206,22 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                       .toIso8601String()
                       .split('T')[0];
 
-          await c.forwardTask(
+          final success = await c.forwardTask(
             selectedEmployeeCodes: selectedEmployeeCodes,
             dueDate: dueDate,
           );
+
+          if (success) {
+            // Hiển thị success dialog khi chuyển xử lý thành công
+            await SuccessDialogWithBackdrop.show(
+              context: context,
+              title: 'Thành công',
+              message: 'Chuyển xử lý thành công',
+              buttonText: 'Đóng',
+              autoClose: true,
+              autoCloseDelay: const Duration(seconds: 2),
+            );
+          }
         },
       );
     } catch (e) {
@@ -235,7 +248,11 @@ class _TaskDetailViewState extends State<TaskDetailView> {
           iconRightSecond: showEditIcon ? Icons.edit_note_outlined : null,
           functionfirst: () {
             final histories = detail?.histories ?? [];
-            TaskHistoryDialog.show(context, histories);
+            TaskHistoryDialog.show(
+              context,
+              histories,
+              widget.tabType ?? 'assigned_to_me',
+            );
           },
           functionSecond: () async {
             // Navigate to update task screen
@@ -355,7 +372,18 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                           isForwarding: c.isForwarding.value,
                           onTransfer: () => _handleForwardTask(c),
                           onComplete: () async {
-                            await c.completeTask();
+                            final success = await c.completeTask();
+                            if (success) {
+                              // Hiển thị success dialog khi hoàn thành task thành công
+                              await SuccessDialogWithBackdrop.show(
+                                context: context,
+                                title: 'Thành công',
+                                message: 'Hoàn thành công việc thành công',
+                                buttonText: 'Đóng',
+                                autoClose: true,
+                                autoCloseDelay: const Duration(seconds: 2),
+                              );
+                            }
                           },
                         ),
                       );

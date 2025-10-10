@@ -67,7 +67,10 @@ class CreateTaskController extends GetxController {
       if (prioRes.statusCode == 200) {
         final data = prioRes.data['data'] as List<dynamic>? ?? [];
         priorities.assignAll(data.map((e) => PriorityOption.fromJson(e)));
-        if (priorities.isNotEmpty) selectedPriority.value = priorities.first;
+        // Set default là item cuối (bình thường) thay vì item đầu (khẩn cấp)
+        if (priorities.isNotEmpty) {
+          selectedPriority.value = priorities.last;
+        }
       }
 
       final empRes = results[1];

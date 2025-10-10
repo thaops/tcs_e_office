@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/create_task_controller.dart';
-import 'task_form_section.dart';
 import 'html_content_editor.dart';
 
 /// Widget cho phần tên và nội dung công việc
@@ -12,7 +11,8 @@ class TaskTitleSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<CreateTaskController>(
       builder: (c) {
-        return TaskFormSection(
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -84,16 +84,28 @@ class TaskTitleSection extends StatelessWidget {
 
   InputDecoration _inputDecoration() {
     return const InputDecoration(
-      filled: false,
-      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      filled: true,
+      fillColor: Color(0xFFFAFAFA),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFE0E0E0)),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderSide: BorderSide(color: Color(0xFFE8E8E8), width: 1),
       ),
       enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFE0E0E0)),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderSide: BorderSide(color: Color(0xFFE8E8E8), width: 1),
       ),
       focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFF006884)),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderSide: BorderSide(color: Color(0xFF006884), width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderSide: BorderSide(color: Colors.red, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderSide: BorderSide(color: Colors.red, width: 1.5),
       ),
     );
   }

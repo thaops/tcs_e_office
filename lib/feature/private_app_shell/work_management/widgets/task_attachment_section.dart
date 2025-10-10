@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import '../controllers/create_task_controller.dart';
-import 'task_form_section.dart';
 
 /// Widget cho phần tệp đính kèm
 class TaskAttachmentSection extends StatelessWidget {
@@ -12,7 +11,8 @@ class TaskAttachmentSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<CreateTaskController>(
       builder: (c) {
-        return TaskFormSection(
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -40,13 +40,16 @@ class TaskAttachmentSection extends StatelessWidget {
                 onTap: () => c.pickAttachments(),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 16,
                     vertical: 14,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                    color: const Color(0xFFFAFAFA),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFFE8E8E8),
+                      width: 1,
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -55,12 +58,13 @@ class TaskAttachmentSection extends StatelessWidget {
                         color: AppColors.primary,
                         size: 20,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       const Text(
                         'Thêm tệp đính kèm',
                         style: TextStyle(
-                          color: Color(0xFF757575),
+                          color: Color(0xFF666666),
                           fontWeight: FontWeight.w500,
+                          fontSize: 16,
                         ),
                       ),
                     ],
@@ -99,17 +103,17 @@ class TaskAttachmentSection extends StatelessWidget {
   /// Widget hiển thị từng file với nút xóa
   Widget _buildFileItem(String fileName, int index, CreateTaskController c) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        color: const Color(0xFFF8F9FA),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
       ),
       child: Row(
         children: [
           Icon(_getFileIcon(fileName), color: AppColors.primary, size: 20),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               fileName,
@@ -121,12 +125,12 @@ class TaskAttachmentSection extends StatelessWidget {
           GestureDetector(
             onTap: () => c.removeAttachment(index),
             child: Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(6),
               decoration: const BoxDecoration(
                 color: Colors.red,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.close, color: Colors.white, size: 16),
+              child: const Icon(Icons.close, color: Colors.white, size: 14),
             ),
           ),
         ],

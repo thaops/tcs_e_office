@@ -4,7 +4,6 @@ import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import '../controllers/update_task_controller.dart';
 import '../models/task_detail_model.dart';
 import '../widget/assignee_selector_bottom_sheet.dart';
-import 'task_form_section.dart';
 
 /// Widget cho phần phân công người thực hiện (Update version)
 class UpdateTaskAssigneeSection extends StatelessWidget {
@@ -14,82 +13,80 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<UpdateTaskController>(
       builder: (c) {
-        return TaskFormSection(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Danh sách người thực hiện',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 6),
-              _assigneeCard(
-                title: 'Xử lý chính',
-                selectedEmployeeCodes: c.primaryEmployeeCodes,
-                selectedDepartmentCodes: c.primaryDepartmentCodes,
-                controller: c,
-                onAdd:
-                    () => _openAssigneeSelector(
-                      context,
-                      controller: c,
-                      initialSelectedCodes: c.primaryEmployeeCodes.toList(),
-                      excludedEmployeeCodes: [
-                        ...c.collabEmployeeCodes,
-                        ...c.followEmployeeCodes,
-                      ],
-                      onConfirm: (codes) {
-                        // Loại bỏ những người được chọn làm xử lý chính khỏi các role khác
-                        _removeFromOtherRoles(c, codes, 'primary');
-                        c.primaryEmployeeCodes.assignAll(codes);
-                      },
-                    ),
-              ),
-              const SizedBox(height: 6),
-              _assigneeCard(
-                title: 'Phối hợp',
-                selectedEmployeeCodes: c.collabEmployeeCodes,
-                selectedDepartmentCodes: c.collabDepartmentCodes,
-                controller: c,
-                onAdd:
-                    () => _openAssigneeSelector(
-                      context,
-                      controller: c,
-                      initialSelectedCodes: c.collabEmployeeCodes.toList(),
-                      excludedEmployeeCodes: [
-                        ...c.primaryEmployeeCodes,
-                        ...c.followEmployeeCodes,
-                      ],
-                      onConfirm: (codes) {
-                        // Loại bỏ những người được chọn làm phối hợp khỏi các role khác
-                        _removeFromOtherRoles(c, codes, 'collab');
-                        c.collabEmployeeCodes.assignAll(codes);
-                      },
-                    ),
-              ),
-              const SizedBox(height: 6),
-              _assigneeCard(
-                title: 'Theo dõi',
-                selectedEmployeeCodes: c.followEmployeeCodes,
-                selectedDepartmentCodes: c.followDepartmentCodes,
-                controller: c,
-                onAdd:
-                    () => _openAssigneeSelector(
-                      context,
-                      controller: c,
-                      initialSelectedCodes: c.followEmployeeCodes.toList(),
-                      excludedEmployeeCodes: [
-                        ...c.primaryEmployeeCodes,
-                        ...c.collabEmployeeCodes,
-                      ],
-                      onConfirm: (codes) {
-                        // Loại bỏ những người được chọn làm theo dõi khỏi các role khác
-                        _removeFromOtherRoles(c, codes, 'follow');
-                        c.followEmployeeCodes.assignAll(codes);
-                      },
-                    ),
-              ),
-            ],
-          ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Danh sách người thực hiện',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 6),
+            _assigneeCard(
+              title: 'Xử lý chính',
+              selectedEmployeeCodes: c.primaryEmployeeCodes,
+              selectedDepartmentCodes: c.primaryDepartmentCodes,
+              controller: c,
+              onAdd:
+                  () => _openAssigneeSelector(
+                    context,
+                    controller: c,
+                    initialSelectedCodes: c.primaryEmployeeCodes.toList(),
+                    excludedEmployeeCodes: [
+                      ...c.collabEmployeeCodes,
+                      ...c.followEmployeeCodes,
+                    ],
+                    onConfirm: (codes) {
+                      // Loại bỏ những người được chọn làm xử lý chính khỏi các role khác
+                      _removeFromOtherRoles(c, codes, 'primary');
+                      c.primaryEmployeeCodes.assignAll(codes);
+                    },
+                  ),
+            ),
+            const SizedBox(height: 6),
+            _assigneeCard(
+              title: 'Phối hợp',
+              selectedEmployeeCodes: c.collabEmployeeCodes,
+              selectedDepartmentCodes: c.collabDepartmentCodes,
+              controller: c,
+              onAdd:
+                  () => _openAssigneeSelector(
+                    context,
+                    controller: c,
+                    initialSelectedCodes: c.collabEmployeeCodes.toList(),
+                    excludedEmployeeCodes: [
+                      ...c.primaryEmployeeCodes,
+                      ...c.followEmployeeCodes,
+                    ],
+                    onConfirm: (codes) {
+                      // Loại bỏ những người được chọn làm phối hợp khỏi các role khác
+                      _removeFromOtherRoles(c, codes, 'collab');
+                      c.collabEmployeeCodes.assignAll(codes);
+                    },
+                  ),
+            ),
+            const SizedBox(height: 6),
+            _assigneeCard(
+              title: 'Theo dõi',
+              selectedEmployeeCodes: c.followEmployeeCodes,
+              selectedDepartmentCodes: c.followDepartmentCodes,
+              controller: c,
+              onAdd:
+                  () => _openAssigneeSelector(
+                    context,
+                    controller: c,
+                    initialSelectedCodes: c.followEmployeeCodes.toList(),
+                    excludedEmployeeCodes: [
+                      ...c.primaryEmployeeCodes,
+                      ...c.collabEmployeeCodes,
+                    ],
+                    onConfirm: (codes) {
+                      // Loại bỏ những người được chọn làm theo dõi khỏi các role khác
+                      _removeFromOtherRoles(c, codes, 'follow');
+                      c.followEmployeeCodes.assignAll(codes);
+                    },
+                  ),
+            ),
+          ],
         );
       },
     );

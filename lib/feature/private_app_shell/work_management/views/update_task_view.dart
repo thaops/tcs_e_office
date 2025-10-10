@@ -60,7 +60,7 @@ class _UpdateTaskViewState extends State<UpdateTaskView> {
         });
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF9FAFB),
+          backgroundColor: const Color(0xFFF8F9FA),
           resizeToAvoidBottomInset:
               false, // Ngăn auto scroll khi keyboard xuất hiện
           appBar: AppBarWidget(
@@ -86,14 +86,11 @@ class _UpdateTaskViewState extends State<UpdateTaskView> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const UpdateTaskTitleSection(),
-                        const SizedBox(height: 8),
-                        const UpdateTaskDueDateSection(),
-                        const SizedBox(height: 8),
                         const UpdateTaskPrioritySection(),
-                        const SizedBox(height: 8),
+                        const UpdateTaskDueDateSection(),
                         const UpdateTaskAttachmentSection(),
-                        const SizedBox(height: 8),
                         const UpdateTaskAssigneeSection(),
+                        const SizedBox(height: 16), // Thêm spacing cuối
                       ],
                     ),
                   ),

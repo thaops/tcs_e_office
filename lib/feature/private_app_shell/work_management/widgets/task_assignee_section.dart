@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import '../controllers/create_task_controller.dart';
 import '../widget/assignee_selector_bottom_sheet.dart';
-import 'task_form_section.dart';
 
 /// Widget cho phần danh sách người thực hiện
 class TaskAssigneeSection extends StatelessWidget {
@@ -13,7 +12,8 @@ class TaskAssigneeSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<CreateTaskController>(
       builder: (c) {
-        return TaskFormSection(
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -99,21 +99,25 @@ class TaskAssigneeSection extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE5E5E5)),
+        color: const Color(0xFFFAFAFA),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: Color(0xFF333333),
+                    ),
                   ),
                 ),
                 Obx(() {
@@ -121,8 +125,8 @@ class TaskAssigneeSection extends StatelessWidget {
                   if (count == 0) return const SizedBox.shrink();
                   return Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
+                      horizontal: 10,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.primaryOpacity,
@@ -142,8 +146,9 @@ class TaskAssigneeSection extends StatelessWidget {
                 IconButton(
                   onPressed: onAdd,
                   icon: const Icon(
-                    Icons.person_outline,
+                    Icons.person_add_alt_1_outlined,
                     color: Color(0xFF006884),
+                    size: 20,
                   ),
                 ),
               ],
@@ -152,12 +157,12 @@ class TaskAssigneeSection extends StatelessWidget {
           GestureDetector(
             onTap: onAdd,
             child: Container(
-              margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFFFAFAFA),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE5E5E5)),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
               ),
               child: Obx(() {
                 if (selectedCodes.isEmpty) {
@@ -166,12 +171,16 @@ class TaskAssigneeSection extends StatelessWidget {
                       Icon(
                         Icons.person_add_alt_1_outlined,
                         color: AppColors.textSecondary,
+                        size: 20,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       const Expanded(
                         child: Text(
-                          'Không có dữ liệu',
-                          style: TextStyle(color: Color(0xFF757575)),
+                          'Chọn người thực hiện',
+                          style: TextStyle(
+                            color: Color(0xFF666666),
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ],
@@ -182,34 +191,69 @@ class TaskAssigneeSection extends StatelessWidget {
                   for (final e in controller.allEmployees)
                     e.employeeCode: e.employeeName,
                 };
-                return Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                return Column(
                   children: [
                     ...selectedCodes.map((code) {
                       final name = codeToName[code] ?? code;
-                      return InputChip(
-                        avatar: CircleAvatar(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          radius: 10,
-                          child: Text(
-                            _initialsFromName(name),
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F9FA),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: const Color(0xFFE8E8E8),
+                            width: 1,
                           ),
                         ),
-                        label: Text(name),
-                        backgroundColor: AppColors.backgroundTab,
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        onPressed: onAdd,
-                        deleteIcon: const Icon(Icons.close, size: 16),
-                        onDeleted: () {
-                          selectedCodes.remove(code);
-                        },
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              radius: 12,
+                              child: Text(
+                                _initialsFromName(name),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                name,
+                                style: const TextStyle(
+                                  color: Color(0xFF333333),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: () {
+                                selectedCodes.remove(code);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     }),
                   ],

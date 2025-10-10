@@ -35,9 +35,9 @@ class NavigationService {
         if (resetFilter) {
           workController.resetFilter();
         }
-        // Apply filter nếu có
+        // Apply filter nếu có - sử dụng method mới để đảm bảo áp dụng đúng tab
         else if (filter != null) {
-          workController.applyFilter(filter);
+          workController.applyFilterForTab(filter, targetTab);
         }
       } catch (e) {
         // Controller chưa được khởi tạo, thử lại sau
@@ -50,9 +50,9 @@ class NavigationService {
             if (resetFilter) {
               workController.resetFilter();
             }
-            // Apply filter nếu có
+            // Apply filter nếu có - sử dụng method mới để đảm bảo áp dụng đúng tab
             else if (filter != null) {
-              workController.applyFilter(filter);
+              workController.applyFilterForTab(filter, targetTab);
             }
           } catch (e2) {
             print('Error applying navigation: $e2');
@@ -73,11 +73,16 @@ class NavigationService {
 
   /// Navigate với filter cho "Công việc trong ngày" (filter theo ngày hôm nay)
   static void navigateWithInDateFilter({required int targetTab}) {
-    // Tạo filter với ngày hôm nay
+    // Tạo filter với ngày hôm nay - sử dụng timezone hiện tại của device
     final today = DateTime.now();
-    final startDate =
-        "${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
-    final dueDate = "${startDate}T23:59:59.000+07:00";
+
+    // Tạo start of day (00:00:00) với timezone hiện tại
+    final startOfDay = DateTime(today.year, today.month, today.day, 0, 0, 0);
+    final startDate = startOfDay.toIso8601String();
+
+    // Tạo end of day (23:59:59) với timezone hiện tại
+    final endOfDay = DateTime(today.year, today.month, today.day, 23, 59, 59);
+    final dueDate = endOfDay.toIso8601String();
 
     final filter = FilterModel(startDate: startDate, dueDate: dueDate);
 

@@ -21,7 +21,10 @@ class TasksToMeView extends StatelessWidget {
       }
 
       if (controller.filteredTasksToMe.isEmpty) {
-        return _buildEmptyState();
+        return RefreshIndicator(
+          onRefresh: controller.refresh,
+          child: _buildEmptyState(),
+        );
       }
 
       return RefreshIndicator(
@@ -59,37 +62,43 @@ class TasksToMeView extends StatelessWidget {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.assignment_turned_in_outlined,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        height: MediaQuery.of(Get.context!).size.height * 0.7,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.assignment_turned_in_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Chưa có công việc nào được giao',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Chưa có ai giao công việc cho bạn',
+                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          Text(
-            'Chưa có công việc nào được giao',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Chưa có ai giao công việc cho bạn',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
-        ],
+        ),
       ),
     );
   }

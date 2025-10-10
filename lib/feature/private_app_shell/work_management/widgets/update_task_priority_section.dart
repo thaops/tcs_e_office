@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/update_task_controller.dart';
 import '../models/task_detail_model.dart';
-import 'task_form_section.dart';
 
 /// Widget cho phần ưu tiên (Update version)
 class UpdateTaskPrioritySection extends StatelessWidget {
@@ -12,15 +11,13 @@ class UpdateTaskPrioritySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = Get.find<UpdateTaskController>();
 
-    return TaskFormSection(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _labelRequired('Mức độ ưu tiên'),
-          const SizedBox(height: 6),
-          Obx(() => _priorityDropdown(c)),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _labelRequired('Mức độ ưu tiên'),
+        const SizedBox(height: 6),
+        Obx(() => _priorityDropdown(c)),
+      ],
     );
   }
 
