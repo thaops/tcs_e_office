@@ -32,20 +32,43 @@ class ContentSection extends StatelessWidget {
 
   Widget _buildContent() {
     if (content == null || content!.isEmpty || content!.trim() == '<p></p>') {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Text(
-            'Không có nội dung công việc',
-            style: TextStyle(
-              color: Color(0xFF757575),
-              fontSize: 14,
-              fontStyle: FontStyle.italic,
-            ),
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Text(
+          'Không có nội dung công việc',
+          style: TextStyle(
+            color: Color(0xFF757575),
+            fontSize: 14,
+            fontStyle: FontStyle.italic,
           ),
         ),
       );
     }
-    return Html(data: content!);
+
+    return Html(
+      data: content!,
+      style: {
+        "body": Style(
+          margin: Margins.zero,
+          padding: HtmlPaddings.zero,
+          fontSize: FontSize(14),
+          lineHeight: const LineHeight(1.5),
+          color: const Color(0xFF333333),
+        ),
+        "p": Style(margin: Margins.only(bottom: 8), padding: HtmlPaddings.zero),
+        "h1, h2, h3, h4, h5, h6": Style(
+          margin: Margins.only(top: 12, bottom: 8),
+          padding: HtmlPaddings.zero,
+          fontWeight: FontWeight.bold,
+        ),
+        "ul, ol": Style(
+          margin: Margins.only(bottom: 8),
+          padding: HtmlPaddings.only(left: 20),
+        ),
+        "li": Style(margin: Margins.only(bottom: 4)),
+        "strong, b": Style(fontWeight: FontWeight.bold),
+        "em, i": Style(fontStyle: FontStyle.italic),
+      },
+    );
   }
 }

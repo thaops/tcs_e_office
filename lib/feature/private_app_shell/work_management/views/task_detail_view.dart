@@ -303,17 +303,15 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                       children: [
                         // Header card
                         TaskHeaderCard(detail: detail),
-
+                        // Content HTML (nội dung công việc)
+                        TaskDetailSection(
+                          child: ContentSection(content: detail.content),
+                        ),
                         // Attachments
                         TaskDetailSection(
                           child: AttachmentsSection(
                             attachments: detail.attachments,
                           ),
-                        ),
-
-                        // Content HTML (nội dung công việc)
-                        TaskDetailSection(
-                          child: ContentSection(content: detail.content),
                         ),
 
                         // Comments

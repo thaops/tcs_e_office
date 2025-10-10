@@ -25,7 +25,7 @@ class SectionHeader extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 0),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFF006884)),
+            Icon(icon, color: const Color(0xFF006884), size: 20),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -33,7 +33,7 @@ class SectionHeader extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
-                  fontSize: 16,
+                  fontSize: 14,
                 ),
               ),
             ),

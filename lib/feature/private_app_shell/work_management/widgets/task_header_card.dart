@@ -15,6 +15,7 @@ class TaskHeaderCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       child: TaskContainer(
         child: Column(
+          spacing: 2,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -26,8 +27,7 @@ class TaskHeaderCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Divider(color: AppColors.colorBacklog),
-            const SizedBox(height: 6),
+
             Row(
               children: [
                 TaskChip(
@@ -43,19 +43,21 @@ class TaskHeaderCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
+            Divider(color: AppColors.colorBacklog),
+            const SizedBox(height: 6),
             _iconText(
               Icons.person_outline,
               'Người giao việc: ${detail.assignerName}',
             ),
             const SizedBox(height: 6),
             _iconText(
-              Icons.calendar_today_outlined,
+              Icons.calendar_month_outlined,
               'Ngày giao việc: ${_formatDate(detail.startDate)}',
             ),
             const SizedBox(height: 6),
             _iconText(
-              Icons.access_time,
+              Icons.calendar_month_outlined,
               'Ngày đến hạn: ${_formatDate(detail.dueDate)}',
             ),
             if (detail.note.isNotEmpty) ...[
