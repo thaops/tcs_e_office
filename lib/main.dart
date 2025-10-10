@@ -182,31 +182,7 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
-    // Kiểm tra nếu là iOS thì sử dụng CupertinoApp
-    if (Platform.isIOS) {
-      return GetCupertinoApp(
-        home: SplashScreen(initialDeepLink: widget.initialDeepLink),
-        getPages: AppRouter.routes,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.cupertinoLightTheme,
-        navigatorKey: NavigationUtils.navigatorKey,
-        onUnknownRoute: (settings) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Get.offAllNamed(AppRouter.main);
-          });
-          return GetPageRoute(
-            settings: settings,
-            page: () => const SizedBox.shrink(),
-          );
-        },
-        unknownRoute: GetPage(
-          name: '/unknown',
-          page: () => SplashScreen(initialDeepLink: widget.initialDeepLink),
-        ),
-      );
-    }
-
-    // Sử dụng MaterialApp cho Android và các platform khác
+    // Sử dụng MaterialApp cho tất cả platform để tránh lỗi MaterialLocalizations
     return GetMaterialApp(
       home: SplashScreen(initialDeepLink: widget.initialDeepLink),
       getPages: AppRouter.routes,
