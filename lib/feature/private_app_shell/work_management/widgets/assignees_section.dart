@@ -111,6 +111,7 @@ class _AssigneesSectionState extends State<AssigneesSection> {
   Widget _buildAssigneeNode(TaskAssignee assignee, int level) {
     final hasChildren = assignee.children.isNotEmpty;
     final isCompleted = assignee.statusCode == 2; // Status 2 = Hoàn thành
+    final isOverdue = assignee.statusCode == 3; // Status 3 = Quá hạn
     final nodeId = assignee.id;
     final isExpanded = _expandedNodes[nodeId] ?? false;
 
@@ -137,14 +138,19 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                   isCompleted
                       ? AppColors
                           .primaryOpacity // Màu chính của app cho hoàn thành
-                      : AppColors
-                          .white, // Màu trắng bạc cho các trạng thái khác
+                      : isOverdue
+                      ? Colors.red.withOpacity(
+                        0.1,
+                      ) // Background đỏ nhẹ cho quá hạn
+                      : AppColors.white, // Màu trắng cho các trạng thái khác
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color:
                     isCompleted
                         ? AppColors
                             .primary // Viền màu chính cho hoàn thành
+                        : isOverdue
+                        ? Colors.red.withOpacity(0.3) // Viền đỏ nhẹ cho quá hạn
                         : AppColors.grey, // Viền xám cho các trạng thái khác
                 width: 0.8,
               ),
@@ -165,6 +171,9 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                       isCompleted
                           ? AppColors
                               .primary // Màu chính cho hoàn thành
+                          : isOverdue
+                          ? Colors
+                              .red // Màu đỏ cho quá hạn
                           : AppColors
                               .colorIcon, // Màu xám cho các trạng thái khác
                   size: 20,
@@ -184,6 +193,9 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                               isCompleted
                                   ? AppColors
                                       .primary // Màu chính cho hoàn thành
+                                  : isOverdue
+                                  ? Colors
+                                      .red // Màu đỏ cho quá hạn
                                   : AppColors
                                       .black, // Màu đen cho các trạng thái khác
                         ),
@@ -198,6 +210,10 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                                   ? AppColors.primary.withOpacity(
                                     0.7,
                                   ) // Màu chính nhạt cho hoàn thành
+                                  : isOverdue
+                                  ? Colors.red.withOpacity(
+                                    0.7,
+                                  ) // Màu đỏ nhạt cho quá hạn
                                   : AppColors
                                       .colortextGray, // Màu xám cho các trạng thái khác
                         ),
@@ -236,6 +252,9 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                         isCompleted
                             ? AppColors
                                 .primary // Màu chính cho hoàn thành
+                            : isOverdue
+                            ? Colors
+                                .red // Màu đỏ cho quá hạn
                             : AppColors
                                 .colorIcon, // Màu xám cho các trạng thái khác
                     size: 18,

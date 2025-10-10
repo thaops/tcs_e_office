@@ -79,8 +79,44 @@ class _TaskDetailViewState extends State<TaskDetailView> {
     return false;
   }
 
-  /// Kiểm tra xem user hiện tại có phải là người xử lý chính đã hoàn thành hay không
-  Future<bool> _isCurrentUserPrimaryCompleted(detail) async {
+  /// Kiểm tra xem task có quá hạn hay không
+  /// Dựa trên statusCode của assignees (statusCode == 3 là quá hạn)
+  bool _isTaskOverdue(detail) {
+    print('🔍 Checking task overdue status...');
+    print('🔍 Task status: ${detail.status}');
+
+    // Kiểm tra status tổng thể của task
+    if (detail.status == 3) {
+      print('🔍 Task is overdue by overall status');
+      return true;
+    }
+
+    // Kiểm tra statusCode của assignees
+    // Nếu có bất kỳ assignee nào có statusCode == 3 thì task quá hạn
+    if (detail.assignees.isNotEmpty) {
+      print('🔍 Checking assignees status codes...');
+      for (final assignee in detail.assignees) {
+        print(
+          '🔍 Assignee: ${assignee.name} - statusCode: ${assignee.statusCode}',
+        );
+      }
+
+      final hasOverdueAssignee = detail.assignees.any(
+        (assignee) => assignee.statusCode == 3,
+      );
+
+      if (hasOverdueAssignee) {
+        print('🔍 Task is overdue by assignee status code');
+        return true;
+      }
+    }
+
+    print('🔍 Task is not overdue');
+    return false;
+  }
+
+  /// Kiểm tra xem user hiện tại có phải là người đã hoàn thành trong bất kỳ role nào (xử lý chính, phối hợp, theo dõi)
+  Future<bool> _isCurrentUserCompleted(detail) async {
     try {
       final myId = await MyId.create();
       final currentUserId = await myId.getMyId();
@@ -92,28 +128,31 @@ class _TaskDetailViewState extends State<TaskDetailView> {
         return false;
       }
 
-      // Tìm người xử lý chính (roleId == 1) với ID trùng với user hiện tại
-      final primaryAssignees =
-          detail.assignees.where((a) => a.roleId == 1).toList();
+      // Tìm tất cả assignees với ID trùng với user hiện tại (không phân biệt role)
+      final currentUserAssignees =
+          detail.assignees.where((a) => a.id == currentUserId).toList();
 
       print(
-        '🔍 Primary assignees: ${primaryAssignees.map((a) => '${a.id} - ${a.code} - ${a.name} - status: ${a.statusCode}').toList()}',
+        '🔍 Current user assignees: ${currentUserAssignees.map((a) => '${a.id} - ${a.code} - ${a.name} - roleId: ${a.roleId} - status: ${a.statusCode}').toList()}',
       );
 
-      for (final assignee in primaryAssignees) {
+      // Kiểm tra xem có bất kỳ role nào của user hiện tại đã hoàn thành (statusCode == 2)
+      for (final assignee in currentUserAssignees) {
         print(
-          '🔍 Checking assignee ID: ${assignee.id} vs current: $currentUserId, status: ${assignee.statusCode}',
+          '🔍 Checking assignee ID: ${assignee.id} vs current: $currentUserId, roleId: ${assignee.roleId}, status: ${assignee.statusCode}',
         );
-        if (assignee.id == currentUserId && assignee.statusCode == 2) {
-          print('🔍 Found completed primary assignee: ${assignee.name}');
-          return true; // User hiện tại là người xử lý chính đã hoàn thành
+        if (assignee.statusCode == 2) {
+          print(
+            '🔍 Found completed assignee: ${assignee.name} with roleId: ${assignee.roleId}',
+          );
+          return true; // User hiện tại đã hoàn thành trong ít nhất một role
         }
       }
 
-      print('🔍 No completed primary assignee found for current user');
+      print('🔍 No completed assignee found for current user');
       return false;
     } catch (e) {
-      print('Error checking current user primary completion: $e');
+      print('Error checking current user completion: $e');
       return false;
     }
   }
@@ -298,15 +337,16 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                   ),
                 ),
 
-                // Action bar - chỉ hiển thị khi task chưa hoàn thành, không phải "việc tôi giao" và user chưa hoàn thành phần xử lý chính
+                // Action bar - chỉ hiển thị khi task chưa hoàn thành, không quá hạn, không phải "việc tôi giao" và user chưa hoàn thành trong bất kỳ role nào
                 if (!_isTaskCompleted(detail) &&
+                    !_isTaskOverdue(detail) && // Không hiển thị khi quá hạn
                     widget.tabType != 'assigned_by_me')
                   FutureBuilder<bool>(
-                    future: _isCurrentUserPrimaryCompleted(detail),
+                    future: _isCurrentUserCompleted(detail),
                     builder: (context, snapshot) {
                       final isCurrentUserCompleted = snapshot.data ?? false;
 
-                      // Ẩn action bar nếu user hiện tại đã hoàn thành phần xử lý chính
+                      // Ẩn action bar nếu user hiện tại đã hoàn thành trong bất kỳ role nào (xử lý chính, phối hợp, theo dõi)
                       if (isCurrentUserCompleted) {
                         return const SizedBox.shrink();
                       }
