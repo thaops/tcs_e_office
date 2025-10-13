@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:tcs_e_office/common/widgets/app_bar_widget.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import '../controllers/update_task_controller.dart';
+import '../models/task_detail_model.dart';
 import '../widgets/update_task_title_section.dart';
 import '../widgets/update_task_due_date_section.dart';
 import '../widgets/update_task_priority_section.dart';
@@ -14,12 +15,14 @@ class UpdateTaskView extends StatefulWidget {
   final String assignerCode; // mã người giao việc
   final String? documentId; // id tài liệu đã lưu (optional)
   final String taskId; // ID của task cần update
+  final TaskDetailModel? taskData; // Data có sẵn từ detail view (optional)
 
   const UpdateTaskView({
     super.key,
     required this.assignerCode,
     required this.taskId,
     this.documentId,
+    this.taskData, // Thêm parameter để truyền data có sẵn
   });
 
   @override
@@ -48,10 +51,19 @@ class _UpdateTaskViewState extends State<UpdateTaskView> {
         // Load task data khi controller được khởi tạo
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (c.taskId == null || c.taskId != widget.taskId) {
-            print(
-              '🔍 UpdateTaskView: Loading task data for taskId: ${widget.taskId}',
-            );
-            c.loadTaskData(widget.taskId);
+            if (widget.taskData != null) {
+              // Sử dụng data có sẵn từ detail view (tối ưu hơn)
+              print(
+                '🔍 UpdateTaskView: Using existing task data for taskId: ${widget.taskId}',
+              );
+              c.populateFromTaskData(widget.taskData!);
+            } else {
+              // Chỉ load từ server khi không có data có sẵn
+              print(
+                '🔍 UpdateTaskView: Loading task data from server for taskId: ${widget.taskId}',
+              );
+              c.loadTaskData(widget.taskId);
+            }
           } else {
             print(
               '🔍 UpdateTaskView: Task data already loaded for taskId: ${widget.taskId}',
@@ -70,9 +82,11 @@ class _UpdateTaskViewState extends State<UpdateTaskView> {
           ),
 
           body: Obx(() {
+            // Chỉ hiển thị loading khi thực sự cần thiết
             if (c.loading.value &&
                 c.priorities.isEmpty &&
-                c.allEmployees.isEmpty) {
+                c.allEmployees.isEmpty &&
+                widget.taskData == null) {
               return const Center(child: CircularProgressIndicator());
             }
 
@@ -99,7 +113,6 @@ class _UpdateTaskViewState extends State<UpdateTaskView> {
                 UpdateTaskSubmitButton(
                   assignerCode: widget.assignerCode,
                   onSuccess: () async {
-                    // Trả về 'updated' để báo hiệu đã có thay đổi
                     Get.back(result: 'updated');
                   },
                 ),

@@ -262,6 +262,7 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                   assignerCode: detail.assignerCode,
                   taskId: widget.taskId,
                   documentId: detail.documentId,
+                  taskData: detail, // Truyền data có sẵn để tối ưu
                 ),
               );
 

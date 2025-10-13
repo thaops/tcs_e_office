@@ -41,15 +41,22 @@ class UpdateTaskTitleSection extends StatelessWidget {
               const SizedBox(height: 6),
               _labelRequired('Nội dung công việc'),
               const SizedBox(height: 6),
-              HtmlContentEditor(
-                initialContent: c.contentController.text,
-                hintText: 'Nhập nội dung công việc',
-                height: 200,
-                contentController: c.contentController,
-                onFocus: () {
-                  // Khi HTML editor được focus, scroll để đảm bảo title vẫn visible
-                  // Không cần làm gì đặc biệt vì đã tắt auto adjust
-                },
+              // Sử dụng GetBuilder để rebuild khi controller update
+              GetBuilder<UpdateTaskController>(
+                id: 'html_content_editor', // ID để trigger rebuild cụ thể
+                builder: (c) => HtmlContentEditor(
+                  key: ValueKey(
+                    'html_editor_${c.contentController.text.hashCode}',
+                  ), // Force rebuild khi content thay đổi
+                  initialContent: c.contentController.text,
+                  hintText: 'Nhập nội dung công việc',
+                  height: 200,
+                  contentController: c.contentController,
+                  onFocus: () {
+                    // Khi HTML editor được focus, scroll để đảm bảo title vẫn visible
+                    // Không cần làm gì đặc biệt vì đã tắt auto adjust
+                  },
+                ),
               ),
               // Hiển thị thông báo lỗi từ server cho nội dung
               Obx(() {

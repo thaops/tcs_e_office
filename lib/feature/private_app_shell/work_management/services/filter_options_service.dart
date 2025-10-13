@@ -84,11 +84,11 @@ class FilterOptionsService {
     } catch (e) {
       // Fallback về options mặc định nếu API lỗi
       return [
-        FilterOption(value: 0, label: 'Khẩn cấp'),
-        FilterOption(value: 1, label: 'Ưu tiên cao'),
-        FilterOption(value: 2, label: 'Trung bình'),
-        FilterOption(value: 3, label: 'Bình thường'),
-        FilterOption(value: 4, label: 'Thấp'),
+        FilterOption(value: 1, label: 'Khẩn cấp'),
+        FilterOption(value: 2, label: 'Ưu tiên cao'),
+        FilterOption(value: 3, label: 'Trung bình'),
+        FilterOption(value: 4, label: 'Bình thường'),
+        FilterOption(value: 5, label: 'Thấp'),
       ];
     }
   }

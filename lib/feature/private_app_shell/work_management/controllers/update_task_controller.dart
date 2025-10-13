@@ -126,12 +126,32 @@ class UpdateTaskController extends GetxController {
       if (data != null) {
         _formHandler.populateFromTaskData(data);
         _formHandler.setPriorityFromValue(data['priority'], priorities);
+
+        // Trigger rebuild cho HTML content editor
+        update(['html_content_editor']);
       }
     } catch (e) {
       error.value = e.toString().replaceFirst('Exception: ', '');
     } finally {
       loading.value = false;
     }
+  }
+
+  /// Populate form data từ TaskDetailModel có sẵn (tối ưu hơn loadTaskData)
+  void populateFromTaskData(TaskDetailModel taskData) {
+    this.taskId = taskData.id;
+    error.value = '';
+
+    // Populate form data từ TaskDetailModel
+    _formHandler.populateFromTaskDetailModel(taskData);
+
+    // Set priority từ value
+    _formHandler.setPriorityFromValue(taskData.priority, priorities);
+
+    // Trigger rebuild cho HTML content editor
+    update(['html_content_editor']);
+
+    print('🔍 UpdateTaskController: Populated from existing task data');
   }
 
   DateTime _startOfDayLocal(DateTime d) => DateTime(d.year, d.month, d.day);

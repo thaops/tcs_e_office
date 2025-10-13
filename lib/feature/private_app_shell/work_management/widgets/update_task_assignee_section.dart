@@ -101,24 +101,24 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFA),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+          Container(
+            color: AppColors.primary.withOpacity(0.1),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     title,
                     style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: Color(0xFF333333),
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
@@ -158,16 +158,10 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
               ],
             ),
           ),
-          GestureDetector(
-            onTap: onAdd,
-            child: Container(
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
-              ),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: GestureDetector(
+              onTap: onAdd,
               child: Obx(() {
                 final totalCount =
                     selectedEmployeeCodes.length +
@@ -194,10 +188,13 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                   );
                 }
 
-                // Map mã -> tên nhân viên
-                final employeeCodeToName = {
+                // Map mã -> tên nhân viên và phòng ban
+                final employeeCodeToInfo = {
                   for (final e in controller.allEmployees)
-                    e.employeeCode: e.employeeName,
+                    e.employeeCode: {
+                      'name': e.employeeName,
+                      'departmentName': e.departmentName,
+                    },
                 };
 
                 // Map mã -> tên phòng ban
@@ -210,7 +207,9 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                   children: [
                     // Hiển thị employees
                     ...selectedEmployeeCodes.map((code) {
-                      final name = employeeCodeToName[code] ?? code;
+                      final employeeInfo = employeeCodeToInfo[code];
+                      final name = employeeInfo?['name'] ?? code;
+                      final role = employeeInfo?['departmentName'] ?? '';
                       return Container(
                         margin: const EdgeInsets.only(bottom: 6),
                         padding: const EdgeInsets.symmetric(
@@ -226,29 +225,31 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                           ),
                         ),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CircleAvatar(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              radius: 12,
-                              child: Text(
-                                _initialsFromName(name),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
+                            Column(
+                              spacing: 4,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                name,
-                                style: const TextStyle(
-                                  color: Color(0xFF333333),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                                Text(
+                                  role,
+                                  style: const TextStyle(
+                                    color: Color(0xFF333333),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w300,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                             const SizedBox(width: 6),
                             GestureDetector(
@@ -334,18 +335,6 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _initialsFromName(String name) {
-    final parts = name
-        .trim()
-        .split(RegExp(r"\s+"))
-        .where((p) => p.isNotEmpty)
-        .toList();
-    if (parts.isEmpty) return '?';
-    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
-    return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
-        .toUpperCase();
   }
 
   /// Build map từ department tree để tìm tên phòng ban theo code

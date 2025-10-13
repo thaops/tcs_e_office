@@ -75,6 +75,40 @@ class TaskFormHandler {
     _populateAttachments(data);
   }
 
+  /// Populate form với data từ TaskDetailModel (tối ưu hơn)
+  void populateFromTaskDetailModel(TaskDetailModel taskData) {
+    clearForm();
+
+    titleController.text = taskData.taskName;
+    contentController.text = taskData.content ?? '';
+
+    print('🔍 TaskFormHandler: Populated content: "${taskData.content}"');
+    print(
+      '🔍 TaskFormHandler: ContentController text: "${contentController.text}"',
+    );
+
+    // Set dates từ String
+    if (taskData.startDate.isNotEmpty) {
+      final startDateTime = DateTime.tryParse(taskData.startDate);
+      if (startDateTime != null) {
+        startDate.value = startDateTime;
+      }
+    }
+
+    if (taskData.dueDate.isNotEmpty) {
+      final dueDateTime = DateTime.tryParse(taskData.dueDate);
+      if (dueDateTime != null) {
+        dueDate.value = dueDateTime;
+      }
+    }
+
+    // Populate assignees từ TaskDetailModel
+    _populateAssigneesFromTaskDetail(taskData);
+
+    // Populate attachments từ TaskDetailModel
+    _populateAttachmentsFromTaskDetail(taskData);
+  }
+
   void _populateAssignees(Map<String, dynamic> data) {
     _populateAssigneeGroup(
       data['primary'],
@@ -100,18 +134,16 @@ class TaskFormHandler {
   ) {
     if (groupData is Map<String, dynamic>) {
       if (groupData['employeeCodes'] is List) {
-        final codes =
-            (groupData['employeeCodes'] as List)
-                .map((e) => e.toString())
-                .toList();
+        final codes = (groupData['employeeCodes'] as List)
+            .map((e) => e.toString())
+            .toList();
         employeeCodes.assignAll(codes);
       }
 
       if (groupData['departmentCodes'] is List) {
-        final codes =
-            (groupData['departmentCodes'] as List)
-                .map((e) => e.toString())
-                .toList();
+        final codes = (groupData['departmentCodes'] as List)
+            .map((e) => e.toString())
+            .toList();
         departmentCodes.assignAll(codes);
       }
     }
@@ -127,6 +159,28 @@ class TaskFormHandler {
         }
       }
     }
+  }
+
+  /// Populate assignees từ TaskDetailModel
+  void _populateAssigneesFromTaskDetail(TaskDetailModel taskData) {
+    // Primary assignees
+    primaryEmployeeCodes.assignAll(taskData.primary.employeeCodes);
+    primaryDepartmentCodes.assignAll(taskData.primary.departmentCodes);
+
+    // Collaborators
+    collabEmployeeCodes.assignAll(taskData.collab.employeeCodes);
+    collabDepartmentCodes.assignAll(taskData.collab.departmentCodes);
+
+    // Followers
+    followEmployeeCodes.assignAll(taskData.follow.employeeCodes);
+    followDepartmentCodes.assignAll(taskData.follow.departmentCodes);
+  }
+
+  /// Populate attachments từ TaskDetailModel
+  void _populateAttachmentsFromTaskDetail(TaskDetailModel taskData) {
+    attachmentFileNames.assignAll(
+      taskData.attachments.map((a) => a.name).toList(),
+    );
   }
 
   /// Set priority từ value

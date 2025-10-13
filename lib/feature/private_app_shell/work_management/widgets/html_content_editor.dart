@@ -40,6 +40,26 @@ class _HtmlContentEditorState extends State<HtmlContentEditor>
   }
 
   @override
+  void didUpdateWidget(HtmlContentEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Nếu initialContent thay đổi, cập nhật lại content
+    if (oldWidget.initialContent != widget.initialContent &&
+        widget.initialContent != null &&
+        widget.initialContent!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _isDisposed) return;
+        try {
+          controller.setText(widget.initialContent!);
+          print('🔍 HtmlContentEditor: Updated content from didUpdateWidget');
+        } catch (e) {
+          print('🔍 HtmlContentEditor: Error updating content: $e');
+        }
+      });
+    }
+  }
+
+  @override
   void dispose() {
     // Đánh dấu đã dispose để tránh gọi controller sau khi dispose
     _isDisposed = true;

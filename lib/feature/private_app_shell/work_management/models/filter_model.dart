@@ -21,10 +21,10 @@ class FilterModel {
     String? dueDate,
   }) {
     return FilterModel(
-      status: status ?? this.status,
-      priority: priority ?? this.priority,
-      role: role ?? this.role,
-      dueDate: dueDate ?? this.dueDate,
+      status: status, // Fix: Không dùng ?? để có thể set null
+      priority: priority, // Fix: Không dùng ?? để có thể set null
+      role: role, // Fix: Không dùng ?? để có thể set null
+      dueDate: dueDate, // Fix: Không dùng ?? để có thể set null
     );
   }
 

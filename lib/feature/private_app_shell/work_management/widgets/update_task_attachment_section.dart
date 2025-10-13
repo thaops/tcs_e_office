@@ -12,82 +12,58 @@ class UpdateTaskAttachmentSection extends StatelessWidget {
     return GetBuilder<UpdateTaskController>(
       builder: (c) {
         return Container(
+          padding: const EdgeInsets.only(
+            left: 12,
+            right: 12,
+            top: 4,
+            bottom: 12,
+          ),
+
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           margin: const EdgeInsets.only(bottom: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _label('Tệp đính kèm'),
-                Obx(() {
-                  if (c.attachmentFileNames.isNotEmpty) {
-                    return TextButton(
-                      onPressed: () => c.clearAllAttachments(),
-                      child: const Text(
-                        'Xóa tất cả',
-                        style: TextStyle(color: Colors.red, fontSize: 12),
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                }),
-              ],
-            ),
-            const SizedBox(height: 6),
-            // Nút thêm file
-            GestureDetector(
-              onTap: () => c.pickAttachments(),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFAFAFA),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: const Color(0xFFE8E8E8),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.add_circle_outline,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _label('Tệp đính kèm'),
+                  IconButton(
+                    onPressed: () => c.pickAttachments(),
+                    icon: const Icon(
+                      Icons.attach_file_rounded,
                       color: AppColors.primary,
-                      size: 20,
                     ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Thêm tệp đính kèm',
-                        style: TextStyle(
-                          color: Color(0xFF666666),
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                        ),
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 8),
-            // Danh sách file đã chọn
-            Obx(() {
-              final files = c.attachmentFileNames;
+              const SizedBox(height: 6),
 
-              if (files.isEmpty) {
-                return const SizedBox.shrink();
-              }
+              Obx(() {
+                final files = c.attachmentFileNames;
 
-              return Column(
-                children: files.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final fileName = entry.value;
-                  return _buildFileItem(fileName, index, c);
-                }).toList(),
-              );
-            }),
+                if (files.isEmpty) {
+                  return const Center(child: Text('Chưa có tệp đính kèm'));
+                }
+
+                return Column(
+                  children: files.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final fileName = entry.value;
+                    return _buildFileItem(fileName, index, c);
+                  }).toList(),
+                );
+              }),
             ],
           ),
         );
