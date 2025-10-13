@@ -14,6 +14,7 @@ class TaskDetailController extends GetxController {
   final TaskApiService _taskApiService = TaskApiService();
 
   final RxBool isLoading = false.obs;
+  final RxBool isRefreshing = false.obs; // Thêm state cho refresh mượt mà
   final RxBool isCompleting = false.obs;
   final RxBool isForwarding = false.obs;
   final Rxn<TaskDetailModel> detail = Rxn<TaskDetailModel>();
@@ -49,6 +50,39 @@ class TaskDetailController extends GetxController {
       error.value = 'Đã xảy ra lỗi khi tải chi tiết: $e';
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Refresh data mượt mà sau khi update
+  Future<void> refreshDetail() async {
+    try {
+      // Chỉ hiển thị loading indicator nếu cần thiết
+      isRefreshing.value = true;
+      error.value = '';
+
+      final url = ApiEndpoints.getTaskById(taskId);
+      final response = await _dioApi.get(url);
+      print('🔍 TaskDetailController: Refresh response: ${response.data}');
+
+      // Sử dụng ApiResponseHandler để parse response
+      final result = ApiResponseHandler.handleResponse<TaskDetailModel>(
+        response,
+        TaskDetailModel.fromJson,
+      );
+
+      if (result.isSuccess) {
+        // Cập nhật data với animation mượt mà
+        detail.value = result.data!;
+      } else {
+        error.value = result.error ?? 'Lỗi không xác định';
+      }
+    } catch (e) {
+      error.value = 'Đã xảy ra lỗi khi refresh chi tiết: $e';
+    } finally {
+      // Tắt loading indicator nhanh hơn
+      Future.delayed(const Duration(milliseconds: 100), () {
+        isRefreshing.value = false;
+      });
     }
   }
 

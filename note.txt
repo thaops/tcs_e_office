@@ -13,6 +13,8 @@ Sau đó cấu hình project Flutter bình thường (đảm bảo chạy đư�
 Dùng khi muốn tạo bản build .apk hoặc .aab có khả năng OTA.
 
 shorebird release android
+shorebird release android --artifact=apk
+
 
 
 Kết quả:

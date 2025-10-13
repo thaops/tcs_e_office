@@ -99,11 +99,8 @@ class _UpdateTaskViewState extends State<UpdateTaskView> {
                 UpdateTaskSubmitButton(
                   assignerCode: widget.assignerCode,
                   onSuccess: () async {
-                    if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop(true);
-                    } else {
-                      Get.back(result: true);
-                    }
+                    // Trả về 'updated' để báo hiệu đã có thay đổi
+                    Get.back(result: 'updated');
                   },
                 ),
               ],

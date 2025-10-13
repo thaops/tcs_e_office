@@ -130,8 +130,9 @@ class _TaskDetailViewState extends State<TaskDetailView> {
       }
 
       // Tìm tất cả assignees với ID trùng với user hiện tại (không phân biệt role)
-      final currentUserAssignees =
-          detail.assignees.where((a) => a.id == currentUserId).toList();
+      final currentUserAssignees = detail.assignees
+          .where((a) => a.id == currentUserId)
+          .toList();
 
       print(
         '🔍 Current user assignees: ${currentUserAssignees.map((a) => '${a.id} - ${a.code} - ${a.name} - roleId: ${a.roleId} - status: ${a.statusCode}').toList()}',
@@ -198,13 +199,12 @@ class _TaskDetailViewState extends State<TaskDetailView> {
           }
 
           // Sử dụng dueDate hiện tại của task hoặc mặc định
-          final dueDate =
-              detail.dueDate.isNotEmpty
-                  ? detail.dueDate
-                  : DateTime.now()
-                      .add(const Duration(days: 7))
-                      .toIso8601String()
-                      .split('T')[0];
+          final dueDate = detail.dueDate.isNotEmpty
+              ? detail.dueDate
+              : DateTime.now()
+                    .add(const Duration(days: 7))
+                    .toIso8601String()
+                    .split('T')[0];
 
           final success = await c.forwardTask(
             selectedEmployeeCodes: selectedEmployeeCodes,
@@ -265,12 +265,15 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                 ),
               );
 
-              // Nếu cập nhật thành công, refresh data
-              if (result == true) {
+              // Chỉ refresh khi thực sự có thay đổi (result == 'updated')
+              if (result == 'updated') {
                 print(
-                  '🔍 TaskDetailView: Update successful, refreshing data...',
+                  '🔍 TaskDetailView: Task was updated, refreshing data...',
                 );
-                c.fetchDetail();
+                // Refresh ngay lập tức để tránh giật
+                c.refreshDetail();
+              } else {
+                print('🔍 TaskDetailView: No changes made, skipping refresh');
               }
             }
           },
@@ -311,83 +314,105 @@ class _TaskDetailViewState extends State<TaskDetailView> {
               );
             }
 
-            return Column(
+            return Stack(
               children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Header card
-                        TaskHeaderCard(detail: detail),
-                        // Content HTML (nội dung công việc)
-                        TaskDetailSection(
-                          child: ContentSection(content: detail.content),
-                        ),
-                        // Attachments
-                        TaskDetailSection(
-                          child: AttachmentsSection(
-                            attachments: detail.attachments,
-                          ),
-                        ),
+                Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Header card
+                            TaskHeaderCard(detail: detail),
+                            // Content HTML (nội dung công việc)
+                            TaskDetailSection(
+                              child: ContentSection(content: detail.content),
+                            ),
+                            // Attachments
+                            TaskDetailSection(
+                              child: AttachmentsSection(
+                                attachments: detail.attachments,
+                              ),
+                            ),
 
-                        // Comments
-                        TaskDetailSection(
-                          child: CommentsSection(
-                            comments: detail.comments,
-                            documentId: detail.id,
-                            onAddComment: () {
-                              // Refresh comments after adding
-                              c.fetchDetail();
-                            },
-                          ),
-                        ),
+                            // Comments
+                            TaskDetailSection(
+                              child: CommentsSection(
+                                comments: detail.comments,
+                                documentId: detail.id,
+                                onAddComment: () {
+                                  // Refresh comments after adding
+                                  c.fetchDetail();
+                                },
+                              ),
+                            ),
 
-                        // Assignees
-                        TaskDetailSection(
-                          child: AssigneesSection(assignees: detail.assignees),
+                            // Assignees
+                            TaskDetailSection(
+                              child: AssigneesSection(
+                                assignees: detail.assignees,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+
+                    // Action bar - chỉ hiển thị khi task chưa hoàn thành, không quá hạn, không phải "việc tôi giao" và user chưa hoàn thành trong bất kỳ role nào
+                    if (!_isTaskCompleted(detail) &&
+                        !_isTaskOverdue(detail) && // Không hiển thị khi quá hạn
+                        widget.tabType != 'assigned_by_me')
+                      FutureBuilder<bool>(
+                        future: _isCurrentUserCompleted(detail),
+                        builder: (context, snapshot) {
+                          final isCurrentUserCompleted = snapshot.data ?? false;
+
+                          // Ẩn action bar nếu user hiện tại đã hoàn thành trong bất kỳ role nào (xử lý chính, phối hợp, theo dõi)
+                          if (isCurrentUserCompleted) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return Obx(
+                            () => TaskActionBar(
+                              isCompleting: c.isCompleting.value,
+                              isForwarding: c.isForwarding.value,
+                              onTransfer: () => _handleForwardTask(c),
+                              onComplete: () async {
+                                final success = await c.completeTask();
+                                if (success) {
+                                  // Hiển thị success dialog khi hoàn thành task thành công
+                                  await SuccessDialogWithBackdrop.show(
+                                    context: context,
+                                    title: 'Thành công',
+                                    message: 'Hoàn thành công việc thành công',
+                                    buttonText: 'Đóng',
+                                    autoClose: true,
+                                    autoCloseDelay: const Duration(seconds: 2),
+                                  );
+                                }
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                  ],
                 ),
-
-                // Action bar - chỉ hiển thị khi task chưa hoàn thành, không quá hạn, không phải "việc tôi giao" và user chưa hoàn thành trong bất kỳ role nào
-                if (!_isTaskCompleted(detail) &&
-                    !_isTaskOverdue(detail) && // Không hiển thị khi quá hạn
-                    widget.tabType != 'assigned_by_me')
-                  FutureBuilder<bool>(
-                    future: _isCurrentUserCompleted(detail),
-                    builder: (context, snapshot) {
-                      final isCurrentUserCompleted = snapshot.data ?? false;
-
-                      // Ẩn action bar nếu user hiện tại đã hoàn thành trong bất kỳ role nào (xử lý chính, phối hợp, theo dõi)
-                      if (isCurrentUserCompleted) {
-                        return const SizedBox.shrink();
-                      }
-
-                      return Obx(
-                        () => TaskActionBar(
-                          isCompleting: c.isCompleting.value,
-                          isForwarding: c.isForwarding.value,
-                          onTransfer: () => _handleForwardTask(c),
-                          onComplete: () async {
-                            final success = await c.completeTask();
-                            if (success) {
-                              // Hiển thị success dialog khi hoàn thành task thành công
-                              await SuccessDialogWithBackdrop.show(
-                                context: context,
-                                title: 'Thành công',
-                                message: 'Hoàn thành công việc thành công',
-                                buttonText: 'Đóng',
-                                autoClose: true,
-                                autoCloseDelay: const Duration(seconds: 2),
-                              );
-                            }
-                          },
+                // Loading indicator mượt mà cho refresh
+                if (c.isRefreshing.value)
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 3,
+                      child: LinearProgressIndicator(
+                        backgroundColor: Colors.transparent,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primary,
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
               ],
             );

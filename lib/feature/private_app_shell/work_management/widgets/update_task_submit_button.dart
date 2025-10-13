@@ -79,15 +79,18 @@ class UpdateTaskSubmitButton extends StatelessWidget {
     final success = await c.submit(assignerCode: assignerCode);
 
     if (success) {
-      // Hiển thị success dialog khi cập nhật task thành công
+      // Hiển thị success dialog khi cập nhật task thành công với animation mượt mà
       await SuccessDialogWithBackdrop.show(
         context: context,
         title: 'Thành công',
         message: 'Cập nhật công việc thành công',
         buttonText: 'Đóng',
         autoClose: true,
-        autoCloseDelay: const Duration(seconds: 2),
+        autoCloseDelay: const Duration(
+          milliseconds: 1000,
+        ), // Giảm thời gian hiển thị để tránh giật
         onClose: () {
+          // Gọi onSuccess ngay lập tức để tránh giật
           onSuccess?.call();
         },
       );

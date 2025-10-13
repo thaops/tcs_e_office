@@ -109,13 +109,17 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: Color(0xFF333333),
+                    ),
                   ),
                 ),
                 Obx(() {
@@ -125,8 +129,8 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                   if (totalCount == 0) return const SizedBox.shrink();
                   return Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
+                      horizontal: 10,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.primaryOpacity,
@@ -146,8 +150,9 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                 IconButton(
                   onPressed: onAdd,
                   icon: const Icon(
-                    Icons.person_outline,
+                    Icons.person_add_alt_1_outlined,
                     color: Color(0xFF006884),
+                    size: 20,
                   ),
                 ),
               ],
@@ -173,6 +178,7 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                       Icon(
                         Icons.person_add_alt_1_outlined,
                         color: AppColors.textSecondary,
+                        size: 20,
                       ),
                       const SizedBox(width: 12),
                       const Expanded(
@@ -180,7 +186,6 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                           'Chọn người thực hiện',
                           style: TextStyle(
                             color: Color(0xFF666666),
-                            fontWeight: FontWeight.w500,
                             fontSize: 16,
                           ),
                         ),
@@ -207,23 +212,25 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                     ...selectedEmployeeCodes.map((code) {
                       final name = employeeCodeToName[code] ?? code;
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
+                        margin: const EdgeInsets.only(bottom: 6),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.backgroundTab,
+                          color: const Color(0xFFF8F9FA),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFE8E8E8)),
+                          border: Border.all(
+                            color: const Color(0xFFE8E8E8),
+                            width: 1,
+                          ),
                         ),
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
                             CircleAvatar(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
-                              radius: 10,
+                              radius: 12,
                               child: Text(
                                 _initialsFromName(name),
                                 style: const TextStyle(
@@ -232,15 +239,31 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Text(name),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                name,
+                                style: const TextStyle(
+                                  color: Color(0xFF333333),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
                             GestureDetector(
                               onTap: () => selectedEmployeeCodes.remove(code),
-                              child: const Icon(
-                                Icons.close,
-                                size: 16,
-                                color: Colors.grey,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 12,
+                                ),
                               ),
                             ),
                           ],
@@ -251,7 +274,7 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                     ...selectedDepartmentCodes.map((code) {
                       final name = departmentCodeToName[code] ?? code;
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
+                        margin: const EdgeInsets.only(bottom: 6),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 8,
@@ -259,26 +282,44 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.orange.shade50,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFE8E8E8)),
+                          border: Border.all(
+                            color: const Color(0xFFE8E8E8),
+                            width: 1,
+                          ),
                         ),
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
                             CircleAvatar(
                               backgroundColor: Colors.orange,
                               foregroundColor: Colors.white,
-                              radius: 10,
+                              radius: 12,
                               child: const Icon(Icons.business, size: 12),
                             ),
-                            const SizedBox(width: 8),
-                            Text(name),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                name,
+                                style: const TextStyle(
+                                  color: Color(0xFF333333),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
                             GestureDetector(
                               onTap: () => selectedDepartmentCodes.remove(code),
-                              child: const Icon(
-                                Icons.close,
-                                size: 16,
-                                color: Colors.grey,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 12,
+                                ),
                               ),
                             ),
                           ],
