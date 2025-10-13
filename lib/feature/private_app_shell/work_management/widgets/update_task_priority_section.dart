@@ -9,78 +9,96 @@ class UpdateTaskPrioritySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<UpdateTaskController>();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _labelRequired('Mức độ ưu tiên'),
-        const SizedBox(height: 6),
-        Obx(() => _priorityDropdown(c)),
-      ],
-    );
-  }
-
-  Widget _labelRequired(String text) {
-    return RichText(
-      text: TextSpan(
-        text: text,
-        style: const TextStyle(
-          color: Colors.black87,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-        children: const [
-          TextSpan(text: ' *', style: TextStyle(color: Colors.red)),
-        ],
-      ),
-    );
-  }
-
-  Widget _priorityDropdown(UpdateTaskController c) {
-    if (c.priorities.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Text('Đang tải...', style: TextStyle(color: Colors.grey)),
-      );
-    }
-
-    return DropdownButtonFormField<PriorityOption>(
-      value: c.selectedPriority.value,
-      decoration: _inputDecoration(),
-      hint: const Text('Chọn mức độ ưu tiên'),
-      items:
-          c.priorities.map((priority) {
-            return DropdownMenuItem<PriorityOption>(
-              value: priority,
-              child: Text(priority.label),
-            );
-          }).toList(),
-      onChanged: (PriorityOption? newValue) {
-        c.selectedPriority.value = newValue;
+    return GetBuilder<UpdateTaskController>(
+      builder: (c) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _label('Độ khẩn'),
+              const SizedBox(height: 6),
+              // Sử dụng PopupMenuButton để đảm bảo dropdown hiển thị ở dưới
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return PopupMenuButton<PriorityOption>(
+                    initialValue: c.selectedPriority.value,
+                    onSelected: (PriorityOption value) {
+                      c.selectedPriority.value = value;
+                    },
+                    itemBuilder: (BuildContext context) {
+                      return c.priorities.map((PriorityOption option) {
+                        return PopupMenuItem<PriorityOption>(
+                          value: option,
+                          child: Container(
+                            width:
+                                constraints.maxWidth, // Sử dụng width của field
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Text(
+                              option.label,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        );
+                      }).toList();
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFAFAFA),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: const Color(0xFFE8E8E8),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Obx(
+                              () => Text(
+                                c.selectedPriority.value?.label ??
+                                    'Chọn độ khẩn',
+                                style: const TextStyle(
+                                  color: Color(0xFF333333),
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Color(0xFF666666),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Đảm bảo popup hiển thị ở dưới và có cùng width
+                    position: PopupMenuPosition.under,
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    // Đảm bảo dropdown có cùng width với field
+                    constraints: BoxConstraints(
+                      minWidth: constraints.maxWidth, // Sử dụng width của field
+                    ),
+                    offset: const Offset(0, 0), // Không offset để giữ alignment
+                  );
+                },
+              ),
+            ],
+          ),
+        );
       },
     );
   }
 
-  InputDecoration _inputDecoration() {
-    return InputDecoration(
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Colors.grey),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Colors.grey),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Colors.blue),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-    );
+  Widget _label(String text) {
+    return Text(text, style: const TextStyle(fontWeight: FontWeight.w600));
   }
 }

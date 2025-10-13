@@ -40,88 +40,85 @@ class _AttachmentsSectionState extends State<AttachmentsSection> {
         if (_isExpanded)
           widget.attachments.isEmpty
               ? Container(
-                padding: const EdgeInsets.all(16), // Giảm padding
-                child: const Center(
-                  child: Text(
-                    'Chưa có tệp đính kèm',
-                    style: TextStyle(
-                      color: Color(0xFF757575),
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
+                  padding: const EdgeInsets.all(16), // Giảm padding
+                  child: const Center(
+                    child: Text(
+                      'Chưa có tệp đính kèm',
+                      style: TextStyle(
+                        color: Color(0xFF757575),
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ),
-                ),
-              )
+                )
               : Column(
-                children:
-                    widget.attachments.map((f) {
-                      return Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => _handleAttachmentTap(f),
-                          borderRadius: BorderRadius.circular(8),
-                          child: Container(
-                            margin: const EdgeInsets.only(
-                              bottom: 6,
-                            ), // Giảm margin
-                            padding: const EdgeInsets.all(
-                              8,
-                            ), // Giảm padding từ 10 xuống 8
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFAFAFA), // Background nhạt
-                              borderRadius: BorderRadius.circular(
-                                6,
-                              ), // Border radius nhỏ hơn
-                              border: Border.all(
-                                color: const Color(
-                                  0xFFE8E8E8,
-                                ), // Border nhẹ hơn
-                                width: 0.5,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                _getFileIcon(f.type),
-                                const SizedBox(width: 8), // Giảm spacing
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        f.name,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize:
-                                              12, // Thêm font size cho title
-                                          color: Color(0xFF333333),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 3), // Giảm spacing
-                                      Text(
-                                        _formatSize(f.size),
-                                        style: const TextStyle(
-                                          fontSize: 11, // Giảm font size
-                                          color: Color(0xFF757575),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Icon(
-                                  Icons.chevron_right,
-                                  color: Color(0xFF006884),
-                                  size: 18, // Giảm icon size
-                                ),
-                              ],
+                  children: widget.attachments.map((f) {
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _handleAttachmentTap(f),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          margin: const EdgeInsets.only(
+                            bottom: 6,
+                          ), // Giảm margin
+                          padding: const EdgeInsets.all(
+                            8,
+                          ), // Giảm padding từ 10 xuống 8
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFAFAFA), // Background nhạt
+                            borderRadius: BorderRadius.circular(
+                              6,
+                            ), // Border radius nhỏ hơn
+                            border: Border.all(
+                              color: const Color(0xFFE8E8E8), // Border nhẹ hơn
+                              width: 0.5,
                             ),
                           ),
+                          child: Row(
+                            children: [
+                              _getFileIcon(f.type),
+                              const SizedBox(width: 8), // Giảm spacing
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      f.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize:
+                                            12, // Thêm font size cho title
+                                        color: Color(0xFF333333),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3), // Giảm spacing
+                                    Text(
+                                      _formatSize(f.size),
+                                      style: const TextStyle(
+                                        fontSize: 11, // Giảm font size
+                                        color: Color(0xFF757575),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right,
+                                color: Color(0xFF006884),
+                                size: 18, // Giảm icon size
+                              ),
+                            ],
+                          ),
                         ),
-                      );
-                    }).toList(),
-              ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+        const SizedBox(height: 12),
       ],
     );
   }

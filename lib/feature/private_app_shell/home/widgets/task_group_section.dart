@@ -37,21 +37,21 @@ class TaskGroupSection extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Text(
-                  totalCount.toString(),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+              // Container(
+              //   padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+              //   decoration: BoxDecoration(
+              //     color: Colors.white.withOpacity(0.2),
+              //     borderRadius: BorderRadius.circular(10.r),
+              //   ),
+              //   child: Text(
+              //     totalCount.toString(),
+              //     style: TextStyle(
+              //       color: Colors.white,
+              //       fontSize: 12.sp,
+              //       fontWeight: FontWeight.w600,
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),
@@ -60,8 +60,10 @@ class TaskGroupSection extends StatelessWidget {
         if (children.isNotEmpty) ...[
           SizedBox(height: 8.h),
           ...children.map(
-            (child) =>
-                Padding(padding: EdgeInsets.only(bottom: 8.h), child: child),
+            (child) => Padding(
+              padding: EdgeInsets.only(bottom: 8.h),
+              child: child,
+            ),
           ),
         ],
       ],

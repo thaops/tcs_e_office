@@ -54,6 +54,11 @@ class UpdateTaskController extends GetxController {
     selectedPriority.value ??= PriorityOption(value: 3, label: 'Bình thường');
   }
 
+  /// Test method để kiểm tra hiển thị lỗi
+  void testErrorDisplay() {
+    error.value = 'Anh/Chị không thể giao công việc cho chính mình.';
+  }
+
   Future<void> _loadMeta({bool isSearchReset = false}) async {
     // Chỉ set loading = true nếu không phải search reset
     if (!isSearchReset) {
@@ -158,15 +163,15 @@ class UpdateTaskController extends GetxController {
       return false;
     }
 
-    final validEmployeeCodes =
-        primaryEmployeeCodes.where((code) {
-          return allEmployees.any((e) => e.employeeCode == code);
-        }).toList();
+    final validEmployeeCodes = primaryEmployeeCodes.where((code) {
+      return allEmployees.any((e) => e.employeeCode == code);
+    }).toList();
 
     final now = DateTime.now();
     final startLocal = _startOfDayLocal(startDate.value ?? now);
-    final dueLocal =
-        dueDate.value != null ? _startOfDayLocal(dueDate.value!) : null;
+    final dueLocal = dueDate.value != null
+        ? _startOfDayLocal(dueDate.value!)
+        : null;
 
     final updatePayload = {
       if (documentId != null) 'DocumentId': documentId,
@@ -209,6 +214,7 @@ class UpdateTaskController extends GetxController {
         return false;
       }
     } catch (e) {
+      print('Error in update task: $e');
       error.value = e.toString().replaceFirst('Exception: ', '');
       return false;
     } finally {
@@ -225,11 +231,10 @@ class UpdateTaskController extends GetxController {
       );
       if (result != null && result.files.isNotEmpty) {
         final newFileNames = result.files.map((f) => f.name).toList();
-        final newPaths =
-            result.files
-                .where((f) => f.path != null)
-                .map((f) => f.path!)
-                .toList();
+        final newPaths = result.files
+            .where((f) => f.path != null)
+            .map((f) => f.path!)
+            .toList();
 
         attachmentFileNames.addAll(newFileNames);
         attachmentPaths.addAll(newPaths);

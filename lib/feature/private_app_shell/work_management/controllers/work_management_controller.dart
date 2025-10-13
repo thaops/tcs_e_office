@@ -79,9 +79,10 @@ class WorkManagementController extends GetxController {
         pageIndex: currentPageByMe.value,
         pageSize: pageSize,
         type: 2,
-        keyword:
-            searchQueryByMe.value.isNotEmpty ? searchQueryByMe.value : null,
-        startDate: filterByMe.value.startDate,
+        keyword: searchQueryByMe.value.isNotEmpty
+            ? searchQueryByMe.value
+            : null,
+        // startDate: filterByMe.value.startDate,
         dueDate: filterByMe.value.dueDate,
       );
 
@@ -125,9 +126,10 @@ class WorkManagementController extends GetxController {
         pageIndex: currentPageToMe.value,
         pageSize: pageSize,
         type: 1, // Việc giao đến tôi
-        keyword:
-            searchQueryToMe.value.isNotEmpty ? searchQueryToMe.value : null,
-        startDate: filterToMe.value.startDate,
+        keyword: searchQueryToMe.value.isNotEmpty
+            ? searchQueryToMe.value
+            : null,
+        // startDate: filterToMe.value.startDate,
         dueDate: filterToMe.value.dueDate,
       );
 
@@ -332,7 +334,7 @@ class WorkManagementController extends GetxController {
     if (currentTab.value == 0) {
       filterByMe.value = newFilter;
       // Nếu có date filter, reload data từ server
-      if (newFilter.startDate != null || newFilter.dueDate != null) {
+      if (newFilter.dueDate != null) {
         loadTasksByMe(refresh: true);
       } else {
         _applyFilterByMe();
@@ -340,7 +342,7 @@ class WorkManagementController extends GetxController {
     } else {
       filterToMe.value = newFilter;
       // Nếu có date filter, reload data từ server
-      if (newFilter.startDate != null || newFilter.dueDate != null) {
+      if (newFilter.dueDate != null) {
         loadTasksToMe(refresh: true);
       } else {
         _applyFilterToMe();
@@ -354,7 +356,7 @@ class WorkManagementController extends GetxController {
       // Áp dụng cho tab "Việc tôi giao"
       filterByMe.value = newFilter;
       // Nếu có date filter, reload data từ server
-      if (newFilter.startDate != null || newFilter.dueDate != null) {
+      if (newFilter.dueDate != null) {
         loadTasksByMe(refresh: true);
       } else {
         _applyFilterByMe();
@@ -363,7 +365,7 @@ class WorkManagementController extends GetxController {
       // Áp dụng cho tab "Việc giao đến tôi"
       filterToMe.value = newFilter;
       // Nếu có date filter, reload data từ server
-      if (newFilter.startDate != null || newFilter.dueDate != null) {
+      if (newFilter.dueDate != null) {
         loadTasksToMe(refresh: true);
       } else {
         _applyFilterToMe();
@@ -374,13 +376,23 @@ class WorkManagementController extends GetxController {
   // Reset filter cho tab hiện tại
   void resetFilter() {
     if (currentTab.value == 0) {
-      // Reset filter về empty state
-      filterByMe.value = FilterModel.empty();
+      // Reset filter về empty state - force tất cả về null
+      filterByMe.value = FilterModel(
+        status: null,
+        priority: null,
+        role: null,
+        dueDate: null,
+      );
       // Reload data từ server với filter empty
       _loadTasksByMeWithoutFilter(refresh: true);
     } else {
-      // Reset filter về empty state
-      filterToMe.value = FilterModel.empty();
+      // Reset filter về empty state - force tất cả về null
+      filterToMe.value = FilterModel(
+        status: null,
+        priority: null,
+        role: null,
+        dueDate: null,
+      );
       // Reload data từ server với filter empty
       _loadTasksToMeWithoutFilter(refresh: true);
     }
@@ -400,8 +412,9 @@ class WorkManagementController extends GetxController {
         pageIndex: currentPageByMe.value,
         pageSize: pageSize,
         type: 2, // Việc tôi giao
-        keyword:
-            searchQueryByMe.value.isNotEmpty ? searchQueryByMe.value : null,
+        keyword: searchQueryByMe.value.isNotEmpty
+            ? searchQueryByMe.value
+            : null,
         startDate: null, // Không có date filter
         dueDate: null, // Không có date filter
       );
@@ -452,8 +465,9 @@ class WorkManagementController extends GetxController {
         pageIndex: currentPageToMe.value,
         pageSize: pageSize,
         type: 1, // Việc giao đến tôi
-        keyword:
-            searchQueryToMe.value.isNotEmpty ? searchQueryToMe.value : null,
+        keyword: searchQueryToMe.value.isNotEmpty
+            ? searchQueryToMe.value
+            : null,
         startDate: null, // Không có date filter
         dueDate: null, // Không có date filter
       );
@@ -495,8 +509,8 @@ class WorkManagementController extends GetxController {
     return currentTab.value == 0 ? filterByMe.value : filterToMe.value;
   }
 
-  // Kiểm tra có filter active không
+  // Kiểm tra có filter active không - CHỈ cho tab hiện tại
   bool get hasActiveFilter {
-    return filterByMe.value.hasActiveFilter || filterToMe.value.hasActiveFilter;
+    return getCurrentFilter().hasActiveFilter;
   }
 }

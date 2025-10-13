@@ -26,6 +26,22 @@ class TaskSubmitButton extends StatelessWidget {
           color: Colors.white,
           child: Obx(() {
             final isLoading = c.loading.value;
+            final errorMessage = c.error.value;
+
+            // Hiển thị lỗi ngay khi có lỗi (trừ lỗi validate form)
+            if (errorMessage.isNotEmpty &&
+                !errorMessage.contains('Tên việc không được để trống') &&
+                !errorMessage.contains('Nội dung không được để trống')) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                AppDialog.showError(
+                  title: 'Lỗi',
+                  message: errorMessage,
+                  useBackdrop: false,
+                );
+                // Clear error sau khi hiển thị
+                c.error.value = '';
+              });
+            }
 
             return ElevatedButton(
               onPressed: isLoading ? null : () => _handleSubmit(context, c),
@@ -36,25 +52,22 @@ class TaskSubmitButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child:
-                  isLoading
-                      ? const SizedBox(
-                        height: 22,
-                        width: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.6,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                      : const Text(
-                        'Tạo công việc',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
+              child: isLoading
+                  ? const SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.6,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
+                    )
+                  : const Text(
+                      'Tạo công việc',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             );
           }),
         );
@@ -83,19 +96,7 @@ class TaskSubmitButton extends StatelessWidget {
           Get.back(result: true);
         },
       );
-    } else {
-      final err = c.error.value;
-      // Chỉ hiển thị popup nếu lỗi không phải là validate form (đã hiển thị inline)
-      if (err.isNotEmpty &&
-          !err.contains('Tên việc') &&
-          !err.contains('Nội dung') &&
-          !err.contains('công việc')) {
-        await AppDialog.showError(
-          title: 'Lỗi',
-          message: err,
-          useBackdrop: false, // Tắt backdrop để tránh background đen
-        );
-      }
     }
+    // Lỗi đã được xử lý trong build method
   }
 }

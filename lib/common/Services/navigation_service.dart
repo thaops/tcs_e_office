@@ -84,7 +84,7 @@ class NavigationService {
     final endOfDay = DateTime(today.year, today.month, today.day, 23, 59, 59);
     final dueDate = endOfDay.toIso8601String();
 
-    final filter = FilterModel(startDate: startDate, dueDate: dueDate);
+    final filter = FilterModel( dueDate: dueDate);
 
     navigateToWorkManagement(targetTab: targetTab, filter: filter);
   }

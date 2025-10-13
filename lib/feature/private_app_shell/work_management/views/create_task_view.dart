@@ -66,6 +66,7 @@ class _CreateTaskViewState extends State<CreateTaskView> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
+                      spacing: 6,
                       children: [
                         const TaskTitleSection(),
                         const TaskPrioritySection(),
@@ -73,6 +74,7 @@ class _CreateTaskViewState extends State<CreateTaskView> {
                         const TaskAttachmentSection(),
                         const TaskAssigneeSection(),
                         const SizedBox(height: 16), // Thêm spacing cuối
+                  
                       ],
                     ),
                   ),

@@ -101,7 +101,7 @@ class HomeTab extends StatelessWidget {
                               count: controller.assignedToMe?.latedCount ?? 0,
                               countColor: const Color(0xFFFF9800),
                               onTap: () {
-                                // Navigate đến tab "Việc giao đến tôi" (index 1) với filter "trễ hạn"
+                                // Navigate đến tab "Việc giao đến tôi" (index 1) với filter "trễ hạn" và clear ngày
                                 NavigationService.navigateWithStatusFilter(
                                   targetTab: 1, // Việc giao đến tôi
                                   status: 3, // Trễ hạn
@@ -115,7 +115,7 @@ class HomeTab extends StatelessWidget {
                               count: controller.assignedToMe?.doingCount ?? 0,
                               countColor: const Color(0xFF2196F3),
                               onTap: () {
-                                // Navigate đến tab "Việc giao đến tôi" (index 1) với filter "đang xử lý"
+                                // Navigate đến tab "Việc giao đến tôi" (index 1) với filter "đang xử lý" và clear ngày
                                 NavigationService.navigateWithDoingFilter(
                                   targetTab: 1, // Việc giao đến tôi
                                 );
@@ -151,7 +151,7 @@ class HomeTab extends StatelessWidget {
                               count: controller.assignedByMe?.latedCount ?? 0,
                               countColor: const Color(0xFFFF9800),
                               onTap: () {
-                                // Navigate đến tab "Việc tôi giao" (index 0) với filter "trễ hạn"
+                                // Navigate đến tab "Việc tôi giao" (index 0) với filter "trễ hạn" và clear ngày
                                 NavigationService.navigateWithStatusFilter(
                                   targetTab: 0, // Việc tôi giao
                                   status: 3, // Trễ hạn
@@ -165,7 +165,7 @@ class HomeTab extends StatelessWidget {
                               count: controller.assignedByMe?.doingCount ?? 0,
                               countColor: const Color(0xFF2196F3),
                               onTap: () {
-                                // Navigate đến tab "Việc tôi giao" (index 0) với filter "đang xử lý"
+                                // Navigate đến tab "Việc tôi giao" (index 0) với filter "đang xử lý" và clear ngày
                                 NavigationService.navigateWithDoingFilter(
                                   targetTab: 0, // Việc tôi giao
                                 );

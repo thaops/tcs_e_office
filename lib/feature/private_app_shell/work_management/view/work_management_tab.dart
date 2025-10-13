@@ -56,17 +56,16 @@ class _WorkManagementTabState extends State<WorkManagementTab>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder:
-          (context) => FilterBottomSheet(
-            currentFilter: _controller.getCurrentFilter(),
-            onApplyFilter: (filter) {
-              _controller.applyFilter(filter);
-            },
-            onResetFilter: () {
-              _controller.resetFilter();
-            },
-            currentTab: _controller.currentTab.value,
-          ),
+      builder: (context) => FilterBottomSheet(
+        currentFilter: _controller.getCurrentFilter(),
+        onApplyFilter: (filter) {
+          _controller.applyFilter(filter);
+        },
+        onResetFilter: () {
+          _controller.resetFilter();
+        },
+        currentTab: _controller.currentTab.value,
+      ),
     );
   }
 
@@ -198,26 +197,21 @@ class _WorkManagementTabState extends State<WorkManagementTab>
                     child: Obx(() {
                       // Xác định controller và search query dựa trên tab hiện tại
                       final isTabByMe = _controller.currentTab.value == 0;
-                      final searchQuery =
-                          isTabByMe
-                              ? _controller.searchQueryByMe.value
-                              : _controller.searchQueryToMe.value;
-                      final isLoading =
-                          isTabByMe
-                              ? _controller.isLoadingByMe.value
-                              : _controller.isLoadingToMe.value;
-                      final searchController =
-                          isTabByMe
-                              ? _controller.searchControllerByMe
-                              : _controller.searchControllerToMe;
-                      final onSearchChanged =
-                          isTabByMe
-                              ? _controller.onSearchChangedByMe
-                              : _controller.onSearchChangedToMe;
-                      final clearSearch =
-                          isTabByMe
-                              ? _controller.clearSearchByMe
-                              : _controller.clearSearchToMe;
+                      final searchQuery = isTabByMe
+                          ? _controller.searchQueryByMe.value
+                          : _controller.searchQueryToMe.value;
+                      final isLoading = isTabByMe
+                          ? _controller.isLoadingByMe.value
+                          : _controller.isLoadingToMe.value;
+                      final searchController = isTabByMe
+                          ? _controller.searchControllerByMe
+                          : _controller.searchControllerToMe;
+                      final onSearchChanged = isTabByMe
+                          ? _controller.onSearchChangedByMe
+                          : _controller.onSearchChangedToMe;
+                      final clearSearch = isTabByMe
+                          ? _controller.clearSearchByMe
+                          : _controller.clearSearchToMe;
 
                       return TextField(
                         controller: searchController,
@@ -229,51 +223,45 @@ class _WorkManagementTabState extends State<WorkManagementTab>
                         decoration: InputDecoration(
                           hintText: 'Nhập tên công việc…',
                           hintStyle: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                           ),
-                          prefixIcon:
-                              searchQuery.isNotEmpty && isLoading
-                                  ? SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 1.5,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              Theme.of(
-                                                context,
-                                              ).colorScheme.primary,
-                                            ),
+                          prefixIcon: searchQuery.isNotEmpty && isLoading
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Theme.of(context).colorScheme.primary,
                                       ),
                                     ),
-                                  )
-                                  : Icon(
-                                    Icons.search,
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.search,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                  size: 18,
+                                ),
+                          suffixIcon: searchQuery.isNotEmpty && !isLoading
+                              ? IconButton(
+                                  onPressed: clearSearch,
+                                  icon: Icon(
+                                    Icons.clear,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                     size: 18,
                                   ),
-                          suffixIcon:
-                              searchQuery.isNotEmpty && !isLoading
-                                  ? IconButton(
-                                    onPressed: clearSearch,
-                                    icon: Icon(
-                                      Icons.clear,
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                      size: 18,
-                                    ),
-                                  )
-                                  : null,
+                                )
+                              : null,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(6),
                             borderSide: BorderSide(
@@ -323,12 +311,9 @@ class _WorkManagementTabState extends State<WorkManagementTab>
                         onPressed: _showFilterBottomSheet,
                         icon: Icon(
                           Icons.filter_list,
-                          color:
-                              _controller.getCurrentFilter().hasActiveFilter
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
+                          color: _controller.getCurrentFilter().hasActiveFilter
+                              ? AppColors.primary
+                              : AppColors.black,
                           size: 24,
                         ),
                       ),

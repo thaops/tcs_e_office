@@ -84,6 +84,7 @@ class _UpdateTaskViewState extends State<UpdateTaskView> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
+                      spacing: 6,
                       children: [
                         const UpdateTaskTitleSection(),
                         const UpdateTaskPrioritySection(),

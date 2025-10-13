@@ -2,17 +2,10 @@ class FilterModel {
   final int? status; // Trạng thái công việc
   final int? priority; // Mức độ ưu tiên
   final int? role; // Vai trò
-  final String? startDate; // Ngày bắt đầu (format: yyyy-MM-dd)
   final String?
   dueDate; // Ngày kết thúc (format: yyyy-MM-ddTHH:mm:ss.000+07:00)
 
-  FilterModel({
-    this.status,
-    this.priority,
-    this.role,
-    this.startDate,
-    this.dueDate,
-  });
+  FilterModel({this.status, this.priority, this.role, this.dueDate});
 
   // Tạo filter rỗng
   factory FilterModel.empty() {
@@ -31,7 +24,6 @@ class FilterModel {
       status: status ?? this.status,
       priority: priority ?? this.priority,
       role: role ?? this.role,
-      startDate: startDate ?? this.startDate,
       dueDate: dueDate ?? this.dueDate,
     );
   }
@@ -42,7 +34,7 @@ class FilterModel {
       status: other.status,
       priority: other.priority,
       role: other.role,
-      startDate: other.startDate,
+      // startDate: other.startDate,
       dueDate: other.dueDate,
     );
   }
@@ -52,7 +44,6 @@ class FilterModel {
     return status != null ||
         priority != null ||
         role != null ||
-        startDate != null ||
         dueDate != null;
   }
 
@@ -61,7 +52,6 @@ class FilterModel {
     return status != other.status ||
         priority != other.priority ||
         role != other.role ||
-        startDate != other.startDate ||
         dueDate != other.dueDate;
   }
 

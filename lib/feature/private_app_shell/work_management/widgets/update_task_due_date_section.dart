@@ -8,117 +8,83 @@ class UpdateTaskDueDateSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Get.find<UpdateTaskController>();
+    return GetBuilder<UpdateTaskController>(
+      builder: (c) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _label('Ngày hết hạn'),
+              const SizedBox(height: 6),
+              InkWell(
+                onTap: () async {
+                  final now = DateTime.now();
+                  final startDate = c.startDate.value ?? now;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _labelRequired('Ngày bắt đầu'),
-        const SizedBox(height: 6),
-        Obx(
-          () => _dateField(
-            context,
-            'Chọn ngày bắt đầu',
-            c.startDate.value,
-            (date) => c.startDate.value = date,
-            isDueDate: false,
-          ),
-        ),
-        const SizedBox(height: 16),
-        _labelRequired('Ngày hết hạn'),
-        const SizedBox(height: 6),
-        Obx(
-          () => _dateField(
-            context,
-            'Chọn ngày hết hạn',
-            c.dueDate.value,
-            (date) => c.dueDate.value = date,
-            isDueDate: true,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _labelRequired(String text) {
-    return RichText(
-      text: TextSpan(
-        text: text,
-        style: const TextStyle(
-          color: Colors.black87,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-        children: const [
-          TextSpan(text: ' *', style: TextStyle(color: Colors.red)),
-        ],
-      ),
-    );
-  }
-
-  Widget _dateField(
-    BuildContext context,
-    String hintText,
-    DateTime? value,
-    Function(DateTime?) onChanged, {
-    bool isDueDate = false,
-  }) {
-    return InkWell(
-      onTap: () => _selectDate(context, value, onChanged, isDueDate: isDueDate),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.calendar_today, size: 20, color: Colors.grey),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                value != null
-                    ? '${value.day}/${value.month}/${value.year}'
-                    : hintText,
-                style: TextStyle(
-                  color: value != null ? Colors.black87 : Colors.grey,
-                  fontSize: 14,
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: c.dueDate.value ?? now,
+                    firstDate: startDate, // Ngày hết hạn phải >= ngày bắt đầu
+                    lastDate: DateTime(now.year + 3),
+                  );
+                  if (picked != null) c.dueDate.value = picked;
+                },
+                child: Obx(
+                  () => InputDecorator(
+                    decoration: _inputDecoration().copyWith(
+                      suffixIcon: const Icon(Icons.calendar_today_outlined),
+                    ),
+                    child: Text(
+                      _formatDateWithPlaceholder(
+                        c.dueDate.value,
+                        placeholder: 'Chọn ngày hết hạn xử lý công việc',
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _label(String text) {
+    return Text(text, style: const TextStyle(fontWeight: FontWeight.w600));
+  }
+
+  InputDecoration _inputDecoration() {
+    return const InputDecoration(
+      filled: true,
+      fillColor: Color(0xFFFAFAFA),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderSide: BorderSide(color: Color(0xFFE8E8E8), width: 1),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderSide: BorderSide(color: Color(0xFFE8E8E8), width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderSide: BorderSide(color: Color(0xFF006884), width: 1.5),
       ),
     );
   }
 
-  Future<void> _selectDate(
-    BuildContext context,
-    DateTime? initialDate,
-    Function(DateTime?) onChanged, {
-    bool isDueDate = false,
-  }) async {
-    final c = Get.find<UpdateTaskController>();
+  String _formatDate(DateTime? d) {
+    if (d == null) return 'Ngày bắt đầu hạn dự kiến';
+    return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+  }
 
-    // Xác định firstDate dựa trên loại ngày
-    DateTime firstDate;
-    if (isDueDate) {
-      // Nếu chọn ngày hết hạn, firstDate phải >= ngày bắt đầu
-      firstDate = c.startDate.value ?? DateTime.now();
-    } else {
-      // Nếu chọn ngày bắt đầu, có thể chọn từ 1 năm trước
-      firstDate = DateTime.now().subtract(const Duration(days: 365));
-    }
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate ?? DateTime.now(),
-      firstDate: firstDate,
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-
-    if (picked != null && picked != initialDate) {
-      onChanged(picked);
-    }
+  String _formatDateWithPlaceholder(
+    DateTime? d, {
+    required String placeholder,
+  }) {
+    if (d == null) return placeholder;
+    return _formatDate(d);
   }
 }

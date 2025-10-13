@@ -73,3 +73,9 @@ Lưu ý:
 iOS patch hoạt động tương tự Android.
 
 OTA chỉ chạy khi app được build từ shorebird release.
+
+// iOS  
+sdk: ^3.7.2
+// android 
+environment:
+  sdk: ^3.8.0

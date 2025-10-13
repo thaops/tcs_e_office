@@ -51,6 +51,11 @@ class CreateTaskController extends GetxController {
     selectedPriority.value ??= PriorityOption(value: 3, label: 'Bình thường');
   }
 
+  /// Test method để kiểm tra hiển thị lỗi
+  void testErrorDisplay() {
+    error.value = 'Anh/Chị không thể giao công việc cho chính mình.';
+  }
+
   Future<void> _loadMeta({bool isSearchReset = false}) async {
     // Chỉ set loading = true nếu không phải search reset
     if (!isSearchReset) {
@@ -146,17 +151,16 @@ class CreateTaskController extends GetxController {
     if (content.isEmpty) return content;
 
     // Loại bỏ các ký tự đặc biệt có thể gây lỗi database
-    String sanitized =
-        content
-            .replaceAll(
-              RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'),
-              '',
-            ) // Control characters
-            .replaceAll(
-              RegExp(r'[\u0000-\u001F\u007F-\u009F]'),
-              '',
-            ) // Unicode control characters
-            .trim();
+    String sanitized = content
+        .replaceAll(
+          RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'),
+          '',
+        ) // Control characters
+        .replaceAll(
+          RegExp(r'[\u0000-\u001F\u007F-\u009F]'),
+          '',
+        ) // Unicode control characters
+        .trim();
 
     // Đảm bảo HTML hợp lệ
     if (sanitized.isNotEmpty && !sanitized.startsWith('<')) {
@@ -174,16 +178,15 @@ class CreateTaskController extends GetxController {
     String textOnly = htmlContent.replaceAll(RegExp(r'<[^>]*>'), '');
 
     // Loại bỏ các HTML entities và whitespace
-    textOnly =
-        textOnly
-            .replaceAll(RegExp(r'&nbsp;'), ' ')
-            .replaceAll(RegExp(r'&amp;'), '&')
-            .replaceAll(RegExp(r'&lt;'), '<')
-            .replaceAll(RegExp(r'&gt;'), '>')
-            .replaceAll(RegExp(r'&quot;'), '"')
-            .replaceAll(RegExp(r'&#39;'), "'")
-            .replaceAll(RegExp(r'\s+'), ' ') // Nhiều space thành 1 space
-            .trim();
+    textOnly = textOnly
+        .replaceAll(RegExp(r'&nbsp;'), ' ')
+        .replaceAll(RegExp(r'&amp;'), '&')
+        .replaceAll(RegExp(r'&lt;'), '<')
+        .replaceAll(RegExp(r'&gt;'), '>')
+        .replaceAll(RegExp(r'&quot;'), '"')
+        .replaceAll(RegExp(r'&#39;'), "'")
+        .replaceAll(RegExp(r'\s+'), ' ') // Nhiều space thành 1 space
+        .trim();
 
     return textOnly.isNotEmpty;
   }
@@ -213,8 +216,9 @@ class CreateTaskController extends GetxController {
     // DueDate = cuối ngày local (-> 16:59:59Z)
     final now = DateTime.now();
     final startLocal = _startOfDayLocal(startDate.value ?? now);
-    final dueLocal =
-        dueDate.value != null ? _endOfDayLocal(dueDate.value!) : null;
+    final dueLocal = dueDate.value != null
+        ? _endOfDayLocal(dueDate.value!)
+        : null;
 
     final payload = CreateTaskRequestPayload(
       documentId: documentId,
@@ -229,20 +233,18 @@ class CreateTaskController extends GetxController {
         departmentCodes: primaryDepartmentCodes.toList(),
         employeeCodes: primaryEmployeeCodes.toList(),
       ),
-      collab:
-          (collabDepartmentCodes.isEmpty && collabEmployeeCodes.isEmpty)
-              ? null
-              : CreateTaskGroupPayload(
-                departmentCodes: collabDepartmentCodes.toList(),
-                employeeCodes: collabEmployeeCodes.toList(),
-              ),
-      follow:
-          (followDepartmentCodes.isEmpty && followEmployeeCodes.isEmpty)
-              ? null
-              : CreateTaskGroupPayload(
-                departmentCodes: followDepartmentCodes.toList(),
-                employeeCodes: followEmployeeCodes.toList(),
-              ),
+      collab: (collabDepartmentCodes.isEmpty && collabEmployeeCodes.isEmpty)
+          ? null
+          : CreateTaskGroupPayload(
+              departmentCodes: collabDepartmentCodes.toList(),
+              employeeCodes: collabEmployeeCodes.toList(),
+            ),
+      follow: (followDepartmentCodes.isEmpty && followEmployeeCodes.isEmpty)
+          ? null
+          : CreateTaskGroupPayload(
+              departmentCodes: followDepartmentCodes.toList(),
+              employeeCodes: followEmployeeCodes.toList(),
+            ),
     );
 
     print('payload: ${payload.toJson()}');
@@ -261,19 +263,25 @@ class CreateTaskController extends GetxController {
           for (final e in raw.entries) e.key.toString().toLowerCase(): e.value,
         };
       }
-      final status = map?['statuscode'] ?? res.statusCode;
+
+      // Xử lý response từ server
+      final statusCode = map?['statuscode'] ?? res.statusCode;
       final dataOk = map?['data'] == true;
       final serverMessage = (map?['message'] as String?)?.trim();
-      if (status == 200 && dataOk) {
+
+      // Kiểm tra status code và message từ server
+      if (statusCode == 200 && dataOk) {
         success.value = 'Tạo việc thành công';
         return true;
       }
-      error.value =
-          (serverMessage != null && serverMessage.isNotEmpty)
-              ? serverMessage
-              : 'Tạo việc thất bại';
+
+      // Hiển thị message lỗi từ server nếu có
+      error.value = (serverMessage != null && serverMessage.isNotEmpty)
+          ? serverMessage
+          : 'Tạo việc thất bại';
       return false;
     } catch (e) {
+      print('Error in submit: $e');
       if (e is dioLib.DioException) {
         final data = e.response?.data;
         String? serverMessage;
@@ -285,12 +293,11 @@ class CreateTaskController extends GetxController {
           };
           serverMessage = (lower['message'] as String?)?.trim();
         }
-        error.value =
-            (serverMessage != null && serverMessage.isNotEmpty)
-                ? serverMessage
-                : 'Lỗi khi tạo việc';
+        error.value = (serverMessage != null && serverMessage.isNotEmpty)
+            ? serverMessage
+            : 'Lỗi khi tạo việc';
       } else {
-        error.value = 'Lỗi khi tạo việc';
+        error.value = 'Lỗi khi tạo việc: ${e.toString()}';
       }
       return false;
     } finally {
@@ -308,11 +315,10 @@ class CreateTaskController extends GetxController {
       if (result != null && result.files.isNotEmpty) {
         // Thêm file mới vào danh sách hiện có
         final newFileNames = result.files.map((f) => f.name).toList();
-        final newPaths =
-            result.files
-                .where((f) => f.path != null)
-                .map((f) => f.path!)
-                .toList();
+        final newPaths = result.files
+            .where((f) => f.path != null)
+            .map((f) => f.path!)
+            .toList();
 
         attachmentFileNames.addAll(newFileNames);
         attachmentPaths.addAll(newPaths);
