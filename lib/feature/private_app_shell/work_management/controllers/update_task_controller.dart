@@ -135,6 +135,8 @@ class UpdateTaskController extends GetxController {
   }
 
   DateTime _startOfDayLocal(DateTime d) => DateTime(d.year, d.month, d.day);
+  DateTime _endOfDayLocal(DateTime d) =>
+      DateTime(d.year, d.month, d.day, 23, 59);
 
   Future<bool> submit({required String assignerCode}) async {
     if (taskId == null) {
@@ -170,7 +172,7 @@ class UpdateTaskController extends GetxController {
     final now = DateTime.now();
     final startLocal = _startOfDayLocal(startDate.value ?? now);
     final dueLocal = dueDate.value != null
-        ? _startOfDayLocal(dueDate.value!)
+        ? _endOfDayLocal(dueDate.value!)
         : null;
 
     final updatePayload = {

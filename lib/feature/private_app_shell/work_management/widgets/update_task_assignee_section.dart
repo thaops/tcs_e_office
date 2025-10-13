@@ -23,71 +23,70 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
-            _assigneeCard(
-              title: 'Xử lý chính',
-              selectedEmployeeCodes: c.primaryEmployeeCodes,
-              selectedDepartmentCodes: c.primaryDepartmentCodes,
-              controller: c,
-              onAdd:
-                  () => _openAssigneeSelector(
-                    context,
-                    controller: c,
-                    initialSelectedCodes: c.primaryEmployeeCodes.toList(),
-                    excludedEmployeeCodes: [
-                      ...c.collabEmployeeCodes,
-                      ...c.followEmployeeCodes,
-                    ],
-                    onConfirm: (codes) {
-                      // Loại bỏ những người được chọn làm xử lý chính khỏi các role khác
-                      _removeFromOtherRoles(c, codes, 'primary');
-                      c.primaryEmployeeCodes.assignAll(codes);
-                    },
-                  ),
-            ),
-            _assigneeCard(
-              title: 'Phối hợp',
-              selectedEmployeeCodes: c.collabEmployeeCodes,
-              selectedDepartmentCodes: c.collabDepartmentCodes,
-              controller: c,
-              onAdd:
-                  () => _openAssigneeSelector(
-                    context,
-                    controller: c,
-                    initialSelectedCodes: c.collabEmployeeCodes.toList(),
-                    excludedEmployeeCodes: [
-                      ...c.primaryEmployeeCodes,
-                      ...c.followEmployeeCodes,
-                    ],
-                    onConfirm: (codes) {
-                      // Loại bỏ những người được chọn làm phối hợp khỏi các role khác
-                      _removeFromOtherRoles(c, codes, 'collab');
-                      c.collabEmployeeCodes.assignAll(codes);
-                    },
-                  ),
-            ),
-            _assigneeCard(
-              title: 'Theo dõi',
-              selectedEmployeeCodes: c.followEmployeeCodes,
-              selectedDepartmentCodes: c.followDepartmentCodes,
-              controller: c,
-              onAdd:
-                  () => _openAssigneeSelector(
-                    context,
-                    controller: c,
-                    initialSelectedCodes: c.followEmployeeCodes.toList(),
-                    excludedEmployeeCodes: [
-                      ...c.primaryEmployeeCodes,
-                      ...c.collabEmployeeCodes,
-                    ],
-                    onConfirm: (codes) {
-                      // Loại bỏ những người được chọn làm theo dõi khỏi các role khác
-                      _removeFromOtherRoles(c, codes, 'follow');
-                      c.followEmployeeCodes.assignAll(codes);
-                    },
-                  ),
-            ),
-          ],
-        ),
+              _assigneeCard(
+                title: 'Xử lý chính',
+                selectedEmployeeCodes: c.primaryEmployeeCodes,
+                selectedDepartmentCodes: c.primaryDepartmentCodes,
+                controller: c,
+                onAdd: () => _openAssigneeSelector(
+                  context,
+                  controller: c,
+                  initialSelectedCodes: c.primaryEmployeeCodes.toList(),
+                  excludedEmployeeCodes: [
+                    ...c.collabEmployeeCodes,
+                    ...c.followEmployeeCodes,
+                  ],
+                  onConfirm: (codes) {
+                    // Loại bỏ những người được chọn làm xử lý chính khỏi các role khác
+                    _removeFromOtherRoles(c, codes, 'primary');
+                    c.primaryEmployeeCodes.assignAll(codes);
+                  },
+                ),
+              ),
+              const SizedBox(height: 6),
+              _assigneeCard(
+                title: 'Phối hợp',
+                selectedEmployeeCodes: c.collabEmployeeCodes,
+                selectedDepartmentCodes: c.collabDepartmentCodes,
+                controller: c,
+                onAdd: () => _openAssigneeSelector(
+                  context,
+                  controller: c,
+                  initialSelectedCodes: c.collabEmployeeCodes.toList(),
+                  excludedEmployeeCodes: [
+                    ...c.primaryEmployeeCodes,
+                    ...c.followEmployeeCodes,
+                  ],
+                  onConfirm: (codes) {
+                    // Loại bỏ những người được chọn làm phối hợp khỏi các role khác
+                    _removeFromOtherRoles(c, codes, 'collab');
+                    c.collabEmployeeCodes.assignAll(codes);
+                  },
+                ),
+              ),
+              const SizedBox(height: 6),
+              _assigneeCard(
+                title: 'Theo dõi',
+                selectedEmployeeCodes: c.followEmployeeCodes,
+                selectedDepartmentCodes: c.followDepartmentCodes,
+                controller: c,
+                onAdd: () => _openAssigneeSelector(
+                  context,
+                  controller: c,
+                  initialSelectedCodes: c.followEmployeeCodes.toList(),
+                  excludedEmployeeCodes: [
+                    ...c.primaryEmployeeCodes,
+                    ...c.collabEmployeeCodes,
+                  ],
+                  onConfirm: (codes) {
+                    // Loại bỏ những người được chọn làm theo dõi khỏi các role khác
+                    _removeFromOtherRoles(c, codes, 'follow');
+                    c.followEmployeeCodes.assignAll(codes);
+                  },
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -101,7 +100,6 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
     required UpdateTaskController controller,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
         color: const Color(0xFFFAFAFA),
         borderRadius: BorderRadius.circular(10),
@@ -111,17 +109,13 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: Color(0xFF333333),
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
                 Obx(() {
@@ -131,8 +125,8 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                   if (totalCount == 0) return const SizedBox.shrink();
                   return Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+                      horizontal: 8,
+                      vertical: 2,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.primaryOpacity,
@@ -152,9 +146,8 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                 IconButton(
                   onPressed: onAdd,
                   icon: const Icon(
-                    Icons.person_add_alt_1_outlined,
+                    Icons.person_outline,
                     color: Color(0xFF006884),
-                    size: 20,
                   ),
                 ),
               ],
@@ -180,7 +173,6 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                       Icon(
                         Icons.person_add_alt_1_outlined,
                         color: AppColors.textSecondary,
-                        size: 20,
                       ),
                       const SizedBox(width: 12),
                       const Expanded(
@@ -188,6 +180,7 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                           'Chọn người thực hiện',
                           style: TextStyle(
                             color: Color(0xFF666666),
+                            fontWeight: FontWeight.w500,
                             fontSize: 16,
                           ),
                         ),
@@ -214,25 +207,23 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                     ...selectedEmployeeCodes.map((code) {
                       final name = employeeCodeToName[code] ?? code;
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 6),
+                        margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
+                          color: AppColors.backgroundTab,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: const Color(0xFFE8E8E8),
-                            width: 1,
-                          ),
+                          border: Border.all(color: const Color(0xFFE8E8E8)),
                         ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             CircleAvatar(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
-                              radius: 12,
+                              radius: 10,
                               child: Text(
                                 _initialsFromName(name),
                                 style: const TextStyle(
@@ -241,33 +232,15 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                name,
-                                style: const TextStyle(
-                                  color: Color(0xFF333333),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 8),
+                            Text(name),
+                            const SizedBox(width: 8),
                             GestureDetector(
-                              onTap: () {
-                                selectedEmployeeCodes.remove(code);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 12,
-                                ),
+                              onTap: () => selectedEmployeeCodes.remove(code),
+                              child: const Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Colors.grey,
                               ),
                             ),
                           ],
@@ -278,57 +251,34 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                     ...selectedDepartmentCodes.map((code) {
                       final name = departmentCodeToName[code] ?? code;
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 6),
+                        margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
+                          color: Colors.orange.shade50,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: const Color(0xFFE8E8E8),
-                            width: 1,
-                          ),
+                          border: Border.all(color: const Color(0xFFE8E8E8)),
                         ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             CircleAvatar(
                               backgroundColor: Colors.orange,
                               foregroundColor: Colors.white,
-                              radius: 12,
-                              child: const Icon(
-                                Icons.business,
-                                size: 12,
-                              ),
+                              radius: 10,
+                              child: const Icon(Icons.business, size: 12),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                name,
-                                style: const TextStyle(
-                                  color: Color(0xFF333333),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 8),
+                            Text(name),
+                            const SizedBox(width: 8),
                             GestureDetector(
-                              onTap: () {
-                                selectedDepartmentCodes.remove(code);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 12,
-                                ),
+                              onTap: () => selectedDepartmentCodes.remove(code),
+                              child: const Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Colors.grey,
                               ),
                             ),
                           ],
@@ -346,8 +296,11 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
   }
 
   String _initialsFromName(String name) {
-    final parts =
-        name.trim().split(RegExp(r"\s+")).where((p) => p.isNotEmpty).toList();
+    final parts = name
+        .trim()
+        .split(RegExp(r"\s+"))
+        .where((p) => p.isNotEmpty)
+        .toList();
     if (parts.isEmpty) return '?';
     if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
     return (parts.first.substring(0, 1) + parts.last.substring(0, 1))

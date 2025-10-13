@@ -61,12 +61,12 @@ class TaskHeaderCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   _iconText(
-                    Icons.calendar_month_outlined,
+                    Icons.calendar_month_rounded,
                     'Ngày giao việc: ${_formatDate(detail.startDate)}',
                   ),
                   const SizedBox(height: 8),
                   _iconText(
-                    Icons.calendar_month_outlined,
+                    Icons.calendar_month_rounded,
                     'Ngày đến hạn: ${_formatDate(detail.dueDate)}',
                   ),
                 ],

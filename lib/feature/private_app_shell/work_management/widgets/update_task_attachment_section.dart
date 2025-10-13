@@ -16,77 +16,78 @@ class UpdateTaskAttachmentSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _label('Tệp đính kèm'),
-                  Obx(() {
-                    if (c.attachmentFileNames.isNotEmpty) {
-                      return TextButton(
-                        onPressed: () => c.clearAllAttachments(),
-                        child: const Text(
-                          'Xóa tất cả',
-                          style: TextStyle(color: Colors.red, fontSize: 12),
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-                ],
-              ),
-              const SizedBox(height: 6),
-              // Nút thêm file
-              GestureDetector(
-                onTap: () => c.pickAttachments(),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFAFAFA),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: const Color(0xFFE8E8E8),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.add_circle_outline,
-                        color: AppColors.primary,
-                        size: 20,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _label('Tệp đính kèm'),
+                Obx(() {
+                  if (c.attachmentFileNames.isNotEmpty) {
+                    return TextButton(
+                      onPressed: () => c.clearAllAttachments(),
+                      child: const Text(
+                        'Xóa tất cả',
+                        style: TextStyle(color: Colors.red, fontSize: 12),
                       ),
-                      const SizedBox(width: 8),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }),
+              ],
+            ),
+            const SizedBox(height: 6),
+            // Nút thêm file
+            GestureDetector(
+              onTap: () => c.pickAttachments(),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFAFAFA),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: const Color(0xFFE8E8E8),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.add_circle_outline,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                      const SizedBox(width: 12),
                       const Text(
                         'Thêm tệp đính kèm',
                         style: TextStyle(
-                          color: Color(0xFF757575),
+                          color: Color(0xFF666666),
                           fontWeight: FontWeight.w500,
+                          fontSize: 16,
                         ),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              // Danh sách file đã chọn
-              Obx(() {
-                final files = c.attachmentFileNames;
+            ),
+            const SizedBox(height: 8),
+            // Danh sách file đã chọn
+            Obx(() {
+              final files = c.attachmentFileNames;
 
-                if (files.isEmpty) {
-                  return const SizedBox.shrink();
-                }
+              if (files.isEmpty) {
+                return const SizedBox.shrink();
+              }
 
-                return Column(
-                  children: files.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final fileName = entry.value;
-                    return _buildFileItem(fileName, index, c);
-                  }).toList(),
-                );
-              }),
+              return Column(
+                children: files.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final fileName = entry.value;
+                  return _buildFileItem(fileName, index, c);
+                }).toList(),
+              );
+            }),
             ],
           ),
         );
@@ -101,17 +102,17 @@ class UpdateTaskAttachmentSection extends StatelessWidget {
   /// Widget hiển thị từng file với nút xóa
   Widget _buildFileItem(String fileName, int index, UpdateTaskController c) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
       ),
       child: Row(
         children: [
           Icon(_getFileIcon(fileName), color: AppColors.primary, size: 20),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               fileName,
@@ -123,12 +124,12 @@ class UpdateTaskAttachmentSection extends StatelessWidget {
           GestureDetector(
             onTap: () => c.removeAttachment(index),
             child: Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(6),
               decoration: const BoxDecoration(
                 color: Colors.red,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.close, color: Colors.white, size: 16),
+              child: const Icon(Icons.close, color: Colors.white, size: 14),
             ),
           ),
         ],

@@ -40,12 +40,16 @@ class ContentSection extends StatelessWidget {
     if (content == null || content!.isEmpty || content!.trim() == '<p></p>') {
       return const Padding(
         padding: EdgeInsets.all(20),
-        child: Text(
-          'Không có nội dung công việc',
-          style: TextStyle(
-            color: Color(0xFF757575),
-            fontSize: 14,
-            fontStyle: FontStyle.italic,
+        child: SizedBox(
+          width: double.infinity,
+          child: Text(
+            'Không có nội dung công việc',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF757575),
+              fontSize: 14,
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ),
       );
