@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:in_app_update/in_app_update.dart';
 // import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 class OTAUpdateService {
@@ -11,36 +12,34 @@ class OTAUpdateService {
   // final ShorebirdCodePush _shorebirdCodePush = ShorebirdCodePush();
 
   /// Kiểm tra và tải patch OTA nếu có
-  /// Trả về true nếu có update, false nếu không có
   Future<bool> checkAndDownloadUpdate() async {
     try {
       if (kDebugMode) {
         print('🔍 Checking for OTA updates...');
       }
 
-      // TODO: Implement Shorebird v2.0+ API
-      // final isUpdateAvailable = await _shorebirdCodePush
-      //     .isNewPatchAvailableForDownload();
+      // Sử dụng In-App Update thay vì Shorebird
+      final updateInfo = await InAppUpdate.checkForUpdate();
 
-      // if (isUpdateAvailable) {
-      //   if (kDebugMode) {
-      //     print('📦 New patch available, downloading...');
-      //   }
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        if (kDebugMode) {
+          print('📦 New update available, downloading...');
+        }
 
-      //   // Tải patch về
-      //   await _shorebirdCodePush.downloadUpdateIfAvailable();
+        // Tải update về
+        await InAppUpdate.performImmediateUpdate();
 
-      //   if (kDebugMode) {
-      //     print('✅ Patch downloaded successfully');
-      //   }
+        if (kDebugMode) {
+          print('✅ Update downloaded successfully');
+        }
 
-      //   return true;
-      // } else {
+        return true;
+      } else {
         if (kDebugMode) {
           print('✅ App is up to date');
         }
         return false;
-      // }
+      }
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error checking/downloading OTA update: $e');
@@ -50,39 +49,34 @@ class OTAUpdateService {
   }
 
   /// Kiểm tra và tải patch OTA với force restart
-  /// Trả về true nếu có update và đã restart, false nếu không có update
   Future<bool> checkAndDownloadUpdateWithRestart() async {
     try {
       if (kDebugMode) {
         print('🔍 Checking for OTA updates with force restart...');
       }
 
-      // TODO: Implement Shorebird v2.0+ API
-      // final isUpdateAvailable = await _shorebirdCodePush
-      //     .isNewPatchAvailableForDownload();
+      // Sử dụng In-App Update thay vì Shorebird
+      final updateInfo = await InAppUpdate.checkForUpdate();
 
-      // if (isUpdateAvailable) {
-      //   if (kDebugMode) {
-      //     print('📦 New patch available, downloading...');
-      //   }
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        if (kDebugMode) {
+          print('📦 New update available, downloading...');
+        }
 
-      //   // Tải patch về
-      //   await _shorebirdCodePush.downloadUpdateIfAvailable();
+        // Tải update về và restart app
+        await InAppUpdate.performImmediateUpdate();
 
-      //   if (kDebugMode) {
-      //     print('✅ Patch downloaded, force restarting app...');
-      //   }
+        if (kDebugMode) {
+          print('✅ Update downloaded, app will restart automatically');
+        }
 
-      //   // Force restart bằng SystemNavigator.pop()
-      //   await SystemNavigator.pop();
-
-      //   return true;
-      // } else {
+        return true;
+      } else {
         if (kDebugMode) {
           print('✅ App is up to date');
         }
         return false;
-      // }
+      }
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error checking/downloading OTA update: $e');
@@ -109,9 +103,10 @@ class OTAUpdateService {
   /// Kiểm tra xem có patch mới không (không tải)
   Future<bool> isUpdateAvailable() async {
     try {
-      // TODO: Implement Shorebird v2.0+ API
-      // return await _shorebirdCodePush.isNewPatchAvailableForDownload();
-      return false;
+      // Sử dụng In-App Update thay vì Shorebird
+      final updateInfo = await InAppUpdate.checkForUpdate();
+      return updateInfo.updateAvailability ==
+          UpdateAvailability.updateAvailable;
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error checking update availability: $e');
@@ -121,22 +116,20 @@ class OTAUpdateService {
   }
 
   /// Restart app để apply patch (nếu cần)
-  /// Note: Sử dụng SystemNavigator.pop() để force restart
   Future<void> restartAppIfNeeded() async {
     try {
-      // TODO: Implement Shorebird v2.0+ API
-      // final isUpdateAvailable = await _shorebirdCodePush
-      //     .isNewPatchAvailableForDownload();
-      // if (isUpdateAvailable) {
-      //   if (kDebugMode) {
-      //     print('✅ Force restarting app to apply patch...');
-      //   }
-      //   // Force restart để apply patch ngay lập tức
-      //   await SystemNavigator.pop();
-      // }
+      // Sử dụng In-App Update thay vì Shorebird
+      final updateInfo = await InAppUpdate.checkForUpdate();
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        if (kDebugMode) {
+          print('✅ Force restarting app to apply update...');
+        }
+        // Force restart để apply update ngay lập tức
+        await SystemNavigator.pop();
+      }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error checking patch status: $e');
+        print('❌ Error checking update status: $e');
       }
     }
   }

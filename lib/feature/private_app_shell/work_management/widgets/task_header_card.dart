@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import '../models/task_detail_model.dart';
 import 'task_chip.dart';
 import 'task_container.dart';
@@ -44,7 +45,9 @@ class TaskHeaderCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12), // Tăng spacing
+            const SizedBox(height: 6),
+            Divider(color: AppColors.colorBacklog, height: 1),
+            const SizedBox(height: 6), // Tăng spacing
             // Info section với background nhạt
             Column(
               spacing: 2,

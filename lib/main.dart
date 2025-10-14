@@ -13,7 +13,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:shorebird_code_push/shorebird_code_push.dart';
+// import 'package:shorebird_code_push/shorebird_code_push.dart';
 import 'package:tcs_e_office/common/Services/device_udid.dart';
 import 'package:tcs_e_office/common/Services/network_controller.dart';
 import 'package:tcs_e_office/common/share/auth/sign_out_clear.dart';

@@ -21,9 +21,9 @@ class AppTheme {
       inactiveTrackColor: CupertinoColors.systemGrey4,
       thumbColor: CupertinoColors.white,
     ),
-inputDecorationTheme: InputDecorationTheme(
+    inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white, 
+      fillColor: Colors.white,
       contentPadding: const EdgeInsets.all(16),
       hintStyle: TextStyle(
         color: CupertinoColors.systemGrey,
@@ -32,15 +32,24 @@ inputDecorationTheme: InputDecorationTheme(
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: const Color.fromARGB(255, 31, 31, 31), width: 1), // Viền xanh nước biển
+        borderSide: BorderSide(
+          color: const Color.fromARGB(255, 31, 31, 31),
+          width: 1,
+        ), // Viền xanh nước biển
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: const Color.fromARGB(255, 30, 31, 31), width: 1), // Viền xanh nước biển khi không focus
+        borderSide: BorderSide(
+          color: const Color.fromARGB(255, 30, 31, 31),
+          width: 1,
+        ), // Viền xanh nước biển khi không focus
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: const Color.fromARGB(255, 19, 19, 20), width: 1.5), // Viền xanh nước biển khi focus
+        borderSide: BorderSide(
+          color: const Color.fromARGB(255, 19, 19, 20),
+          width: 1.5,
+        ), // Viền xanh nước biển khi focus
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -52,9 +61,7 @@ inputDecorationTheme: InputDecorationTheme(
           fontWeight: FontWeight.w600,
           fontFamily: 'SFPro',
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       ),
     ),
@@ -63,8 +70,7 @@ inputDecorationTheme: InputDecorationTheme(
   // Material Theme for dark mode
   static final darkTheme = ThemeData(
     primaryColor: AppColors.primary,
-    scaffoldBackgroundColor:
-        Colors.white, 
+    scaffoldBackgroundColor: Colors.white,
     brightness: Brightness.dark,
     fontFamily: 'SFPro',
     dividerColor: Colors.transparent,
@@ -90,13 +96,17 @@ inputDecorationTheme: InputDecorationTheme(
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide:
-            BorderSide(color: CupertinoColors.systemGrey5.darkColor, width: 1),
+        borderSide: BorderSide(
+          color: CupertinoColors.systemGrey5.darkColor,
+          width: 1,
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide:
-            BorderSide(color: CupertinoColors.systemGrey5.darkColor, width: 1),
+        borderSide: BorderSide(
+          color: CupertinoColors.systemGrey5.darkColor,
+          width: 1,
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -112,9 +122,7 @@ inputDecorationTheme: InputDecorationTheme(
           fontWeight: FontWeight.w600,
           fontFamily: 'SFPro',
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       ),
     ),
