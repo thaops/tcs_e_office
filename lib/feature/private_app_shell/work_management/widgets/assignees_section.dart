@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/task_detail_model.dart';
 import 'section_header.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
+import 'package:tcs_e_office/common/widgets/empty_state_widget.dart';
 
 class AssigneesSection extends StatefulWidget {
   final List<TaskAssignee> assignees;
@@ -59,61 +60,45 @@ class _AssigneesSectionState extends State<AssigneesSection> {
   }
 
   Widget _assigneeGroup(String title, List<TaskAssignee> assignees) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 12, // Giảm font size
-          ),
-        ),
-        const SizedBox(height: 6), // Giảm spacing
-        if (assignees.isEmpty)
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Container(
-            margin: const EdgeInsets.only(bottom: 6), // Giảm margin
-            padding: const EdgeInsets.all(8), // Giảm padding
-            decoration: BoxDecoration(
-              color: const Color(0xFFFAFAFA), // Background nhạt hơn
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: const Color(0xFFE8E8E8), // Thêm border nhẹ
-                width: 0.5,
+            width: double.infinity,
+            padding: const EdgeInsets.all(8),
+            color: AppColors.primaryOpacity,
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 12, // Giảm font size
               ),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.people_outline,
-                  color: const Color(0xFFBDBDBD),
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Chưa có người thực hiện',
-                  style: TextStyle(
-                    color: const Color(0xFF757575),
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          )
-        else
-          // Hiển thị cây đổ xuống trong group
-          _buildAssigneeTree(assignees),
-      ],
+          ),
+          const SizedBox(height: 6), // Giảm spacing
+          if (assignees.isEmpty)
+            EmptyStatePresets.listEmpty(title: 'Chưa có người thực hiện')
+          else
+            // Hiển thị cây đổ xuống trong group
+            _buildAssigneeTree(assignees),
+        ],
+      ),
     );
   }
 
   /// Xây dựng cây assignees theo dạng đổ xuống
   Widget _buildAssigneeTree(List<TaskAssignee> assignees) {
-    return Column(
-      children:
-          assignees.map<Widget>((assignee) {
-            return _buildAssigneeNode(assignee, 0);
-          }).toList(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Column(
+        children: assignees.map<Widget>((assignee) {
+          return _buildAssigneeNode(assignee, 0);
+        }).toList(),
+      ),
     );
   }
 
@@ -129,14 +114,13 @@ class _AssigneesSectionState extends State<AssigneesSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GestureDetector(
-          onTap:
-              hasChildren
-                  ? () {
-                    setState(() {
-                      _expandedNodes[nodeId] = !isExpanded;
-                    });
-                  }
-                  : null,
+          onTap: hasChildren
+              ? () {
+                  setState(() {
+                    _expandedNodes[nodeId] = !isExpanded;
+                  });
+                }
+              : null,
           child: Container(
             margin: EdgeInsets.only(
               left: level * 16.0, // Giảm indent từ 20 xuống 16
@@ -144,28 +128,24 @@ class _AssigneesSectionState extends State<AssigneesSection> {
             ),
             padding: const EdgeInsets.all(8), // Giảm padding từ 10 xuống 8
             decoration: BoxDecoration(
-              color:
-                  isCompleted
-                      ? AppColors
-                          .primaryOpacity // Màu chính của app cho hoàn thành
-                      : isOverdue
-                      ? Colors.red.withOpacity(
-                        0.1,
-                      ) // Background đỏ nhẹ cho quá hạn
-                      : const Color(
-                        0xFFFAFAFA,
-                      ), // Background nhạt cho các trạng thái khác
+              color: isCompleted
+                  ? AppColors
+                        .primaryOpacity // Màu chính của app cho hoàn thành
+                  : isOverdue
+                  ? Colors.red.withOpacity(0.1) // Background đỏ nhẹ cho quá hạn
+                  : const Color(
+                      0xFFFAFAFA,
+                    ), // Background nhạt cho các trạng thái khác
               borderRadius: BorderRadius.circular(6), // Giảm border radius
               border: Border.all(
-                color:
-                    isCompleted
-                        ? AppColors
-                            .primary // Viền màu chính cho hoàn thành
-                        : isOverdue
-                        ? Colors.red.withOpacity(0.3) // Viền đỏ nhẹ cho quá hạn
-                        : const Color(
-                          0xFFE8E8E8,
-                        ), // Border nhẹ hơn cho các trạng thái khác
+                color: isCompleted
+                    ? AppColors
+                          .primary // Viền màu chính cho hoàn thành
+                    : isOverdue
+                    ? Colors.red.withOpacity(0.3) // Viền đỏ nhẹ cho quá hạn
+                    : const Color(
+                        0xFFE8E8E8,
+                      ), // Border nhẹ hơn cho các trạng thái khác
                 width: 0.5, // Giảm border width
               ),
             ),
@@ -174,15 +154,13 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                 // Icon với màu theo status
                 Icon(
                   hasChildren ? Icons.group : Icons.person_outline,
-                  color:
-                      isCompleted
-                          ? AppColors
-                              .primary // Màu chính cho hoàn thành
-                          : isOverdue
-                          ? Colors
-                              .red // Màu đỏ cho quá hạn
-                          : AppColors
-                              .colorIcon, // Màu xám cho các trạng thái khác
+                  color: isCompleted
+                      ? AppColors
+                            .primary // Màu chính cho hoàn thành
+                      : isOverdue
+                      ? Colors
+                            .red // Màu đỏ cho quá hạn
+                      : AppColors.colorIcon, // Màu xám cho các trạng thái khác
                   size: 20,
                 ),
                 const SizedBox(width: 10),
@@ -196,15 +174,14 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color:
-                              isCompleted
-                                  ? AppColors
-                                      .primary // Màu chính cho hoàn thành
-                                  : isOverdue
-                                  ? Colors
-                                      .red // Màu đỏ cho quá hạn
-                                  : AppColors
-                                      .black, // Màu đen cho các trạng thái khác
+                          color: isCompleted
+                              ? AppColors
+                                    .primary // Màu chính cho hoàn thành
+                              : isOverdue
+                              ? Colors
+                                    .red // Màu đỏ cho quá hạn
+                              : AppColors
+                                    .black, // Màu đen cho các trạng thái khác
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -212,17 +189,16 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                         '${assignee.roleName} • ${assignee.status}',
                         style: TextStyle(
                           fontSize: 12,
-                          color:
-                              isCompleted
-                                  ? AppColors.primary.withOpacity(
-                                    0.7,
-                                  ) // Màu chính nhạt cho hoàn thành
-                                  : isOverdue
-                                  ? Colors.red.withOpacity(
-                                    0.7,
-                                  ) // Màu đỏ nhạt cho quá hạn
-                                  : AppColors
-                                      .colortextGray, // Màu xám cho các trạng thái khác
+                          color: isCompleted
+                              ? AppColors.primary.withOpacity(
+                                  0.7,
+                                ) // Màu chính nhạt cho hoàn thành
+                              : isOverdue
+                              ? Colors.red.withOpacity(
+                                  0.7,
+                                ) // Màu đỏ nhạt cho quá hạn
+                              : AppColors
+                                    .colortextGray, // Màu xám cho các trạng thái khác
                         ),
                       ),
                       if (isCompleted && assignee.completedDate != null) ...[
@@ -255,15 +231,14 @@ class _AssigneesSectionState extends State<AssigneesSection> {
                     isExpanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
-                    color:
-                        isCompleted
-                            ? AppColors
-                                .primary // Màu chính cho hoàn thành
-                            : isOverdue
-                            ? Colors
-                                .red // Màu đỏ cho quá hạn
-                            : AppColors
-                                .colorIcon, // Màu xám cho các trạng thái khác
+                    color: isCompleted
+                        ? AppColors
+                              .primary // Màu chính cho hoàn thành
+                        : isOverdue
+                        ? Colors
+                              .red // Màu đỏ cho quá hạn
+                        : AppColors
+                              .colorIcon, // Màu xám cho các trạng thái khác
                     size: 18,
                   ),
               ],
@@ -273,10 +248,9 @@ class _AssigneesSectionState extends State<AssigneesSection> {
         // Hiển thị children nếu có và đang mở
         if (hasChildren && isExpanded)
           Column(
-            children:
-                assignee.children.map<Widget>((child) {
-                  return _buildAssigneeNode(child, level + 1);
-                }).toList(),
+            children: assignee.children.map<Widget>((child) {
+              return _buildAssigneeNode(child, level + 1);
+            }).toList(),
           ),
       ],
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
+import 'package:tcs_e_office/common/widgets/empty_state_widget.dart';
 import '../controllers/update_task_controller.dart';
 
 /// Widget cho phần đính kèm file (Update version)
@@ -53,7 +54,10 @@ class UpdateTaskAttachmentSection extends StatelessWidget {
                 final files = c.attachmentFileNames;
 
                 if (files.isEmpty) {
-                  return const Center(child: Text('Chưa có tệp đính kèm'));
+                  return EmptyStatePresets.listEmpty(
+                    title: 'Chưa có tệp đính kèm',
+                    onTap: () => c.pickAttachments(),
+                  );
                 }
 
                 return Column(

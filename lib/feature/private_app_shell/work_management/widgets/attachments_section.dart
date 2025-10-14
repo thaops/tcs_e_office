@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:tcs_e_office/common/widgets/empty_state_widget.dart';
 import '../models/task_detail_model.dart';
 import 'image_viewer_dialog.dart';
 import 'section_header.dart';
@@ -39,19 +40,7 @@ class _AttachmentsSectionState extends State<AttachmentsSection> {
         const SizedBox(height: 6), // Chuẩn hóa spacing
         if (_isExpanded)
           widget.attachments.isEmpty
-              ? Container(
-                  padding: const EdgeInsets.all(16), // Giảm padding
-                  child: const Center(
-                    child: Text(
-                      'Chưa có tệp đính kèm',
-                      style: TextStyle(
-                        color: Color(0xFF757575),
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                )
+              ? EmptyStatePresets.listEmpty(title: 'Chưa có tệp đính kèm')
               : Column(
                   children: widget.attachments.map((f) {
                     return Material(

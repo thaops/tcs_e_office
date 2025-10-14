@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
+import 'package:tcs_e_office/common/widgets/empty_state_widget.dart';
 import '../controllers/create_task_controller.dart';
 import '../widget/assignee_selector_bottom_sheet.dart';
 
@@ -26,63 +27,60 @@ class TaskAssigneeSection extends StatelessWidget {
                 title: 'Xử lý chính',
                 selectedCodes: c.primaryEmployeeCodes,
                 controller: c,
-                onAdd:
-                    () => _openAssigneeSelector(
-                      context,
-                      controller: c,
-                      initialSelectedCodes: c.primaryEmployeeCodes.toList(),
-                      excludedEmployeeCodes: [
-                        ...c.collabEmployeeCodes,
-                        ...c.followEmployeeCodes,
-                      ],
-                      onConfirm: (codes) {
-                        // Loại bỏ những người được chọn làm xử lý chính khỏi các role khác
-                        _removeFromOtherRoles(c, codes, 'primary');
-                        c.primaryEmployeeCodes.assignAll(codes);
-                      },
-                    ),
+                onAdd: () => _openAssigneeSelector(
+                  context,
+                  controller: c,
+                  initialSelectedCodes: c.primaryEmployeeCodes.toList(),
+                  excludedEmployeeCodes: [
+                    ...c.collabEmployeeCodes,
+                    ...c.followEmployeeCodes,
+                  ],
+                  onConfirm: (codes) {
+                    // Loại bỏ những người được chọn làm xử lý chính khỏi các role khác
+                    _removeFromOtherRoles(c, codes, 'primary');
+                    c.primaryEmployeeCodes.assignAll(codes);
+                  },
+                ),
               ),
               const SizedBox(height: 6),
               _assigneeCard(
                 title: 'Phối hợp',
                 selectedCodes: c.collabEmployeeCodes,
                 controller: c,
-                onAdd:
-                    () => _openAssigneeSelector(
-                      context,
-                      controller: c,
-                      initialSelectedCodes: c.collabEmployeeCodes.toList(),
-                      excludedEmployeeCodes: [
-                        ...c.primaryEmployeeCodes,
-                        ...c.followEmployeeCodes,
-                      ],
-                      onConfirm: (codes) {
-                        // Loại bỏ những người được chọn làm phối hợp khỏi các role khác
-                        _removeFromOtherRoles(c, codes, 'collab');
-                        c.collabEmployeeCodes.assignAll(codes);
-                      },
-                    ),
+                onAdd: () => _openAssigneeSelector(
+                  context,
+                  controller: c,
+                  initialSelectedCodes: c.collabEmployeeCodes.toList(),
+                  excludedEmployeeCodes: [
+                    ...c.primaryEmployeeCodes,
+                    ...c.followEmployeeCodes,
+                  ],
+                  onConfirm: (codes) {
+                    // Loại bỏ những người được chọn làm phối hợp khỏi các role khác
+                    _removeFromOtherRoles(c, codes, 'collab');
+                    c.collabEmployeeCodes.assignAll(codes);
+                  },
+                ),
               ),
               const SizedBox(height: 6),
               _assigneeCard(
                 title: 'Theo dõi',
                 selectedCodes: c.followEmployeeCodes,
                 controller: c,
-                onAdd:
-                    () => _openAssigneeSelector(
-                      context,
-                      controller: c,
-                      initialSelectedCodes: c.followEmployeeCodes.toList(),
-                      excludedEmployeeCodes: [
-                        ...c.primaryEmployeeCodes,
-                        ...c.collabEmployeeCodes,
-                      ],
-                      onConfirm: (codes) {
-                        // Loại bỏ những người được chọn làm theo dõi khỏi các role khác
-                        _removeFromOtherRoles(c, codes, 'follow');
-                        c.followEmployeeCodes.assignAll(codes);
-                      },
-                    ),
+                onAdd: () => _openAssigneeSelector(
+                  context,
+                  controller: c,
+                  initialSelectedCodes: c.followEmployeeCodes.toList(),
+                  excludedEmployeeCodes: [
+                    ...c.primaryEmployeeCodes,
+                    ...c.collabEmployeeCodes,
+                  ],
+                  onConfirm: (codes) {
+                    // Loại bỏ những người được chọn làm theo dõi khỏi các role khác
+                    _removeFromOtherRoles(c, codes, 'follow');
+                    c.followEmployeeCodes.assignAll(codes);
+                  },
+                ),
               ),
             ],
           ),
@@ -99,24 +97,24 @@ class TaskAssigneeSection extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFA),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+          Container(
+            color: AppColors.primary.withOpacity(0.1),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     title,
                     style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: Color(0xFF333333),
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
@@ -154,43 +152,21 @@ class TaskAssigneeSection extends StatelessWidget {
               ],
             ),
           ),
-          GestureDetector(
-            onTap: onAdd,
-            child: Container(
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
-              ),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: GestureDetector(
+              onTap: onAdd,
               child: Obx(() {
                 if (selectedCodes.isEmpty) {
-                  return Row(
-                    children: [
-                      Icon(
-                        Icons.person_add_alt_1_outlined,
-                        color: AppColors.textSecondary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          'Chọn người thực hiện',
-                          style: TextStyle(
-                            color: Color(0xFF666666),
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
+                  return EmptyStatePresets.listEmpty(onTap: onAdd);
                 }
+
                 // Map mã -> tên nhân viên
                 final codeToName = {
                   for (final e in controller.allEmployees)
                     e.employeeCode: e.employeeName,
                 };
+
                 return Column(
                   children: [
                     ...selectedCodes.map((code) {
@@ -210,35 +186,27 @@ class TaskAssigneeSection extends StatelessWidget {
                           ),
                         ),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CircleAvatar(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              radius: 12,
-                              child: Text(
-                                _initialsFromName(name),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
+                            Column(
+                              spacing: 4,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                name,
-                                style: const TextStyle(
-                                  color: Color(0xFF333333),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                              ],
                             ),
                             const SizedBox(width: 6),
                             GestureDetector(
-                              onTap: () {
-                                selectedCodes.remove(code);
-                              },
+                              onTap: () => selectedCodes.remove(code),
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: const BoxDecoration(
@@ -264,15 +232,6 @@ class TaskAssigneeSection extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _initialsFromName(String name) {
-    final parts =
-        name.trim().split(RegExp(r"\s+")).where((p) => p.isNotEmpty).toList();
-    if (parts.isEmpty) return '?';
-    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
-    return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
-        .toUpperCase();
   }
 
   void _openAssigneeSelector(

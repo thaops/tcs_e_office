@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
+import 'package:tcs_e_office/common/widgets/empty_state_widget.dart';
 import '../controllers/update_task_controller.dart';
 import '../models/task_detail_model.dart';
 import '../widget/assignee_selector_bottom_sheet.dart';
@@ -167,25 +168,7 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                     selectedEmployeeCodes.length +
                     selectedDepartmentCodes.length;
                 if (totalCount == 0) {
-                  return Row(
-                    children: [
-                      Icon(
-                        Icons.person_add_alt_1_outlined,
-                        color: AppColors.textSecondary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          'Chọn người thực hiện',
-                          style: TextStyle(
-                            color: Color(0xFF666666),
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
+                  return EmptyStatePresets.listEmpty(onTap: onAdd);
                 }
 
                 // Map mã -> tên nhân viên và phòng ban

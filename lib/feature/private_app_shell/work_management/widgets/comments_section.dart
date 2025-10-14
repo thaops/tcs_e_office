@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
+import 'package:tcs_e_office/common/widgets/empty_state_widget.dart';
 import '../models/task_detail_model.dart';
 import 'comment_dialog.dart';
 import 'section_header.dart';
@@ -32,18 +33,9 @@ class CommentsSection extends StatelessWidget {
         const SizedBox(height: 6), // Giảm spacing
 
         comments.isEmpty
-            ? Container(
-                padding: const EdgeInsets.all(16), // Giảm padding
-                child: const Center(
-                  child: Text(
-                    'Chưa có thông tin trao đổi',
-                    style: TextStyle(
-                      color: Color(0xFF757575),
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
+            ? EmptyStatePresets.listEmpty(
+                title: 'Chưa có thông tin trao đổi',
+                onTap: () => _showCommentDialog(context),
               )
             : Column(
                 children: comments.asMap().entries.map((entry) {
