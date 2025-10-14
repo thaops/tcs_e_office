@@ -20,33 +20,37 @@ class SplashController extends GetxController {
     _initializeApp();
   }
 
-  /// Khởi tạo app với OTA flow
+  /// Khởi tạo app với FORCE UPDATE flow (silent)
   Future<void> _initializeApp() async {
     try {
-      // Bước 1: Hiển thị splash và bắt đầu check OTA
-      loadingText.value = 'Đang kiểm tra cập nhật...';
+      // Bước 1: BẮT BUỘC check và update OTA (silent)
+      loadingText.value = 'Đang khởi tạo...';
       isCheckingUpdate.value = true;
 
-      // Bước 2: Chạy OTA check song song với minimum splash time
-      final splashTimer = Future.delayed(const Duration(seconds: 2));
-      final otaFuture = _checkOTAUpdate();
+      // Bước 2: Force check và update OTA
+      final updateResult = await _forceCheckAndUpdateSilent();
 
-      // Đợi cả hai hoàn thành
-      await Future.wait([splashTimer, otaFuture]);
+      if (updateResult) {
+        // Có update và đã update xong → App sẽ restart
+        if (kDebugMode) {
+          print('🔄 App will restart after force update');
+        }
+        return;
+      }
 
-      // Bước 3: Kiểm tra authentication và navigate
+      // Bước 3: Không có update → Tiếp tục vào app
       await _checkAuthenticationAndNavigate();
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error in splash initialization: $e');
+        print('❌ Error in force update initialization: $e');
       }
-      // Fallback: navigate to login
+      // Fallback: vẫn vào app (để tránh block user)
       await _navigateToLogin();
     }
   }
 
-  /// Kiểm tra và tải OTA update với auto-restart
-  Future<void> _checkOTAUpdate() async {
+  /// BẮT BUỘC check và update OTA (silent - không hiển thị UI)
+  Future<bool> _forceCheckAndUpdateSilent() async {
     try {
       // Lấy patch number hiện tại
       currentPatchNumber.value = await _otaService.getCurrentPatchNumber();
@@ -55,27 +59,43 @@ class SplashController extends GetxController {
         print('📱 Current patch number: ${currentPatchNumber.value}');
       }
 
-      // Kiểm tra và tải update với auto-restart
-      final hasUpdateResult = await _otaService
-          .checkAndDownloadUpdateWithRestart();
+      // BẮT BUỘC check update (silent)
+      final hasUpdateResult = await _otaService.hasMandatoryUpdateSilent();
       hasUpdate.value = hasUpdateResult;
 
       if (hasUpdateResult) {
         if (kDebugMode) {
-          print('✅ OTA update downloaded and app will restart');
+          print(
+            '🚨 FORCE UPDATE: Update available, performing silent update...',
+          );
         }
-        // App sẽ restart tự động ngay lập tức
+
+        // BẮT BUỘC update (silent)
+        final updateSuccess = await _otaService.forceCheckAndUpdateSilent();
+
+        if (updateSuccess) {
+          if (kDebugMode) {
+            print('✅ FORCE UPDATE: Update completed, app will restart');
+          }
+          return true; // App sẽ restart
+        } else {
+          if (kDebugMode) {
+            print('⚠️ FORCE UPDATE: Update failed, continuing to app');
+          }
+          return false; // Update fail, tiếp tục vào app
+        }
       } else {
-        loadingText.value = 'Ứng dụng đã cập nhật';
         if (kDebugMode) {
-          print('✅ App is up to date');
+          print('✅ FORCE UPDATE: No update required');
         }
+        return false; // Không có update, tiếp tục vào app
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error in OTA check: $e');
+        print('❌ FORCE UPDATE: Error - $e');
       }
-      loadingText.value = 'Khởi tạo hoàn tất';
+      // Lỗi, vẫn cho vào app để tránh block user
+      return false;
     } finally {
       isCheckingUpdate.value = false;
     }

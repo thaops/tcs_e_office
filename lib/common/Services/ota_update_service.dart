@@ -133,4 +133,55 @@ class OTAUpdateService {
       }
     }
   }
+
+  /// BẮT BUỘC check và update (silent - không hiển thị UI)
+  Future<bool> forceCheckAndUpdateSilent() async {
+    try {
+      if (kDebugMode) {
+        print('🚨 FORCE UPDATE: Silent checking for mandatory updates...');
+      }
+
+      // Check update
+      final updateInfo = await InAppUpdate.checkForUpdate();
+
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        if (kDebugMode) {
+          print('🚨 FORCE UPDATE: Update available, downloading silently...');
+        }
+
+        // BẮT BUỘC tải update (silent)
+        await InAppUpdate.performImmediateUpdate();
+
+        if (kDebugMode) {
+          print('✅ FORCE UPDATE: Update downloaded, app will restart');
+        }
+
+        return true; // App sẽ restart
+      } else {
+        if (kDebugMode) {
+          print('✅ FORCE UPDATE: No update required');
+        }
+        return false; // Không có update
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ FORCE UPDATE: Error - $e');
+      }
+      return false; // Lỗi, không block user
+    }
+  }
+
+  /// Check xem có update bắt buộc không (silent)
+  Future<bool> hasMandatoryUpdateSilent() async {
+    try {
+      final updateInfo = await InAppUpdate.checkForUpdate();
+      return updateInfo.updateAvailability ==
+          UpdateAvailability.updateAvailable;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error checking mandatory update: $e');
+      }
+      return false; // Lỗi = không có update bắt buộc
+    }
+  }
 }

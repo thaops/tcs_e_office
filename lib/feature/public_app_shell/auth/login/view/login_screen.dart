@@ -87,7 +87,7 @@ class LoginScreen extends StatelessWidget {
           GestureDetector(
             onTap: () => _openMissionUrl(),
             child: Text(
-              'Sứ mệnh Test OTA',
+              'Sứ mệnh',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.primary,
