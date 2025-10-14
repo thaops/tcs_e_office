@@ -45,7 +45,7 @@ class SplashController extends GetxController {
     }
   }
 
-  /// Kiểm tra và tải OTA update
+  /// Kiểm tra và tải OTA update với auto-restart
   Future<void> _checkOTAUpdate() async {
     try {
       // Lấy patch number hiện tại
@@ -55,15 +55,16 @@ class SplashController extends GetxController {
         print('📱 Current patch number: ${currentPatchNumber.value}');
       }
 
-      // Kiểm tra và tải update
-      final hasUpdateResult = await _otaService.checkAndDownloadUpdate();
+      // Kiểm tra và tải update với auto-restart
+      final hasUpdateResult = await _otaService
+          .checkAndDownloadUpdateWithRestart();
       hasUpdate.value = hasUpdateResult;
 
       if (hasUpdateResult) {
-        loadingText.value = 'Đã tải cập nhật mới!';
         if (kDebugMode) {
-          print('✅ OTA update downloaded successfully');
+          print('✅ OTA update downloaded and app will restart');
         }
+        // App sẽ restart tự động ngay lập tức
       } else {
         loadingText.value = 'Ứng dụng đã cập nhật';
         if (kDebugMode) {
@@ -121,15 +122,12 @@ class SplashController extends GetxController {
       isCheckingUpdate.value = true;
       loadingText.value = 'Đang kiểm tra cập nhật...';
 
-      final hasUpdateResult = await _otaService.checkAndDownloadUpdate();
+      final hasUpdateResult = await _otaService
+          .checkAndDownloadUpdateWithRestart();
       hasUpdate.value = hasUpdateResult;
 
       if (hasUpdateResult) {
-        Get.snackbar(
-          'Cập nhật',
-          'Đã tải cập nhật mới! Khởi động lại app để áp dụng.',
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        // App sẽ restart tự động ngay lập tức
       } else {
         Get.snackbar(
           'Cập nhật',

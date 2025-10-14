@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 class OTAUpdateService {
@@ -7,7 +8,7 @@ class OTAUpdateService {
   factory OTAUpdateService() => _instance;
   OTAUpdateService._internal();
 
-  final ShorebirdCodePush _shorebirdCodePush = ShorebirdCodePush();
+  final ShorebirdUpdater _shorebirdUpdater = ShorebirdUpdater();
 
   /// Kiểm tra và tải patch OTA nếu có
   /// Trả về true nếu có update, false nếu không có
@@ -17,21 +18,63 @@ class OTAUpdateService {
         print('🔍 Checking for OTA updates...');
       }
 
-      // Kiểm tra xem có patch mới không
-      final isUpdateAvailable = await _shorebirdCodePush
-          .isNewPatchAvailableForDownload();
+      // Sử dụng ShorebirdUpdater mới
+      final status = await _shorebirdUpdater.checkForUpdate();
 
-      if (isUpdateAvailable) {
+      if (status == UpdateStatus.outdated) {
         if (kDebugMode) {
           print('📦 New patch available, downloading...');
         }
 
-        // Tải patch về
-        await _shorebirdCodePush.downloadUpdateIfAvailable();
+        // Tải và install patch
+        await _shorebirdUpdater.downloadUpdateIfAvailable();
+        await _shorebirdUpdater.installUpdate();
 
         if (kDebugMode) {
-          print('✅ Patch downloaded successfully');
+          print('✅ Patch downloaded and installed successfully');
         }
+
+        return true;
+      } else {
+        if (kDebugMode) {
+          print('✅ App is up to date');
+        }
+        return false;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error checking/downloading OTA update: $e');
+      }
+      return false;
+    }
+  }
+
+  /// Kiểm tra và tải patch OTA với force restart
+  /// Trả về true nếu có update và đã restart, false nếu không có update
+  Future<bool> checkAndDownloadUpdateWithRestart() async {
+    try {
+      if (kDebugMode) {
+        print('🔍 Checking for OTA updates with force restart...');
+      }
+
+      // Sử dụng ShorebirdUpdater mới
+      final status = await _shorebirdUpdater.checkForUpdate();
+
+      if (status == UpdateStatus.outdated) {
+        if (kDebugMode) {
+          print('📦 New patch available, downloading...');
+        }
+
+        // Tải và install patch
+        await _shorebirdUpdater.downloadUpdateIfAvailable();
+        await _shorebirdUpdater.installUpdate();
+
+        if (kDebugMode) {
+          print('✅ Patch installed, force restarting app...');
+        }
+
+        // Force restart bằng SystemNavigator.pop()
+        await SystemNavigator.pop();
 
         return true;
       } else {
@@ -51,7 +94,7 @@ class OTAUpdateService {
   /// Lấy thông tin version hiện tại
   Future<String> getCurrentPatchNumber() async {
     try {
-      final patchNumber = await _shorebirdCodePush.currentPatchNumber();
+      final patchNumber = await _shorebirdUpdater.currentPatchNumber();
       return patchNumber.toString();
     } catch (e) {
       if (kDebugMode) {
@@ -64,7 +107,8 @@ class OTAUpdateService {
   /// Kiểm tra xem có patch mới không (không tải)
   Future<bool> isUpdateAvailable() async {
     try {
-      return await _shorebirdCodePush.isNewPatchAvailableForDownload();
+      final status = await _shorebirdUpdater.checkForUpdate();
+      return status == UpdateStatus.outdated;
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error checking update availability: $e');
@@ -74,16 +118,16 @@ class OTAUpdateService {
   }
 
   /// Restart app để apply patch (nếu cần)
-  /// Note: Shorebird tự động apply patch, không cần restart thủ công
+  /// Note: Sử dụng SystemNavigator.pop() để force restart
   Future<void> restartAppIfNeeded() async {
     try {
-      final isUpdateAvailable = await _shorebirdCodePush
-          .isNewPatchAvailableForDownload();
-      if (isUpdateAvailable) {
+      final status = await _shorebirdUpdater.checkForUpdate();
+      if (status == UpdateStatus.outdated) {
         if (kDebugMode) {
-          print('✅ Patch will be applied automatically on next app launch');
+          print('✅ Force restarting app to apply patch...');
         }
-        // Shorebird tự động apply patch, không cần restart thủ công
+        // Force restart để apply patch ngay lập tức
+        await SystemNavigator.pop();
       }
     } catch (e) {
       if (kDebugMode) {
