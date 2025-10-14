@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:shorebird_code_push/shorebird_code_push.dart';
+// import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 class OTAUpdateService {
   static final OTAUpdateService _instance = OTAUpdateService._internal();
   factory OTAUpdateService() => _instance;
   OTAUpdateService._internal();
 
-  final ShorebirdUpdater _shorebirdUpdater = ShorebirdUpdater();
+  // final ShorebirdCodePush _shorebirdCodePush = ShorebirdCodePush();
 
   /// Kiểm tra và tải patch OTA nếu có
   /// Trả về true nếu có update, false nếu không có
@@ -18,29 +18,29 @@ class OTAUpdateService {
         print('🔍 Checking for OTA updates...');
       }
 
-      // Sử dụng ShorebirdUpdater mới
-      final status = await _shorebirdUpdater.checkForUpdate();
+      // TODO: Implement Shorebird v2.0+ API
+      // final isUpdateAvailable = await _shorebirdCodePush
+      //     .isNewPatchAvailableForDownload();
 
-      if (status == UpdateStatus.outdated) {
-        if (kDebugMode) {
-          print('📦 New patch available, downloading...');
-        }
+      // if (isUpdateAvailable) {
+      //   if (kDebugMode) {
+      //     print('📦 New patch available, downloading...');
+      //   }
 
-        // Tải và install patch
-        await _shorebirdUpdater.downloadUpdateIfAvailable();
-        await _shorebirdUpdater.installUpdate();
+      //   // Tải patch về
+      //   await _shorebirdCodePush.downloadUpdateIfAvailable();
 
-        if (kDebugMode) {
-          print('✅ Patch downloaded and installed successfully');
-        }
+      //   if (kDebugMode) {
+      //     print('✅ Patch downloaded successfully');
+      //   }
 
-        return true;
-      } else {
+      //   return true;
+      // } else {
         if (kDebugMode) {
           print('✅ App is up to date');
         }
         return false;
-      }
+      // }
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error checking/downloading OTA update: $e');
@@ -57,32 +57,32 @@ class OTAUpdateService {
         print('🔍 Checking for OTA updates with force restart...');
       }
 
-      // Sử dụng ShorebirdUpdater mới
-      final status = await _shorebirdUpdater.checkForUpdate();
+      // TODO: Implement Shorebird v2.0+ API
+      // final isUpdateAvailable = await _shorebirdCodePush
+      //     .isNewPatchAvailableForDownload();
 
-      if (status == UpdateStatus.outdated) {
-        if (kDebugMode) {
-          print('📦 New patch available, downloading...');
-        }
+      // if (isUpdateAvailable) {
+      //   if (kDebugMode) {
+      //     print('📦 New patch available, downloading...');
+      //   }
 
-        // Tải và install patch
-        await _shorebirdUpdater.downloadUpdateIfAvailable();
-        await _shorebirdUpdater.installUpdate();
+      //   // Tải patch về
+      //   await _shorebirdCodePush.downloadUpdateIfAvailable();
 
-        if (kDebugMode) {
-          print('✅ Patch installed, force restarting app...');
-        }
+      //   if (kDebugMode) {
+      //     print('✅ Patch downloaded, force restarting app...');
+      //   }
 
-        // Force restart bằng SystemNavigator.pop()
-        await SystemNavigator.pop();
+      //   // Force restart bằng SystemNavigator.pop()
+      //   await SystemNavigator.pop();
 
-        return true;
-      } else {
+      //   return true;
+      // } else {
         if (kDebugMode) {
           print('✅ App is up to date');
         }
         return false;
-      }
+      // }
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error checking/downloading OTA update: $e');
@@ -94,8 +94,10 @@ class OTAUpdateService {
   /// Lấy thông tin version hiện tại
   Future<String> getCurrentPatchNumber() async {
     try {
-      final patchNumber = await _shorebirdUpdater.currentPatchNumber();
-      return patchNumber.toString();
+      // TODO: Implement Shorebird v2.0+ API
+      // final patchNumber = await _shorebirdCodePush.currentPatchNumber();
+      // return patchNumber.toString();
+      return '1';
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error getting patch number: $e');
@@ -107,8 +109,9 @@ class OTAUpdateService {
   /// Kiểm tra xem có patch mới không (không tải)
   Future<bool> isUpdateAvailable() async {
     try {
-      final status = await _shorebirdUpdater.checkForUpdate();
-      return status == UpdateStatus.outdated;
+      // TODO: Implement Shorebird v2.0+ API
+      // return await _shorebirdCodePush.isNewPatchAvailableForDownload();
+      return false;
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error checking update availability: $e');
@@ -121,14 +124,16 @@ class OTAUpdateService {
   /// Note: Sử dụng SystemNavigator.pop() để force restart
   Future<void> restartAppIfNeeded() async {
     try {
-      final status = await _shorebirdUpdater.checkForUpdate();
-      if (status == UpdateStatus.outdated) {
-        if (kDebugMode) {
-          print('✅ Force restarting app to apply patch...');
-        }
-        // Force restart để apply patch ngay lập tức
-        await SystemNavigator.pop();
-      }
+      // TODO: Implement Shorebird v2.0+ API
+      // final isUpdateAvailable = await _shorebirdCodePush
+      //     .isNewPatchAvailableForDownload();
+      // if (isUpdateAvailable) {
+      //   if (kDebugMode) {
+      //     print('✅ Force restarting app to apply patch...');
+      //   }
+      //   // Force restart để apply patch ngay lập tức
+      //   await SystemNavigator.pop();
+      // }
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error checking patch status: $e');

@@ -37,6 +37,11 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // Hỗ trợ 16KB page size cho Google Play Store yêu cầu
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+        }
     }
 
     bundle {
@@ -65,6 +70,18 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("release")
+            
+            // Hỗ trợ 16KB page size
+            ndk {
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
+        }
+    }
+    
+    // Cấu hình cho 16KB page size support
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = false
         }
     }
 }

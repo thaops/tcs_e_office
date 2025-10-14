@@ -48,9 +48,9 @@ Future<bool> _isIPad() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Init ShorebirdUpdater để kiểm soát OTA updates
-  final updater = ShorebirdUpdater();
-  await updater.checkForUpdate();
+  // Init ShorebirdCodePush để kiểm soát OTA updates
+  // final shorebirdCodePush = ShorebirdCodePush();
+  // await shorebirdCodePush.isNewPatchAvailableForDownload();
 
   await GetStorage.init();
 
