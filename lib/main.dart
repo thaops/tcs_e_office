@@ -15,11 +15,12 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:tcs_e_office/common/Services/device_udid.dart';
 import 'package:tcs_e_office/common/Services/network_controller.dart';
-import 'package:tcs_e_office/common/Services/services.dart';
 import 'package:tcs_e_office/common/share/auth/sign_out_clear.dart';
 import 'package:tcs_e_office/common/utils/check_awaiting_approval.dart';
 import 'package:tcs_e_office/common/utils/check_awaiting_services.dart';
 import 'package:tcs_e_office/common/utils/navigation_utils.dart';
+import 'package:tcs_e_office/common/widgets/splash_screen_widget.dart';
+import 'package:tcs_e_office/controllers/splash_controller.dart';
 import 'package:tcs_e_office/core/configs/theme/app_theme.dart';
 import 'package:tcs_e_office/router/app_router.dart';
 import 'package:tcs_e_office/router/deep_link_handler.dart';
@@ -152,10 +153,9 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
       future: _isIPad(),
       builder: (context, snapshot) {
         final isIPad = snapshot.data ?? false;
-        final designSize =
-            isIPad
-                ? const Size(768, 1024)
-                : const Size(375, 812); //Size(375, 812)
+        final designSize = isIPad
+            ? const Size(768, 1024)
+            : const Size(375, 812); //Size(375, 812)
 
         return ScreenUtilInit(
           designSize: designSize,
@@ -212,44 +212,21 @@ Future<void> generateUUID() async {
   deviceUdid.saveUdid(uuid.v4());
 }
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends StatelessWidget {
   final Uri? initialDeepLink;
+
   const SplashScreen({super.key, this.initialDeepLink});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  bool _hasNavigated = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    if (!_hasNavigated) {
-      _hasNavigated = true;
-      Future.microtask(() async {
-        try {
-          final service = await Services.create();
-          final token = await service.getAccessToken();
-
-          if (token.isNotEmpty) {
-            await Get.offAllNamed(AppRouter.main);
-          } else {
-            await Get.offAllNamed(AppRouter.login);
-          }
-        } catch (e, st) {
-          print('Lỗi SplashScreen: $e');
-          print(st);
-          await Get.offAllNamed(AppRouter.login);
-        }
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return const Scaffold(backgroundColor: Colors.white);
+    // Initialize splash controller
+    Get.put(SplashController());
+
+    return SplashScreenWidget(
+      onComplete: () {
+        // Navigation sẽ được handle bởi SplashController
+        // Không cần làm gì ở đây
+      },
+    );
   }
 }

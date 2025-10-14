@@ -30,40 +30,37 @@ class LoginScreen extends StatelessWidget {
     LoginController controllerlogin,
     BuildContext context,
   ) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isTablet = screenWidth > 600;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = constraints.maxWidth > 600;
 
-    return SingleChildScrollView(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: screenHeight),
-        child: IntrinsicHeight(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: isTablet ? 40.w : 20.w,
-              vertical: isTablet ? 30.h : 20.h,
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
+              maxHeight: double.infinity,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  flex: isTablet ? 2 : 1,
-                  child: _buildLogo(controllerlogin, isTablet),
-                ),
-                Flexible(
-                  flex: isTablet ? 3 : 2,
-                  child: _buildLoginForm(controllerlogin, isTablet),
-                ),
-                Flexible(
-                  flex: isTablet ? 2 : 1,
-                  child: _buildIntrucdtion(context, isTablet),
-                ),
-              ],
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: isTablet ? 30.h : 20.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(top: isTablet ? 120.h : 60.h),
+                    child: _buildLogo(controllerlogin),
+                  ),
+                  SizedBox(height: isTablet ? 20.h : 0.h),
+
+                  _buildLoginForm(controllerlogin, isTablet),
+                  SizedBox(height: isTablet ? 100.h : 90.h),
+                  _buildIntrucdtion(context, isTablet),
+                ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -114,7 +111,7 @@ Cung cấp dịch vụ phục vụ hàng hóa chuyên nghiệp cho khách hàng,
             fontSize: isTablet ? 15.sp : 14.sp,
           ),
 
-          SizedBox(height: isTablet ? 16.h : 12.h),
+          SizedBox(height: isTablet ? 18.h : 16.h),
           TextWidget(
             text: 'Powered by NP Technology',
             textAlign: TextAlign.center,
@@ -127,20 +124,25 @@ Cung cấp dịch vụ phục vụ hàng hóa chuyên nghiệp cho khách hàng,
     );
   }
 
-  Widget _buildLogo(LoginController controllerlogin, bool isTablet) {
-    final logoWidth = isTablet ? 300.w : 250.w;
-    final logoHeight = isTablet ? 165.h : 137.h;
+  Widget _buildLogo(LoginController controllerlogin) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = constraints.maxWidth > 600;
+        final logoWidth = isTablet ? 300.w : 250.w;
+        final logoHeight = isTablet ? 165.h : 137.h;
 
-    return GestureDetector(
-      child: Image.asset(
-        Img.logo,
-        width: logoWidth,
-        height: logoHeight,
-        fit: BoxFit.contain,
-      ),
-      onTap: () {
-        controllerlogin.tapCount++;
-        controllerlogin.showConfigDialog();
+        return GestureDetector(
+          child: Image.asset(
+            Img.logo,
+            width: logoWidth,
+            height: logoHeight,
+            fit: BoxFit.contain,
+          ),
+          onTap: () {
+            controllerlogin.tapCount++;
+            controllerlogin.showConfigDialog();
+          },
+        );
       },
     );
   }
