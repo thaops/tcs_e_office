@@ -80,11 +80,11 @@ class _HtmlContentEditorState extends State<HtmlContentEditor>
         height: widget.height ?? 200,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFFE0E0E0)),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           child: widget.showToolbar 
             ? NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
