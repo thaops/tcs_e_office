@@ -159,16 +159,14 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: GestureDetector(
+             GestureDetector(
               onTap: onAdd,
               child: Obx(() {
                 final totalCount =
                     selectedEmployeeCodes.length +
                     selectedDepartmentCodes.length;
                 if (totalCount == 0) {
-                  return EmptyStatePresets.listEmpty(onTap: onAdd);
+                  return SizedBox();
                 }
 
                 // Map mã -> tên nhân viên và phòng ban
@@ -186,7 +184,7 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                     ..._buildDepartmentMap(dept),
                 };
 
-                return Column(
+                return Padding(padding:  EdgeInsets.all( selectedEmployeeCodes.length > 0 ? 8 : 0), child:   Column(
                   children: [
                     // Hiển thị employees
                     ...selectedEmployeeCodes.map((code) {
@@ -311,10 +309,10 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                       );
                     }),
                   ],
-                );
+                ));
               }),
             ),
-          ),
+          
         ],
       ),
     );

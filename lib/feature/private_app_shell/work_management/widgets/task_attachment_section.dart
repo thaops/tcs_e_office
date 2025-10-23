@@ -52,10 +52,7 @@ class TaskAttachmentSection extends StatelessWidget {
                 final files = c.attachmentFileNames;
 
                 if (files.isEmpty) {
-                  return EmptyStatePresets.listEmpty(
-                    title: 'Chưa có tệp đính kèm',
-                    onTap: () => c.pickAttachments(),
-                  );
+                  return SizedBox();
                 }
 
                 return Column(

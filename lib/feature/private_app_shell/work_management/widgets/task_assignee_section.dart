@@ -152,13 +152,11 @@ class TaskAssigneeSection extends StatelessWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: GestureDetector(
+          GestureDetector(
               onTap: onAdd,
               child: Obx(() {
                 if (selectedCodes.isEmpty) {
-                  return EmptyStatePresets.listEmpty(onTap: onAdd);
+                  return SizedBox();
                 }
 
                 // Map mã -> tên nhân viên
@@ -167,7 +165,7 @@ class TaskAssigneeSection extends StatelessWidget {
                     e.employeeCode: e.employeeName,
                 };
 
-                return Column(
+                return Padding(padding:  EdgeInsets.all( selectedCodes.length > 0 ? 8 : 0), child:   Column(
                   children: [
                     ...selectedCodes.map((code) {
                       final name = codeToName[code] ?? code;
@@ -225,9 +223,9 @@ class TaskAssigneeSection extends StatelessWidget {
                       );
                     }),
                   ],
-                );
+                ));
               }),
-            ),
+            
           ),
         ],
       ),

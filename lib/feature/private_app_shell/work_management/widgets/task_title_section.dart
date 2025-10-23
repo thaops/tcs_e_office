@@ -46,6 +46,7 @@ class TaskTitleSection extends StatelessWidget {
                 hintText: 'Nhập nội dung công việc',
                 height: 200,
                 contentController: c.contentController,
+                showToolbar: false, // Tắt toolbar
                 onFocus: () {
                   // Khi HTML editor được focus, scroll để đảm bảo title vẫn visible
                   // Không cần làm gì đặc biệt vì đã tắt auto adjust
