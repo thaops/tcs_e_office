@@ -49,5 +49,24 @@
 	<string>Ứng dụng cần truy cập thư viện ảnh để cho phép người dùng chọn và tải lên hình ảnh.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Ứng dụng cần truy cập camera để cho phép người dùng chụp ảnh và tải lên.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>api-tcs-dev.azurewebsites.net</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.0</string>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Ứng dụng cần truy cập mạng để đồng bộ dữ liệu và đăng nhập.</string>
 </dict>
 </plist>

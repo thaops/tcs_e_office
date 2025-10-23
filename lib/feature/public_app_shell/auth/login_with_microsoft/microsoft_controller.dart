@@ -8,9 +8,11 @@ class MicrosoftController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
-    print("urlMicrosoft: $urlMicrosoft");
+    print("🌐 Microsoft WebView initializing...");
+    print("🔗 URL: $urlMicrosoft");
 
     if (urlMicrosoft.isEmpty) {
+      print("❌ URL is empty, closing WebView");
       Get.back();
       return;
     }
@@ -38,13 +40,16 @@ class MicrosoftController extends GetxController {
         ),
       );
 
+    print("🧹 Clearing cookies and cache...");
     await WebViewCookieManager().clearCookies();
     await webViewController.clearCache();
 
+    print("🚀 Loading Microsoft login page...");
     await webViewController.loadRequest(
       Uri.parse(urlMicrosoft),
       headers: {"Cache-Control": "no-cache"}, 
     );
+    print("✅ WebView loaded successfully");
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:io';
 import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
 import '../widgets/home_header.dart';
@@ -15,9 +16,11 @@ class HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     // Khởi tạo controller
     final HomeController controller = Get.put(HomeController());
+    final isMacOS = Platform.isMacOS;
+    
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+      backgroundColor: isMacOS ? const Color(0xFFF8F9FA) : Colors.white,
+      appBar: isMacOS ? null : AppBar(
         backgroundColor: const Color(0xFF006884), // Màu xanh đậm
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -33,11 +36,30 @@ class HomeTab extends StatelessWidget {
             // Header với avatar và thông báo
             const HomeHeader(),
 
-            // Nội dung chính - giảm padding
+            // Nội dung chính - responsive cho macOS
             Expanded(
               child: Obx(() {
                 if (controller.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(
+                          color: isMacOS ? const Color(0xFF006884) : null,
+                        ),
+                        if (isMacOS) ...[
+                          SizedBox(height: 16.h),
+                          Text(
+                            'Đang tải dữ liệu...',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
                 }
 
                 if (controller.hasError) {
@@ -47,14 +69,14 @@ class HomeTab extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.error_outline,
-                          size: 64.sp,
+                          size: isMacOS ? 48.sp : 64.sp,
                           color: Colors.grey,
                         ),
                         SizedBox(height: 16.h),
                         Text(
                           controller.error ?? 'Có lỗi xảy ra',
                           style: TextStyle(
-                            fontSize: 16.sp,
+                            fontSize: isMacOS ? 14.sp : 16.sp,
                             color: Colors.grey[600],
                           ),
                           textAlign: TextAlign.center,
@@ -62,7 +84,20 @@ class HomeTab extends StatelessWidget {
                         SizedBox(height: 16.h),
                         ElevatedButton(
                           onPressed: () => controller.refresh(),
-                          child: const Text('Thử lại'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isMacOS ? const Color(0xFF006884) : null,
+                            foregroundColor: isMacOS ? Colors.white : null,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isMacOS ? 24.w : 16.w,
+                              vertical: isMacOS ? 12.h : 8.h,
+                            ),
+                          ),
+                          child: Text(
+                            'Thử lại',
+                            style: TextStyle(
+                              fontSize: isMacOS ? 14.sp : 16.sp,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -71,8 +106,9 @@ class HomeTab extends StatelessWidget {
 
                 return RefreshIndicator(
                   onRefresh: controller.refresh,
+                  color: isMacOS ? const Color(0xFF006884) : null,
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.all(12.w),
+                    padding: EdgeInsets.all(isMacOS ? 20.w : 12.w),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

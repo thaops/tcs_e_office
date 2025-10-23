@@ -276,6 +276,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Padding(
       padding: const EdgeInsets.only(top: 10, bottom: 10),
       child: GestureDetector(
+        behavior: HitTestBehavior.translucent, // Cho phép click events pass through
         onTap: () => controllerProfile.onVision(context),
         child: FutureBuilder<void>(
           future: controllerProfile.initPackageInfo(),
@@ -284,7 +285,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               return Center(child: CircularProgressIndicator());
             }
             return GestureDetector(
+              behavior: HitTestBehavior.translucent, // Cho phép click events pass through
               onTap: () {
+                print("Version text tapped");
                 controllerProfile.tapCount.value =
                     controllerProfile.tapCountSafe + 1;
                 controllerProfile.showConfigDialog();

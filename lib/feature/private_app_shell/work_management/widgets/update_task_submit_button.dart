@@ -43,7 +43,10 @@ class UpdateTaskSubmitButton extends StatelessWidget {
         }
 
         return ElevatedButton(
-          onPressed: isLoading ? null : () => _handleSubmit(context),
+          onPressed: isLoading ? null : () {
+            print("Update button clicked, isLoading: $isLoading");
+            _handleSubmit(context);
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.yellow,
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -75,8 +78,14 @@ class UpdateTaskSubmitButton extends StatelessWidget {
   Future<void> _handleSubmit(BuildContext context) async {
     FocusScope.of(context).unfocus();
 
-    final c = Get.find<UpdateTaskController>();
-    final success = await c.submit(assignerCode: assignerCode);
+    try {
+      final c = Get.find<UpdateTaskController>();
+      print("Controller found, starting submit...");
+      
+      final success = await c.submit(assignerCode: assignerCode)
+          .timeout(Duration(seconds: 30)); // Thêm timeout 30 giây
+      
+      print("Submit completed, success: $success");
 
     if (success) {
       // Hiển thị success dialog khi cập nhật task thành công với animation mượt mà
@@ -96,5 +105,9 @@ class UpdateTaskSubmitButton extends StatelessWidget {
       );
     }
     // Lỗi đã được xử lý trong build method
+    } catch (e) {
+      print("Submit error: $e");
+      Get.snackbar("Lỗi", "Thao tác quá lâu hoặc có lỗi xảy ra. Vui lòng thử lại.");
+    }
   }
 }

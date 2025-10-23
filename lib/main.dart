@@ -5,7 +5,7 @@ import 'package:calendar_view/calendar_view.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+    show defaultTargetPlatform, kIsWeb, kDebugMode, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -30,6 +30,11 @@ import 'package:uuid/uuid.dart';
 
 Future<bool> _isIPad() async {
   if (kIsWeb) return false;
+  
+  // macOS không phải iPad
+  if (defaultTargetPlatform == TargetPlatform.macOS) {
+    return false;
+  }
 
   final deviceInfo = DeviceInfoPlugin();
   if (defaultTargetPlatform == TargetPlatform.iOS) {
@@ -57,8 +62,10 @@ void main() async {
   final appLinks = AppLinks();
   final initialDeepLink = await appLinks.getInitialLink();
   await _initializeServices();
-  MediaQueryData.fromWindow(WidgetsBinding.instance.window);
-  print("ssss${MediaQueryData.fromWindow(WidgetsBinding.instance.window)}");
+  // Removed problematic MediaQuery calls that can cause UI issues
+  if (kDebugMode) {
+    print("App initialized successfully");
+  }
 
   runApp(
     CalendarControllerProvider(
@@ -158,10 +165,40 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return FutureBuilder<bool>(
       future: _isIPad(),
       builder: (context, snapshot) {
+        // Thêm error handling
+        if (snapshot.hasError) {
+          return MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 64, color: Colors.red),
+                    SizedBox(height: 16),
+                    Text('Error: ${snapshot.error}'),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => setState(() {}),
+                      child: Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        
         final isIPad = snapshot.data ?? false;
-        final designSize = isIPad
-            ? const Size(768, 1024)
-            : const Size(375, 812); //Size(375, 812)
+        
+        // Cải thiện design size cho macOS
+        Size designSize;
+        if (defaultTargetPlatform == TargetPlatform.macOS) {
+          designSize = const Size(1200, 800); // Desktop size
+        } else if (isIPad) {
+          designSize = const Size(768, 1024);
+        } else {
+          designSize = const Size(375, 812);
+        }
 
         return ScreenUtilInit(
           designSize: designSize,

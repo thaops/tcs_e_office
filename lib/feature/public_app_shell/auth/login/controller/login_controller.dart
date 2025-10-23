@@ -15,7 +15,7 @@ import 'package:tcs_e_office/src/services/lib/services/auth_service.dart';
 
 class LoginController extends GetxController {
   DioApi dioApi = DioApi();
-  Dio dio = Dio();
+  late Dio dio;
 
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -33,6 +33,28 @@ class LoginController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _initializeDio();
+  }
+
+  void _initializeDio() {
+    dio = Dio();
+    // Cấu hình timeout và retry
+    dio.options.connectTimeout = Duration(seconds: 30);
+    dio.options.receiveTimeout = Duration(seconds: 30);
+    dio.options.sendTimeout = Duration(seconds: 30);
+    
+    // Thêm interceptor để retry khi connection failed
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onError: (error, handler) {
+          if (error.type == DioExceptionType.connectionError) {
+            print("🔄 Retrying connection...");
+            // Retry logic sẽ được xử lý trong fetchMicrosoftRedirectUrl
+          }
+          handler.next(error);
+        },
+      ),
+    );
   }
 
   @override
@@ -45,40 +67,126 @@ class LoginController extends GetxController {
 
   Future<void> fetchMicrosoftRedirectUrl(BuildContext context) async {
     if (isFetchingUrl.value) return;
+    
+    print("🔄 Starting Microsoft login process...");
+    
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder:
-          (BuildContext context) =>
-              const Center(child: CircularProgressIndicator()),
+      builder: (BuildContext context) => const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+          ],
+        ),
+      ),
     );
     isFetchingUrl.value = true;
     isLoadingMicrosoft.value = true;
 
-    try {
-      print(
-        "ApiEndpoints.loginUrlMicrosoft(0, 1): ${ApiEndpoints.loginUrlMicrosoft(0, 1)}",
-      );
-      final response = await dio.get(ApiEndpoints.loginUrlMicrosoft(0, 1));
-      Navigator.pop(context);
-      print(response.data);
-      print(ApiEndpoints.loginUrlMicrosoft(0, 1));
+    // Retry logic với exponential backoff
+    int maxRetries = 3;
+    int retryCount = 0;
+    Duration retryDelay = Duration(seconds: 1);
 
-      if (response.statusCode == response.data['statusCode']) {
-        microsoftRedirectUrl?.value = response.data['data']['url'];
-        print(microsoftRedirectUrl?.value);
-        goMicrosoftLogin();
-      } else {
-        Get.snackbar("Thông báo", "Lấy URL thất bại: ${response.statusCode}");
+    while (retryCount < maxRetries) {
+      try {
+        final apiUrl = ApiEndpoints.loginUrlMicrosoft(0, 1);
+        print("🌐 API URL (attempt ${retryCount + 1}): $apiUrl");
+        
+        final response = await dio.get(
+          apiUrl,
+          options: Options(
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            validateStatus: (status) => status != null && status < 500,
+          ),
+        );
+        
+        Navigator.pop(context);
+        print("📊 Response status: ${response.statusCode}");
+        print("📊 Response data: ${response.data}");
+        
+        if (response.statusCode == 200 && response.data != null) {
+          final statusCode = response.data['statusCode'];
+          if (statusCode == 200) {
+            final url = response.data['data']?['url'];
+            print("🔗 Microsoft URL: $url");
+            
+            if (url != null && url.isNotEmpty) {
+              microsoftRedirectUrl?.value = url;
+              print("✅ URL set successfully: ${microsoftRedirectUrl?.value}");
+              goMicrosoftLogin();
+              return; // Thành công, thoát khỏi retry loop
+            } else {
+              print("❌ URL is empty or null");
+              Get.snackbar("Lỗi", "URL đăng nhập Microsoft không hợp lệ");
+              return;
+            }
+          } else {
+            print("❌ API response error: $statusCode");
+            Get.snackbar("Thông báo", "Lấy URL thất bại: $statusCode");
+            return;
+          }
+        } else {
+          throw DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: "HTTP ${response.statusCode}",
+          );
+        }
+      } catch (e) {
+        retryCount++;
+        print("❌ Lỗi fetchMicrosoftRedirectUrl (attempt $retryCount): $e");
+        
+        if (retryCount >= maxRetries) {
+          Navigator.pop(context);
+          
+          // Hiển thị error message chi tiết cho user
+          if (e.toString().contains('Connection failed') || 
+              e.toString().contains('Operation not permitted')) {
+            Get.snackbar(
+              "Lỗi kết nối", 
+              "Không thể kết nối đến server sau $maxRetries lần thử.\n\nVui lòng kiểm tra:\n• Kết nối internet\n• Firewall/VPN settings\n• Server có hoạt động không\n• Thử lại sau vài phút",
+              snackPosition: SnackPosition.TOP,
+              backgroundColor: Colors.red.shade100,
+              colorText: Colors.red.shade800,
+              duration: Duration(seconds: 8),
+              margin: EdgeInsets.all(16),
+            );
+          } else if (e.toString().contains('timeout')) {
+            Get.snackbar(
+              "Timeout", 
+              "Kết nối quá chậm. Vui lòng kiểm tra kết nối mạng và thử lại.",
+              snackPosition: SnackPosition.TOP,
+              backgroundColor: Colors.orange.shade100,
+              colorText: Colors.orange.shade800,
+              duration: Duration(seconds: 5),
+            );
+          } else {
+            Get.snackbar(
+              "Lỗi", 
+              "Có lỗi xảy ra: ${e.toString()}",
+              snackPosition: SnackPosition.TOP,
+              backgroundColor: Colors.red.shade100,
+              colorText: Colors.red.shade800,
+            );
+          }
+          break;
+        } else {
+          print("🔄 Retrying in ${retryDelay.inSeconds} seconds...");
+          await Future.delayed(retryDelay);
+          retryDelay = Duration(seconds: retryDelay.inSeconds * 2); // Exponential backoff
+        }
       }
-    } catch (e) {
-      print("Lỗi fetchMicrosoftRedirectUrl: $e");
-      Navigator.pop(context);
-    } finally {
-      // Navigator.pop(context);
-      isLoadingMicrosoft.value = false;
-      isFetchingUrl.value = false;
     }
+    
+    isLoadingMicrosoft.value = false;
+    isFetchingUrl.value = false;
   }
 
   Future<void> goMicrosoftLogin() async {

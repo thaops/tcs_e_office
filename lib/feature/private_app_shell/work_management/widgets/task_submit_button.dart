@@ -44,7 +44,10 @@ class TaskSubmitButton extends StatelessWidget {
             }
 
             return ElevatedButton(
-              onPressed: isLoading ? null : () => _handleSubmit(context, c),
+              onPressed: isLoading ? null : () {
+                print("Submit button clicked, isLoading: $isLoading");
+                _handleSubmit(context, c);
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.yellow,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -80,7 +83,13 @@ class TaskSubmitButton extends StatelessWidget {
     CreateTaskController c,
   ) async {
     FocusScope.of(context).unfocus();
-    final ok = await c.submit(assignerCode: assignerCode);
+    
+    try {
+      print("Starting task creation...");
+      final ok = await c.submit(assignerCode: assignerCode)
+          .timeout(Duration(seconds: 30)); // Thêm timeout 30 giây
+      
+      print("Task creation completed, success: $ok");
 
     if (ok) {
       // Hiển thị success dialog trước khi đóng màn hình
@@ -98,5 +107,9 @@ class TaskSubmitButton extends StatelessWidget {
       );
     }
     // Lỗi đã được xử lý trong build method
+    } catch (e) {
+      print("Task creation error: $e");
+      Get.snackbar("Lỗi", "Thao tác quá lâu hoặc có lỗi xảy ra. Vui lòng thử lại.");
+    }
   }
 }

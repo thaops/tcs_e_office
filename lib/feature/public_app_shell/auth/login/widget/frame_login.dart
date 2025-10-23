@@ -3,11 +3,11 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:tcs_e_office/common/img/img.dart';
 import 'package:tcs_e_office/common/utils/check_awaiting_services.dart';
+import 'package:tcs_e_office/common/utils/network_test_utils.dart';
 import 'package:tcs_e_office/common/widgets/custom_text_field.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import 'package:tcs_e_office/feature/public_app_shell/auth/login/controller/login_controller.dart';
 import 'package:tcs_e_office/feature/public_app_shell/auth/login/widget/google_sign_in_button.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FrameLogin extends StatelessWidget {
   final TextEditingController usernameController;
@@ -45,7 +45,7 @@ class FrameLogin extends StatelessWidget {
 }
 
 Widget _buildAppLoginTcs(
-  BuildContext context,
+BuildContext context,
   LoginController controllerLogin,
 ) {
   return Column(
@@ -59,7 +59,32 @@ Widget _buildAppLoginTcs(
         onPressed: () async {
           controllerLogin.fetchMicrosoftRedirectUrl(context);
         },
-      )
+      ),
+      // SizedBox(height: 16),
+      // // Nút test kết nối
+      // Container(
+      //   width: MediaQuery.of(context).size.width * 0.8,
+      //   height: 40,
+      //   decoration: BoxDecoration(
+      //     color: Colors.grey.shade100,
+      //     borderRadius: BorderRadius.circular(8),
+      //     border: Border.all(color: Colors.grey.shade300),
+      //   ),
+      //   child: TextButton.icon(
+      //     onPressed: () async {
+      //       await NetworkTestUtils.showConnectionTestDialog(context);
+      //     },
+      //     icon: Icon(Icons.network_check, size: 18, color: Colors.blue),
+      //     label: Text(
+      //       'Kiểm tra kết nối',
+      //       style: TextStyle(
+      //         color: Colors.blue,
+      //         fontSize: 14,
+      //         fontWeight: FontWeight.w500,
+      //       ),
+      //     ),
+      //   ),
+      // ),
     ],
   );
 }

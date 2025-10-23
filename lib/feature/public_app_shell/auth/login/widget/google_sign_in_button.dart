@@ -19,7 +19,10 @@ class GoogleSignInButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: TextButton(
-          onPressed: onPressed,
+          onPressed: () {
+            print("Microsoft login button clicked");
+            onPressed();
+          },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

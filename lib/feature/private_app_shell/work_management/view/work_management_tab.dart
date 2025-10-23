@@ -112,6 +112,7 @@ class _WorkManagementTabState extends State<WorkManagementTab>
         ],
       ),
       body: GestureDetector(
+        behavior: HitTestBehavior.translucent, // Cho phép click events pass through
         onTap: () {
           // Ẩn bàn phím khi click bất kỳ đâu
           FocusScope.of(context).unfocus();
