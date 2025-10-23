@@ -33,6 +33,9 @@ class ApiEndpoints {
   static String getTaskCount =
       "${Config.baseUrl}/documenttask/get-count-response"; // GET
 
+  // document endpoints
+  static String getDocuments = "${Config.baseUrl}/document/get-documents";
+
   // comment endpoints
   static String addComment = "${Config.baseUrl}/document/comment-document";
   static String getComments(String documentId) =>

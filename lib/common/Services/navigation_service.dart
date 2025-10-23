@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:tcs_e_office/feature/private_app_shell/work_management/controllers/work_management_controller.dart';
 import 'package:tcs_e_office/feature/private_app_shell/work_management/models/filter_model.dart';
+import 'package:tcs_e_office/feature/private_app_shell/document_management/controllers/document_management_controller.dart';
+import 'package:tcs_e_office/feature/private_app_shell/document_management/models/document_filter_model.dart';
 
 /// Service để handle navigation từ home tab đến work management tab với filter
 class NavigationService {
@@ -76,15 +78,11 @@ class NavigationService {
     // Tạo filter với ngày hôm nay - sử dụng timezone hiện tại của device
     final today = DateTime.now();
 
-    // Tạo start of day (00:00:00) với timezone hiện tại
-    final startOfDay = DateTime(today.year, today.month, today.day, 0, 0, 0);
-    final startDate = startOfDay.toIso8601String();
-
     // Tạo end of day (23:59:59) với timezone hiện tại
     final endOfDay = DateTime(today.year, today.month, today.day, 23, 59, 59);
     final dueDate = endOfDay.toIso8601String();
 
-    final filter = FilterModel( dueDate: dueDate);
+    final filter = FilterModel(dueDate: dueDate);
 
     navigateToWorkManagement(targetTab: targetTab, filter: filter);
   }
@@ -102,5 +100,69 @@ class NavigationService {
   }) {
     final filter = FilterModel(priority: priority);
     navigateToWorkManagement(targetTab: targetTab, filter: filter);
+  }
+
+  /// Navigate đến Document Management tab với filter tương ứng
+  static void navigateToDocumentManagement({
+    required int targetTab, // 0: Văn bản đến, 1: Văn bản đi
+    DocumentFilterModel? filter,
+    bool resetFilter = false,
+  }) {
+    // Switch to document management tab (index 2)
+    _onTabChanged?.call(2);
+
+    // Delay một chút để đảm bảo tab đã switch xong
+    Future.delayed(const Duration(milliseconds: 100), () {
+      try {
+        final documentController = Get.find<DocumentManagementController>();
+        documentController.changeTab(targetTab);
+
+        // Reset filter nếu cần
+        if (resetFilter) {
+          documentController.resetFilter();
+        }
+        // Apply filter nếu có
+        else if (filter != null) {
+          documentController.applyFilter(filter);
+        }
+      } catch (e) {
+        // Controller chưa được khởi tạo, thử lại sau
+        Future.delayed(const Duration(milliseconds: 200), () {
+          try {
+            final documentController = Get.find<DocumentManagementController>();
+            documentController.changeTab(targetTab);
+
+            // Reset filter nếu cần
+            if (resetFilter) {
+              documentController.resetFilter();
+            }
+            // Apply filter nếu có
+            else if (filter != null) {
+              documentController.applyFilter(filter);
+            }
+          } catch (e2) {
+            print('Error applying document navigation: $e2');
+          }
+        });
+      }
+    });
+  }
+
+  /// Navigate với filter theo trạng thái văn bản
+  static void navigateWithDocumentStatusFilter({
+    required int targetTab,
+    required String status,
+  }) {
+    final filter = DocumentFilterModel(status: status);
+    navigateToDocumentManagement(targetTab: targetTab, filter: filter);
+  }
+
+  /// Navigate với filter theo loại văn bản
+  static void navigateWithDocumentTypeFilter({
+    required int targetTab,
+    required String documentType,
+  }) {
+    final filter = DocumentFilterModel(documentType: documentType);
+    navigateToDocumentManagement(targetTab: targetTab, filter: filter);
   }
 }

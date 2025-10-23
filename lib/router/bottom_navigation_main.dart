@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:tcs_e_office/feature/private_app_shell/profile/view/profile_screen.dart';
 import 'package:tcs_e_office/feature/private_app_shell/work_management/view/work_management_tab.dart';
 import 'package:tcs_e_office/feature/private_app_shell/home/view/home_tab.dart';
+import 'package:tcs_e_office/feature/private_app_shell/document_management/view/document_management_tab.dart';
 import 'package:tcs_e_office/common/services/navigation_service.dart';
 
 class MainScreen extends StatefulWidget {
@@ -27,7 +28,9 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeTab(),
+    const DocumentManagementTab(),
     WorkManagementTab(),
+    const DocumentManagementTab(),
     ProfileScreen(),
   ];
 
@@ -81,6 +84,17 @@ class _MainScreenState extends State<MainScreen> {
                 icon: Icon(Icons.home_outlined, color: Colors.grey.shade600),
                 selectedIcon: Icon(Icons.home_rounded, color: Colors.white),
                 label: 'Trang chủ',
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.description_outlined,
+                  color: Colors.grey.shade600,
+                ),
+                selectedIcon: Icon(
+                  Icons.description_rounded,
+                  color: Colors.white,
+                ),
+                label: 'Văn bản',
               ),
               NavigationDestination(
                 icon: Icon(
