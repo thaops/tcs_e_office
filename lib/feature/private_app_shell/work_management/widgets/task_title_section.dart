@@ -38,7 +38,7 @@ class TaskTitleSection extends StatelessWidget {
                 }
                 return const SizedBox.shrink();
               }),
-              const SizedBox(height: 6),
+              const SizedBox(height: 14),
               _labelRequired('Nội dung công việc'),
               const SizedBox(height: 6),
               HtmlContentEditor(
