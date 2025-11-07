@@ -17,19 +17,21 @@ class HomeTab extends StatelessWidget {
     // Khởi tạo controller
     final HomeController controller = Get.put(HomeController());
     final isMacOS = Platform.isMacOS;
-    
+
     return Scaffold(
       backgroundColor: isMacOS ? const Color(0xFFF8F9FA) : Colors.white,
-      appBar: isMacOS ? null : AppBar(
-        backgroundColor: const Color(0xFF006884), // Màu xanh đậm
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        toolbarHeight: 0, // Ẩn AppBar nhưng giữ màu nền
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Color(0xFF006884), // Màu status bar
-          statusBarIconBrightness: Brightness.light, // Icon sáng
-        ),
-      ),
+      appBar: isMacOS
+          ? null
+          : AppBar(
+              backgroundColor: const Color(0xFF006884), // Màu xanh đậm
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              toolbarHeight: 0, // Ẩn AppBar nhưng giữ màu nền
+              systemOverlayStyle: const SystemUiOverlayStyle(
+                statusBarColor: Color(0xFF006884), // Màu status bar
+                statusBarIconBrightness: Brightness.light, // Icon sáng
+              ),
+            ),
       body: SafeArea(
         child: Column(
           children: [
@@ -85,7 +87,9 @@ class HomeTab extends StatelessWidget {
                         ElevatedButton(
                           onPressed: () => controller.refresh(),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: isMacOS ? const Color(0xFF006884) : null,
+                            backgroundColor: isMacOS
+                                ? const Color(0xFF006884)
+                                : null,
                             foregroundColor: isMacOS ? Colors.white : null,
                             padding: EdgeInsets.symmetric(
                               horizontal: isMacOS ? 24.w : 16.w,
@@ -94,9 +98,7 @@ class HomeTab extends StatelessWidget {
                           ),
                           child: Text(
                             'Thử lại',
-                            style: TextStyle(
-                              fontSize: isMacOS ? 14.sp : 16.sp,
-                            ),
+                            style: TextStyle(fontSize: isMacOS ? 14.sp : 16.sp),
                           ),
                         ),
                       ],
@@ -212,34 +214,110 @@ class HomeTab extends StatelessWidget {
 
                         SizedBox(height: 12.h),
 
-                        // Nhóm 3: Văn bản đến (giữ nguyên hardcode vì chưa có API)
-                        // TaskGroupSection(
-                        //   title: 'Văn bản đến',
-                        //   totalCount: 0,
-                        //   children: [
-                        //     TaskItemCard(
-                        //       icon: Icons.description_outlined,
-                        //       iconColor: const Color(0xFF4CAF50), // Green
-                        //       title: 'Văn bản chưa xử lý',
-                        //       count: 0,
-                        //       countColor: const Color(0xFF4CAF50),
-                        //     ),
-                        //     TaskItemCard(
-                        //       icon: Icons.assignment_outlined,
-                        //       iconColor: const Color(0xFF9C27B0), // Purple
-                        //       title: 'Văn bản đang xử lý',
-                        //       count: 0,
-                        //       countColor: const Color(0xFF9C27B0),
-                        //     ),
-                        //     TaskItemCard(
-                        //       icon: Icons.check_circle_outline,
-                        //       iconColor: const Color(0xFF607D8B), // Blue Grey
-                        //       title: 'Văn bản đã xử lý',
-                        //       count: 0,
-                        //       countColor: const Color(0xFF607D8B),
-                        //     ),
-                        //   ],
-                        // ),
+                        // Nhóm 3: Văn bản đi
+                        TaskGroupSection(
+                          title: 'Văn bản đi',
+                          totalCount:
+                              controller.documentCount?.totalOutgoingCount ?? 0,
+                          children: [
+                            TaskItemCard(
+                              icon: Icons.edit_outlined,
+                              iconColor: const Color(0xFF9E9E9E), // Grey
+                              title: 'Văn bản đi dự thảo',
+                              count: controller.documentCount?.draftCount ?? 0,
+                              countColor: const Color(0xFF9E9E9E),
+                              onTap: () {
+                                NavigationService.navigateWithDocumentStatusFilter(
+                                  targetTab: 1, // Văn bản đi
+                                  status: '1', // Dự thảo
+                                );
+                              },
+                            ),
+                            TaskItemCard(
+                              icon: Icons.hourglass_empty_outlined,
+                              iconColor: const Color(0xFFFF9800), // Orange
+                              title: 'Văn bản đi chờ duyệt',
+                              count:
+                                  controller
+                                      .documentCount
+                                      ?.pendingApprovalCount ??
+                                  0,
+                              countColor: const Color(0xFFFF9800),
+                              onTap: () {
+                                NavigationService.navigateWithDocumentStatusFilter(
+                                  targetTab: 1, // Văn bản đi
+                                  status: '2', // Chờ duyệt
+                                );
+                              },
+                            ),
+                            TaskItemCard(
+                              icon: Icons.check_circle_outline,
+                              iconColor: const Color(0xFF4CAF50), // Green
+                              title: 'Văn bản đi đã duyệt',
+                              count:
+                                  controller.documentCount?.approvedCount ?? 0,
+                              countColor: const Color(0xFF4CAF50),
+                              onTap: () {
+                                NavigationService.navigateWithDocumentStatusFilter(
+                                  targetTab: 1, // Văn bản đi
+                                  status: '3', // Đã duyệt
+                                );
+                              },
+                            ),
+                            TaskItemCard(
+                              icon: Icons.send_outlined,
+                              iconColor: const Color(0xFF2196F3), // Blue
+                              title: 'Văn bản đi ban hành',
+                              count: controller.documentCount?.issuedCount ?? 0,
+                              countColor: const Color(0xFF2196F3),
+                              onTap: () {
+                                NavigationService.navigateWithDocumentStatusFilter(
+                                  targetTab: 1, // Văn bản đi
+                                  status: '4', // Ban hành
+                                );
+                              },
+                            ),
+                            TaskItemCard(
+                              icon: Icons.close,
+                              iconColor: const Color(0xFFF44336), // Red
+                              title: 'Văn bản đi bị từ chối',
+                              count:
+                                  controller.documentCount?.rejectedCount ?? 0,
+                              countColor: const Color(0xFFF44336),
+                              onTap: () {
+                                NavigationService.navigateWithDocumentStatusFilter(
+                                  targetTab: 1, // Văn bản đi
+                                  status: '5', // Bị từ chối
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: 12.h),
+
+                        // Nhóm 4: Văn bản đến
+                        TaskGroupSection(
+                          title: 'Văn bản đến',
+                          totalCount:
+                              controller.documentCount?.totalIncomingCount ?? 0,
+                          children: [
+                            TaskItemCard(
+                              icon: Icons.description_outlined,
+                              iconColor: const Color(0xFF9C27B0), // Purple
+                              title: 'Văn bản đến',
+                              count:
+                                  controller.documentCount?.incomingCount ?? 0,
+                              countColor: const Color(0xFF9C27B0),
+                              onTap: () {
+                                NavigationService.navigateToDocumentManagement(
+                                  targetTab: 0, // Văn bản đến
+                                  resetFilter: true,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),

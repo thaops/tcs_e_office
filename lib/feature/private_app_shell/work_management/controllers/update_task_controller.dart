@@ -12,17 +12,17 @@ class UpdateTaskController extends GetxController {
 
   String? documentId;
   String? taskId;
+  int? _pendingPriorityValue; // Lưu priority value từ task data khi priorities chưa load xong
 
   final RxList<EmployeeSimple> allEmployees = <EmployeeSimple>[].obs;
   final RxList<DepartmentNode> departmentTree = <DepartmentNode>[].obs;
   final RxList<PriorityOption> priorities = <PriorityOption>[].obs;
 
   final RxBool loading = false.obs;
-  final RxBool searching = false.obs; // Thêm state cho search
+  final RxBool searching = false.obs;
   final RxString error = ''.obs;
   final RxString success = ''.obs;
 
-  // Getters để access form data
   TextEditingController get titleController => _formHandler.titleController;
   TextEditingController get noteController => _formHandler.noteController;
   TextEditingController get contentController => _formHandler.contentController;
@@ -54,13 +54,11 @@ class UpdateTaskController extends GetxController {
     selectedPriority.value ??= PriorityOption(value: 3, label: 'Bình thường');
   }
 
-  /// Test method để kiểm tra hiển thị lỗi
   void testErrorDisplay() {
     error.value = 'Anh/Chị không thể giao công việc cho chính mình.';
   }
 
   Future<void> _loadMeta({bool isSearchReset = false}) async {
-    // Chỉ set loading = true nếu không phải search reset
     if (!isSearchReset) {
       loading.value = true;
     }
@@ -72,8 +70,12 @@ class UpdateTaskController extends GetxController {
       allEmployees.assignAll(metadata['employees'] as List<EmployeeSimple>);
       departmentTree.assignAll(metadata['departments'] as List<DepartmentNode>);
 
-      if (priorities.isNotEmpty) {
-        // Set default là item cuối (bình thường) thay vì item đầu (khẩn cấp)
+      // Nếu có priority value đang chờ (từ task data), set lại priority
+      if (_pendingPriorityValue != null && priorities.isNotEmpty) {
+        _formHandler.setPriorityFromValue(_pendingPriorityValue, priorities);
+        _pendingPriorityValue = null;
+      } else if (priorities.isNotEmpty && taskId == null) {
+        // Chỉ set priority mặc định khi chưa load task data (tránh ghi đè priority từ task)
         selectedPriority.value = priorities.last;
       }
     } catch (e) {
@@ -85,12 +87,10 @@ class UpdateTaskController extends GetxController {
     }
   }
 
-  /// Search employees by department with keyword
   Future<void> searchEmployees(String keyword) async {
     final trimmedKeyword = keyword.trim();
 
     if (trimmedKeyword.isEmpty) {
-      // Nếu keyword rỗng, load lại dữ liệu gốc
       searching.value = true;
       try {
         await _loadMeta(isSearchReset: true);
@@ -125,9 +125,15 @@ class UpdateTaskController extends GetxController {
       final data = await _apiService.loadTaskData(taskId);
       if (data != null) {
         _formHandler.populateFromTaskData(data);
-        _formHandler.setPriorityFromValue(data['priority'], priorities);
+        
+        // Nếu priorities chưa load xong, lưu lại priority value để set sau
+        final priorityValue = data['priority'] as int?;
+        if (priorities.isEmpty) {
+          _pendingPriorityValue = priorityValue;
+        } else {
+          _formHandler.setPriorityFromValue(priorityValue, priorities);
+        }
 
-        // Trigger rebuild cho HTML content editor
         update(['html_content_editor']);
       }
     } catch (e) {
@@ -137,21 +143,20 @@ class UpdateTaskController extends GetxController {
     }
   }
 
-  /// Populate form data từ TaskDetailModel có sẵn (tối ưu hơn loadTaskData)
   void populateFromTaskData(TaskDetailModel taskData) {
     this.taskId = taskData.id;
     error.value = '';
 
-    // Populate form data từ TaskDetailModel
     _formHandler.populateFromTaskDetailModel(taskData);
 
-    // Set priority từ value
-    _formHandler.setPriorityFromValue(taskData.priority, priorities);
+    // Nếu priorities chưa load xong, lưu lại priority value để set sau
+    if (priorities.isEmpty) {
+      _pendingPriorityValue = taskData.priority;
+    } else {
+      _formHandler.setPriorityFromValue(taskData.priority, priorities);
+    }
 
-    // Trigger rebuild cho HTML content editor
     update(['html_content_editor']);
-
-    print('🔍 UpdateTaskController: Populated from existing task data');
   }
 
   DateTime _startOfDayLocal(DateTime d) => DateTime(d.year, d.month, d.day);
@@ -236,7 +241,6 @@ class UpdateTaskController extends GetxController {
         return false;
       }
     } catch (e) {
-      print('Error in update task: $e');
       error.value = e.toString().replaceFirst('Exception: ', '');
       return false;
     } finally {
@@ -261,9 +265,7 @@ class UpdateTaskController extends GetxController {
         attachmentFileNames.addAll(newFileNames);
         attachmentPaths.addAll(newPaths);
       }
-    } catch (_) {
-      // Ignore errors
-    }
+    } catch (_) {}
   }
 
   void removeAttachment(int index) {

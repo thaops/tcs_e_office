@@ -7,7 +7,6 @@ import '../models/task_detail_model.dart';
 class TaskApiService {
   final DioApi _dioApi = DioApi();
 
-  /// Search employees by department with keyword
   Future<List<DepartmentNode>> searchEmployeesByDepartment(
     String keyword,
   ) async {
@@ -16,7 +15,6 @@ class TaskApiService {
         ApiEndpoints.searchEmployeesByDepartment(keyword),
       );
 
-      // Sử dụng ApiResponseHandler để parse response
       final result = ApiResponseHandler.handleListResponse<DepartmentNode>(
         res,
         DepartmentNode.fromJson,
@@ -32,7 +30,6 @@ class TaskApiService {
     }
   }
 
-  /// Load metadata (priorities, employees, departments)
   Future<Map<String, dynamic>> loadMetadata() async {
     try {
       final prioFuture = _dioApi.get(ApiEndpoints.getPriorityOptions);
@@ -41,7 +38,6 @@ class TaskApiService {
 
       final results = await Future.wait([prioFuture, empFuture, deptFuture]);
 
-      // Sử dụng ApiResponseHandler để parse responses
       final prioResult = ApiResponseHandler.handleListResponse<PriorityOption>(
         results[0],
         PriorityOption.fromJson,
@@ -55,7 +51,6 @@ class TaskApiService {
         DepartmentNode.fromJson,
       );
 
-      // Kiểm tra kết quả và xử lý lỗi nếu có
       if (prioResult.isError) {
         throw Exception('Lỗi tải danh sách độ ưu tiên: ${prioResult.error}');
       }
@@ -76,15 +71,13 @@ class TaskApiService {
     }
   }
 
-  /// Load task data by ID
   Future<Map<String, dynamic>?> loadTaskData(String taskId) async {
     try {
       final res = await _dioApi.get(ApiEndpoints.getTaskById(taskId));
 
-      // Sử dụng ApiResponseHandler để parse response
       final result = ApiResponseHandler.handleResponse<Map<String, dynamic>>(
         res,
-        (data) => data, // Trả về data trực tiếp vì đã là Map<String, dynamic>
+        (data) => data,
       );
 
       if (result.isSuccess) {
@@ -97,7 +90,6 @@ class TaskApiService {
     }
   }
 
-  /// Submit update task
   Future<bool> updateTask({
     required String taskId,
     required Map<String, dynamic> payload,
@@ -113,13 +105,10 @@ class TaskApiService {
           headers: {..._dioApi.header, 'Content-Type': 'multipart/form-data'},
         ),
       );
-      print('🔍 res: ${res.data}');
 
-      // Parse response data trực tiếp vì API trả về boolean
       if (res.data is Map<String, dynamic>) {
         final responseData = res.data as Map<String, dynamic>;
 
-        // Kiểm tra API status code
         final statusCode =
             responseData['statusCode'] ?? responseData['StatusCode'];
         final message =
@@ -127,7 +116,6 @@ class TaskApiService {
         final data = responseData['data'];
 
         if (statusCode == 200) {
-          // API thành công, trả về giá trị boolean
           return data == true;
         } else {
           throw message ?? statusCode.toString();
@@ -143,22 +131,17 @@ class TaskApiService {
     }
   }
 
-  /// Complete task
   Future<bool> completeTask(String taskId) async {
     try {
       final res = await _dioApi.post(ApiEndpoints.completeTask(taskId));
-      print('🔍 Complete task response: ${res.data}');
 
-      // Kiểm tra HTTP status code
       if (res.statusCode != 200) {
         throw Exception('HTTP Error: ${res.statusCode}');
       }
 
-      // Parse response data trực tiếp vì API trả về boolean
       if (res.data is Map<String, dynamic>) {
         final responseData = res.data as Map<String, dynamic>;
 
-        // Kiểm tra API status code
         final statusCode =
             responseData['statusCode'] ?? responseData['StatusCode'];
         final message =
@@ -166,7 +149,6 @@ class TaskApiService {
         final data = responseData['data'];
 
         if (statusCode == 200) {
-          // API thành công, trả về giá trị boolean
           return data == true;
         } else {
           throw message ?? statusCode.toString();
@@ -182,25 +164,20 @@ class TaskApiService {
     }
   }
 
-  /// Forward task
   Future<bool> forwardTask(ForwardTaskRequest request) async {
     try {
       final res = await _dioApi.post(
         ApiEndpoints.forwardTask,
         data: request.toJson(),
       );
-      print('🔍 Forward task response: ${res.data}');
 
-      // Kiểm tra HTTP status code
       if (res.statusCode != 200) {
         throw Exception('HTTP Error: ${res.statusCode}');
       }
 
-      // Parse response data trực tiếp vì API trả về boolean
       if (res.data is Map<String, dynamic>) {
         final responseData = res.data as Map<String, dynamic>;
 
-        // Kiểm tra API status code
         final statusCode =
             responseData['statusCode'] ?? responseData['StatusCode'];
         final message =
@@ -208,7 +185,6 @@ class TaskApiService {
         final data = responseData['data'];
 
         if (statusCode == 200) {
-          // API thành công, trả về giá trị boolean
           return data == true;
         } else {
           throw message ?? statusCode.toString();
@@ -224,7 +200,6 @@ class TaskApiService {
     }
   }
 
-  /// Helper method để tạo forward task request từ selected employee codes
   Future<bool> forwardTaskWithEmployees({
     required String taskId,
     required String dueDate,
@@ -244,7 +219,45 @@ class TaskApiService {
     return await forwardTask(request);
   }
 
-  /// Build FormData cho multipart request
+  Future<bool> reprocessTask({
+    required String taskId,
+    required String note,
+  }) async {
+    try {
+      final res = await _dioApi.post(
+        ApiEndpoints.reprocessTask,
+        data: {'id': taskId, 'note': note},
+      );
+
+      if (res.statusCode != 200) {
+        throw Exception('HTTP Error: ${res.statusCode}');
+      }
+
+      if (res.data is Map<String, dynamic>) {
+        final responseData = res.data as Map<String, dynamic>;
+
+        final statusCode =
+            responseData['statusCode'] ?? responseData['StatusCode'];
+        final message =
+            responseData['message'] ?? responseData['Message'] as String?;
+        final data = responseData['data'];
+
+        if (statusCode == 200) {
+          return data == true;
+        } else {
+          throw message ?? statusCode.toString();
+        }
+      } else {
+        throw Exception('Response format không hợp lệ');
+      }
+    } catch (e) {
+      if (e is dioLib.DioException) {
+        throw _handleDioException(e);
+      }
+      throw '$e';
+    }
+  }
+
   dioLib.FormData _buildFormData(
     Map<String, dynamic> payload,
     List<String> attachmentPaths,

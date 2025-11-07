@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:tcs_e_office/feature/private_app_shell/profile/logic/profile_logic.dart';
+import 'package:tcs_e_office/feature/private_app_shell/notification/views/notification_view.dart';
+import 'package:tcs_e_office/feature/private_app_shell/notification/controllers/notification_controller.dart';
 
 class HomeHeader extends StatefulWidget {
   const HomeHeader({super.key});
@@ -12,6 +14,7 @@ class HomeHeader extends StatefulWidget {
 
 class _HomeHeaderState extends State<HomeHeader> {
   late ProfileLogic _profileLogic;
+  NotificationController? _notificationController;
 
   @override
   void initState() {
@@ -22,6 +25,14 @@ class _HomeHeaderState extends State<HomeHeader> {
     } catch (e) {
       // Nếu chưa có ProfileLogic, tạo mới
       _profileLogic = Get.put(ProfileLogic());
+    }
+
+    // Khởi tạo NotificationController nếu chưa có
+    try {
+      _notificationController = Get.find<NotificationController>();
+    } catch (e) {
+      // Nếu chưa có NotificationController, tạo mới
+      _notificationController = Get.put(NotificationController());
     }
   }
 
@@ -86,36 +97,72 @@ class _HomeHeaderState extends State<HomeHeader> {
               ),
 
               // Notification bell - giảm kích thước
-              Container(
-                width: 36.w,
-                height: 36.h,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Stack(
-                  children: [
-                    Center(
-                      child: Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.white,
-                        size: 20.sp,
-                      ),
-                    ),
-                    // Notification badge - giảm kích thước
-                    Positioned(
-                      right: 6.w,
-                      top: 6.h,
-                      child: Container(
-                        width: 6.w,
-                        height: 6.h,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const NotificationView()),
+                  );
+                },
+                child: Container(
+                  width: 36.w,
+                  height: 36.h,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: Icon(
+                          Icons.notifications_outlined,
+                          color: Colors.white,
+                          size: 20.sp,
                         ),
                       ),
-                    ),
-                  ],
+                      // Notification badge - hiển thị số lượng thông báo chưa đọc
+                      Obx(() {
+                        final unreadCount =
+                            _notificationController
+                                ?.unreadNotifications
+                                .length ??
+                            0;
+                        if (unreadCount == 0) {
+                          return const SizedBox.shrink();
+                        }
+                        return Positioned(
+                          right: 2.w,
+                          top: 2.h,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: unreadCount > 99 ? 4.w : 5.w,
+                              vertical: 2.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10.r),
+                              border: Border.all(
+                                color: const Color(0xFF006884),
+                                width: 1.5,
+                              ),
+                            ),
+                            constraints: BoxConstraints(
+                              minWidth: 16.w,
+                              minHeight: 16.h,
+                            ),
+                            child: Text(
+                              unreadCount > 99 ? '99+' : '$unreadCount',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
             ],

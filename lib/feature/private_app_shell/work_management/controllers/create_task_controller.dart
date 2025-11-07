@@ -8,9 +8,8 @@ import '../models/task_detail_model.dart';
 
 class CreateTaskController extends GetxController {
   final DioApi _dioApi = DioApi();
-  String? documentId; // optional: set từ nơi gọi nếu có
+  String? documentId;
 
-  // Form state
   final titleController = TextEditingController();
   final noteController = TextEditingController();
   final contentController = TextEditingController(text: '');
@@ -26,7 +25,6 @@ class CreateTaskController extends GetxController {
 
   final Rxn<PriorityOption> selectedPriority = Rxn<PriorityOption>();
 
-  // Assignees
   final RxList<String> primaryEmployeeCodes = <String>[].obs;
   final RxList<String> primaryDepartmentCodes = <String>[].obs;
   final RxList<String> collabEmployeeCodes = <String>[].obs;
@@ -35,11 +33,10 @@ class CreateTaskController extends GetxController {
   final RxList<String> followDepartmentCodes = <String>[].obs;
 
   final RxBool loading = false.obs;
-  final RxBool searching = false.obs; // Thêm state cho search
+  final RxBool searching = false.obs;
   final RxString error = ''.obs;
   final RxString success = ''.obs;
 
-  // Attachments (lưu tên hiển thị đơn giản)
   final RxList<String> attachmentFileNames = <String>[].obs;
   final RxList<String> attachmentPaths = <String>[].obs;
 
@@ -47,17 +44,14 @@ class CreateTaskController extends GetxController {
   void onInit() {
     super.onInit();
     _loadMeta();
-    // Mặc định ưu tiên: Bình thường (thường có value 3)
     selectedPriority.value ??= PriorityOption(value: 3, label: 'Bình thường');
   }
 
-  /// Test method để kiểm tra hiển thị lỗi
   void testErrorDisplay() {
     error.value = 'Anh/Chị không thể giao công việc cho chính mình.';
   }
 
   Future<void> _loadMeta({bool isSearchReset = false}) async {
-    // Chỉ set loading = true nếu không phải search reset
     if (!isSearchReset) {
       loading.value = true;
     }
@@ -72,7 +66,6 @@ class CreateTaskController extends GetxController {
       if (prioRes.statusCode == 200) {
         final data = prioRes.data['data'] as List<dynamic>? ?? [];
         priorities.assignAll(data.map((e) => PriorityOption.fromJson(e)));
-        // Set default là item cuối (bình thường) thay vì item đầu (khẩn cấp)
         if (priorities.isNotEmpty) {
           selectedPriority.value = priorities.last;
         }
@@ -102,12 +95,10 @@ class CreateTaskController extends GetxController {
     }
   }
 
-  /// Search employees by department with keyword
   Future<void> searchEmployees(String keyword) async {
     final trimmedKeyword = keyword.trim();
 
     if (trimmedKeyword.isEmpty) {
-      // Nếu keyword rỗng, load lại dữ liệu gốc
       searching.value = true;
       try {
         await _loadMeta(isSearchReset: true);
@@ -139,30 +130,19 @@ class CreateTaskController extends GetxController {
     }
   }
 
-  // removed: _mergeDateTime (không còn dùng vì bỏ chọn giờ)
-
   DateTime _startOfDayLocal(DateTime d) => DateTime(d.year, d.month, d.day);
 
   DateTime _endOfDayLocal(DateTime d) =>
       DateTime(d.year, d.month, d.day, 23, 59, 59);
 
-  /// Sanitize HTML content để tránh lỗi database
   String _sanitizeHtmlContent(String content) {
     if (content.isEmpty) return content;
 
-    // Loại bỏ các ký tự đặc biệt có thể gây lỗi database
     String sanitized = content
-        .replaceAll(
-          RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'),
-          '',
-        ) // Control characters
-        .replaceAll(
-          RegExp(r'[\u0000-\u001F\u007F-\u009F]'),
-          '',
-        ) // Unicode control characters
+        .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'), '')
+        .replaceAll(RegExp(r'[\u0000-\u001F\u007F-\u009F]'), '')
         .trim();
 
-    // Đảm bảo HTML hợp lệ
     if (sanitized.isNotEmpty && !sanitized.startsWith('<')) {
       sanitized = '<p>$sanitized</p>';
     }
@@ -170,14 +150,11 @@ class CreateTaskController extends GetxController {
     return sanitized;
   }
 
-  /// Kiểm tra nội dung có thực sự có text không (bỏ qua HTML tags và whitespace)
   bool _hasRealContent(String htmlContent) {
     if (htmlContent.isEmpty) return false;
 
-    // Loại bỏ HTML tags
     String textOnly = htmlContent.replaceAll(RegExp(r'<[^>]*>'), '');
 
-    // Loại bỏ các HTML entities và whitespace
     textOnly = textOnly
         .replaceAll(RegExp(r'&nbsp;'), ' ')
         .replaceAll(RegExp(r'&amp;'), '&')
@@ -185,7 +162,7 @@ class CreateTaskController extends GetxController {
         .replaceAll(RegExp(r'&gt;'), '>')
         .replaceAll(RegExp(r'&quot;'), '"')
         .replaceAll(RegExp(r'&#39;'), "'")
-        .replaceAll(RegExp(r'\s+'), ' ') // Nhiều space thành 1 space
+        .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
 
     return textOnly.isNotEmpty;
@@ -197,13 +174,11 @@ class CreateTaskController extends GetxController {
     final name = titleController.text.trim();
     final content = contentController.text.trim();
 
-    // Sanitize HTML content để tránh lỗi database
     final sanitizedContent = _sanitizeHtmlContent(content);
     if (name.isEmpty) {
       error.value = 'Tên việc là bắt buộc';
       return false;
     }
-    // Kiểm tra nội dung có thực sự có text không (bỏ qua HTML tags)
     final hasContent = _hasRealContent(sanitizedContent);
 
     if (!hasContent) {
@@ -211,9 +186,6 @@ class CreateTaskController extends GetxController {
       return false;
     }
 
-    // Chuẩn hóa thời gian theo yêu cầu API:
-    // StartDate = đầu ngày local (-> 17:00Z hôm trước)
-    // DueDate = cuối ngày local (-> 16:59:59Z)
     final now = DateTime.now();
     final startLocal = _startOfDayLocal(startDate.value ?? now);
     final dueLocal = dueDate.value != null
@@ -227,8 +199,8 @@ class CreateTaskController extends GetxController {
       startDate: startLocal,
       dueDate: dueLocal,
       priority: selectedPriority.value?.value ?? 3,
-      note: "", // Sử dụng sanitized HTML content cho note
-      content: sanitizedContent, // Sử dụng sanitized HTML content cho content
+      note: "",
+      content: sanitizedContent,
       primary: CreateTaskGroupPayload(
         departmentCodes: primaryDepartmentCodes.toList(),
         employeeCodes: primaryEmployeeCodes.toList(),
@@ -247,15 +219,10 @@ class CreateTaskController extends GetxController {
             ),
     );
 
-    print('payload: ${payload.toJson()}');
-
     try {
       loading.value = true;
 
-      // Sử dụng FormData cho cả 2 trường hợp để đảm bảo format nhất quán
       final res = await _postMultipart(payload);
-
-      print('resssssssss: ${res.data}');
       Map<String, dynamic>? map;
       if (res.data is Map) {
         final raw = Map<String, dynamic>.from(res.data as Map);
@@ -264,24 +231,24 @@ class CreateTaskController extends GetxController {
         };
       }
 
-      // Xử lý response từ server
-      final statusCode = map?['statuscode'] ?? res.statusCode;
-      final dataOk = map?['data'] == true;
+      final statusCode = map?['statuscode'];
+      final data = map?['data'];
       final serverMessage = (map?['message'] as String?)?.trim();
 
-      // Kiểm tra status code và message từ server
+      final dataOk =
+          data != null && (data == true || (data is String && data.isNotEmpty));
+
       if (statusCode == 200 && dataOk) {
+        error.value = '';
         success.value = 'Tạo việc thành công';
         return true;
       }
 
-      // Hiển thị message lỗi từ server nếu có
       error.value = (serverMessage != null && serverMessage.isNotEmpty)
           ? serverMessage
           : 'Tạo việc thất bại';
       return false;
     } catch (e) {
-      print('Error in submit: $e');
       if (e is dioLib.DioException) {
         final data = e.response?.data;
         String? serverMessage;
@@ -313,7 +280,6 @@ class CreateTaskController extends GetxController {
         allowedExtensions: const ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
       );
       if (result != null && result.files.isNotEmpty) {
-        // Thêm file mới vào danh sách hiện có
         final newFileNames = result.files.map((f) => f.name).toList();
         final newPaths = result.files
             .where((f) => f.path != null)
@@ -323,12 +289,9 @@ class CreateTaskController extends GetxController {
         attachmentFileNames.addAll(newFileNames);
         attachmentPaths.addAll(newPaths);
       }
-    } catch (_) {
-      // bỏ qua lỗi, không log thừa
-    }
+    } catch (_) {}
   }
 
-  /// Xóa file đính kèm theo index
   void removeAttachment(int index) {
     if (index >= 0 && index < attachmentFileNames.length) {
       attachmentFileNames.removeAt(index);
@@ -338,7 +301,6 @@ class CreateTaskController extends GetxController {
     }
   }
 
-  /// Xóa tất cả file đính kèm
   void clearAllAttachments() {
     attachmentFileNames.clear();
     attachmentPaths.clear();
@@ -349,7 +311,6 @@ class CreateTaskController extends GetxController {
   ) async {
     final map = payload.toJson();
     final form = dioLib.FormData();
-    // Trường phẳng
     void addField(String key, String? value) {
       if (value != null && value.isNotEmpty) {
         form.fields.add(MapEntry(key, value));
@@ -365,7 +326,6 @@ class CreateTaskController extends GetxController {
     addField('Note', map['Note'] as String?);
     addField('Content', map['Content'] as String?);
 
-    // Nhóm Primary/Collab/Follow (nhiều giá trị -> lặp key)
     final primary = map['Primary'] as Map<String, dynamic>;
     final List depsP = (primary['DepartmentCodes'] as List? ?? []);
     final List empsP = (primary['EmployeeCodes'] as List? ?? []);
@@ -400,7 +360,6 @@ class CreateTaskController extends GetxController {
       }
     }
 
-    // Files
     for (final p in attachmentPaths) {
       form.files.add(
         MapEntry(

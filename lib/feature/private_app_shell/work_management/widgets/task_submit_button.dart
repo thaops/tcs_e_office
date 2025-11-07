@@ -44,10 +44,11 @@ class TaskSubmitButton extends StatelessWidget {
             }
 
             return ElevatedButton(
-              onPressed: isLoading ? null : () {
-                print("Submit button clicked, isLoading: $isLoading");
-                _handleSubmit(context, c);
-              },
+              onPressed: isLoading
+                  ? null
+                  : () {
+                      _handleSubmit(context, c);
+                    },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.yellow,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -83,33 +84,33 @@ class TaskSubmitButton extends StatelessWidget {
     CreateTaskController c,
   ) async {
     FocusScope.of(context).unfocus();
-    
-    try {
-      print("Starting task creation...");
-      final ok = await c.submit(assignerCode: assignerCode)
-          .timeout(Duration(seconds: 30)); // Thêm timeout 30 giây
-      
-      print("Task creation completed, success: $ok");
 
-    if (ok) {
-      // Hiển thị success dialog trước khi đóng màn hình
-      await SuccessDialogWithBackdrop.show(
-        context: context,
-        title: 'Thành công',
-        message: 'Tạo công việc thành công',
-        buttonText: 'Đóng',
-        autoClose: true,
-        autoCloseDelay: const Duration(seconds: 2),
-        onClose: () {
-          onSuccess?.call();
-          Get.back(result: true);
-        },
-      );
-    }
-    // Lỗi đã được xử lý trong build method
+    try {
+      final ok = await c
+          .submit(assignerCode: assignerCode)
+          .timeout(Duration(seconds: 30));
+
+      if (ok) {
+        await SuccessDialogWithBackdrop.show(
+          context: context,
+          title: 'Thành công',
+          message: 'Tạo công việc thành công',
+          buttonText: 'Đóng',
+          autoClose: true,
+          autoCloseDelay: const Duration(seconds: 2),
+          onClose: () {
+            onSuccess?.call();
+            Get.back(result: true);
+          },
+        );
+      }
+      // Lỗi đã được xử lý trong build method
     } catch (e) {
       print("Task creation error: $e");
-      Get.snackbar("Lỗi", "Thao tác quá lâu hoặc có lỗi xảy ra. Vui lòng thử lại.");
+      Get.snackbar(
+        "Lỗi",
+        "Thao tác quá lâu hoặc có lỗi xảy ra. Vui lòng thử lại.",
+      );
     }
   }
 }

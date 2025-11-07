@@ -23,9 +23,9 @@ class TextWidget extends StatelessWidget {
     this.textAlign = TextAlign.left,
     this.paddingHorizontal,
     this.paddingVertical,
-    this.minLines = 1,
+    this.minLines,
     this.fontStyle,
-    this.maxLines = 1,
+    this.maxLines,
     this.fontFamily = 'Roboto',
   });
 
@@ -44,7 +44,7 @@ class TextWidget extends StatelessWidget {
           fontSize: fontSize.sp,
           fontWeight: fontWeight,
           color: color,
-          overflow: TextOverflow.ellipsis,
+          overflow: maxLines != null ? TextOverflow.ellipsis : null,
           fontStyle: fontStyle,
           fontFamily: fontFamily,
         ),

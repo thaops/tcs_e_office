@@ -53,13 +53,12 @@ class _DocumentManagementTabState extends State<DocumentManagementTab>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder:
-          (context) => DocumentFilterBottomSheet(
-            currentFilter: _controller.getCurrentFilter(),
-            onApplyFilter: (filter) => _controller.applyFilter(filter),
-            onResetFilter: () => _controller.resetFilter(),
-            currentTab: _controller.currentTab.value,
-          ),
+      builder: (context) => DocumentFilterBottomSheet(
+        currentFilter: _controller.getCurrentFilter(),
+        onApplyFilter: (filter) => _controller.applyFilter(filter),
+        onResetFilter: () => _controller.resetFilter(),
+        currentTab: _controller.currentTab.value,
+      ),
     );
   }
 
@@ -67,23 +66,11 @@ class _DocumentManagementTabState extends State<DocumentManagementTab>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CommonAppBar(
-        title: 'Quản lý văn bản',
-        onAddPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Chức năng tạo văn bản đang được phát triển'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        },
-        addButtonTooltip: 'Tạo văn bản mới',
-      ),
+      appBar: CommonAppBar(title: 'Quản lý văn bản'),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Column(
           children: [
-            // Tab bar
             CommonTabBar(
               controller: _tabController,
               tabs: const [
@@ -92,37 +79,30 @@ class _DocumentManagementTabState extends State<DocumentManagementTab>
               ],
             ),
 
-            // Search bar
             Obx(() {
               final isTabIncoming = _controller.currentTab.value == 0;
               return CommonSearchBar(
-                controller:
-                    isTabIncoming
-                        ? _controller.searchControllerIncoming
-                        : _controller.searchControllerOutgoing,
-                hintText: 'Nhập tên văn bản…',
-                searchQuery:
-                    isTabIncoming
-                        ? _controller.searchQueryIncoming.value
-                        : _controller.searchQueryOutgoing.value,
-                isLoading:
-                    isTabIncoming
-                        ? _controller.isLoadingIncoming.value
-                        : _controller.isLoadingOutgoing.value,
-                onSearchChanged:
-                    isTabIncoming
-                        ? _controller.onSearchChangedIncoming
-                        : _controller.onSearchChangedOutgoing,
-                onClearSearch:
-                    isTabIncoming
-                        ? _controller.clearSearchIncoming
-                        : _controller.clearSearchOutgoing,
+                controller: isTabIncoming
+                    ? _controller.searchControllerIncoming
+                    : _controller.searchControllerOutgoing,
+                hintText: 'Nhập trích yếu…',
+                searchQuery: isTabIncoming
+                    ? _controller.searchQueryIncoming.value
+                    : _controller.searchQueryOutgoing.value,
+                isLoading: isTabIncoming
+                    ? _controller.isLoadingIncoming.value
+                    : _controller.isLoadingOutgoing.value,
+                onSearchChanged: isTabIncoming
+                    ? _controller.onSearchChangedIncoming
+                    : _controller.onSearchChangedOutgoing,
+                onClearSearch: isTabIncoming
+                    ? _controller.clearSearchIncoming
+                    : _controller.clearSearchOutgoing,
                 onFilterPressed: _showFilterBottomSheet,
                 hasActiveFilter: _controller.getCurrentFilter().hasActiveFilter,
               );
             }),
 
-            // Tab content
             Expanded(
               child: Container(
                 color: Colors.white,
@@ -130,7 +110,7 @@ class _DocumentManagementTabState extends State<DocumentManagementTab>
                   controller: _tabController,
                   children: const [
                     DocumentsIncomingView(),
-                    DocumentsOutgoingView(),
+                    DocumentsOutgoingView(status: null),
                   ],
                 ),
               ),

@@ -104,8 +104,14 @@ class TaskAssigneeSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            color: AppColors.primary.withOpacity(0.1),
             padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -153,19 +159,21 @@ class TaskAssigneeSection extends StatelessWidget {
             ),
           ),
           GestureDetector(
-              onTap: onAdd,
-              child: Obx(() {
-                if (selectedCodes.isEmpty) {
-                  return SizedBox();
-                }
+            onTap: onAdd,
+            child: Obx(() {
+              if (selectedCodes.isEmpty) {
+                return EmptyStatePresets.listEmpty(title: 'Không có dữ liệu');
+              }
 
-                // Map mã -> tên nhân viên
-                final codeToName = {
-                  for (final e in controller.allEmployees)
-                    e.employeeCode: e.employeeName,
-                };
+              // Map mã -> tên nhân viên
+              final codeToName = {
+                for (final e in controller.allEmployees)
+                  e.employeeCode: e.employeeName,
+              };
 
-                return Padding(padding:  EdgeInsets.all( selectedCodes.length > 0 ? 8 : 0), child:   Column(
+              return Padding(
+                padding: EdgeInsets.all(selectedCodes.length > 0 ? 8 : 0),
+                child: Column(
                   children: [
                     ...selectedCodes.map((code) {
                       final name = codeToName[code] ?? code;
@@ -223,9 +231,9 @@ class TaskAssigneeSection extends StatelessWidget {
                       );
                     }),
                   ],
-                ));
-              }),
-            
+                ),
+              );
+            }),
           ),
         ],
       ),

@@ -16,8 +16,12 @@ class LoginWithMicrosoft extends StatelessWidget {
       ),
       body: GetBuilder<MicrosoftController>(
         init: MicrosoftController(),
-        builder: (controller) =>
-            WebViewWidget(controller: controller.webViewController)),
+        builder: (controller) {
+          if (controller.webViewController == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return WebViewWidget(controller: controller.webViewController!);
+        }),
     );
   }
 }

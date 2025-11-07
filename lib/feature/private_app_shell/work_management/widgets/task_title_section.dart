@@ -48,8 +48,8 @@ class TaskTitleSection extends StatelessWidget {
                 contentController: c.contentController,
                 showToolbar: false, // Tắt toolbar
                 onFocus: () {
-                  // Khi HTML editor được focus, scroll để đảm bảo title vẫn visible
-                  // Không cần làm gì đặc biệt vì đã tắt auto adjust
+                  // Khi HTML editor được focus, bỏ focus các TextField Flutter khác để tránh 2 con trỏ nháy
+                  FocusManager.instance.primaryFocus?.unfocus();
                 },
               ),
               // Hiển thị thông báo lỗi từ server cho nội dung

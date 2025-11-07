@@ -25,6 +25,7 @@ class Img {
   static const String july = 'assets/july.jpg';
   static const String icon_reprot = 'assets/icon/icon-report.png';
   static const String logo_tcs = 'assets/image/logotcs.png';
+  static const String empty_icon = 'assets/empty_icon.png';
 
   //iconnavigation
   static const String taskIcon = 'assets/icon/task_icon.png';

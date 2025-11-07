@@ -81,3 +81,14 @@ sdk: ^3.7.2
 // android 
 environment:
   sdk: ^3.8.0
+
+  storePassword=TcsOffice@2025
+keyPassword=TcsOffice@2025
+keyAlias=tcs_e_office_upload
+storeFile=tcs_e_office_upload_keystore.jks
+
+sdk.dir=C:\\Users\\ASUS\\AppData\\Local\\Android\\Sdk
+flutter.sdk=D:\\flutter_windows_3.24.5-stable\\flutter
+flutter.buildMode=debug
+flutter.versionName=1.0.10
+flutter.versionCode=10

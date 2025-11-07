@@ -6,7 +6,8 @@ import '../widgets/refreshable_empty_state.dart';
 import '../../../../common/widgets/common_loading_indicator.dart';
 
 class DocumentsOutgoingView extends StatelessWidget {
-  const DocumentsOutgoingView({super.key});
+  final int? status;
+  const DocumentsOutgoingView({super.key, this.status});
 
   @override
   Widget build(BuildContext context) {
@@ -26,12 +27,12 @@ class DocumentsOutgoingView extends StatelessWidget {
           icon: Icons.outbox_outlined,
           title: 'Không có văn bản đi',
           subtitle: 'Chưa có văn bản nào được gửi đi',
-          onRefresh: controller.refresh,
+          onRefresh: () => controller.refreshWithStatus(status),
         );
       }
 
       return RefreshIndicator(
-        onRefresh: controller.refresh,
+        onRefresh: () => controller.refreshWithStatus(status),
         child: NotificationListener<ScrollNotification>(
           onNotification: (ScrollNotification scrollInfo) {
             if (scrollInfo.metrics.pixels >=
@@ -39,7 +40,7 @@ class DocumentsOutgoingView extends StatelessWidget {
                 !controller.isLoadingOutgoing.value &&
                 controller.documentsOutgoing.length <
                     controller.totalRecordOutgoing.value) {
-              controller.loadMore();
+              controller.loadMoreWithStatus(status);
             }
             return false;
           },

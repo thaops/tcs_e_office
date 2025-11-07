@@ -14,6 +14,7 @@ migrate_working_dir/
 
 # IntelliJ related
 *.iml
+!android/tcs_e_office_android.iml
 *.ipr
 *.iws
 .idea/

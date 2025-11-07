@@ -14,13 +14,10 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  // final controllerTaskCreate = Get.lazyPut(() => TaskCreateController());
-
   @override
   void initState() {
     super.initState();
     Get.put(ProfileLogic());
-    // Register callback để NavigationService có thể switch tab
     NavigationService.setTabChangeCallback(_onTabTapped);
   }
 
@@ -28,7 +25,6 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeTab(),
-    const DocumentManagementTab(),
     WorkManagementTab(),
     const DocumentManagementTab(),
     ProfileScreen(),
@@ -87,6 +83,14 @@ class _MainScreenState extends State<MainScreen> {
               ),
               NavigationDestination(
                 icon: Icon(
+                  Icons.list_alt_outlined,
+                  color: Colors.grey.shade600,
+                ),
+                selectedIcon: Icon(Icons.list_alt_rounded, color: Colors.white),
+                label: 'Công việc',
+              ),
+              NavigationDestination(
+                icon: Icon(
                   Icons.description_outlined,
                   color: Colors.grey.shade600,
                 ),
@@ -95,14 +99,6 @@ class _MainScreenState extends State<MainScreen> {
                   color: Colors.white,
                 ),
                 label: 'Văn bản',
-              ),
-              NavigationDestination(
-                icon: Icon(
-                  Icons.list_alt_outlined,
-                  color: Colors.grey.shade600,
-                ),
-                selectedIcon: Icon(Icons.list_alt_rounded, color: Colors.white),
-                label: 'Công việc',
               ),
               NavigationDestination(
                 icon: Icon(Icons.person_outline, color: Colors.grey.shade600),

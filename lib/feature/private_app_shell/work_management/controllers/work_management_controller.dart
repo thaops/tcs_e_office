@@ -7,23 +7,18 @@ import '../models/task_model.dart';
 import '../models/filter_model.dart';
 
 class WorkManagementController extends GetxController {
-  // DioApi instance
   final DioApi _dioApi = DioApi();
 
-  // Tab hiện tại (0: Việc tôi giao, 1: Việc giao đến tôi)
   final RxInt currentTab = 0.obs;
 
-  // Danh sách công việc tôi giao
   final RxList<TaskModel> tasksByMe = <TaskModel>[].obs;
   final RxBool isLoadingByMe = false.obs;
   final RxInt totalRecordByMe = 0.obs;
 
-  // Danh sách công việc giao đến tôi
   final RxList<TaskModel> tasksToMe = <TaskModel>[].obs;
   final RxBool isLoadingToMe = false.obs;
   final RxInt totalRecordToMe = 0.obs;
 
-  // Tìm kiếm riêng biệt cho từng tab
   final RxString searchQueryByMe = ''.obs;
   final RxString searchQueryToMe = ''.obs;
   final TextEditingController searchControllerByMe = TextEditingController();
@@ -31,16 +26,13 @@ class WorkManagementController extends GetxController {
   Timer? _searchDebounceByMe;
   Timer? _searchDebounceToMe;
 
-  // Phân trang
   final RxInt currentPageByMe = 1.obs;
   final RxInt currentPageToMe = 1.obs;
   final int pageSize = 20;
 
-  // Filter cho từng tab
   final Rx<FilterModel> filterByMe = FilterModel.empty().obs;
   final Rx<FilterModel> filterToMe = FilterModel.empty().obs;
 
-  // Danh sách gốc (trước khi filter)
   final RxList<TaskModel> _originalTasksByMe = <TaskModel>[].obs;
   final RxList<TaskModel> _originalTasksToMe = <TaskModel>[].obs;
 
@@ -60,12 +52,10 @@ class WorkManagementController extends GetxController {
     super.onClose();
   }
 
-  // Chuyển tab
   void changeTab(int index) {
     currentTab.value = index;
   }
 
-  // Tải danh sách công việc tôi giao
   Future<void> loadTasksByMe({bool refresh = false}) async {
     if (refresh) {
       currentPageByMe.value = 1;
@@ -82,7 +72,6 @@ class WorkManagementController extends GetxController {
         keyword: searchQueryByMe.value.isNotEmpty
             ? searchQueryByMe.value
             : null,
-        // startDate: filterByMe.value.startDate,
         dueDate: filterByMe.value.dueDate,
       );
 
@@ -112,7 +101,6 @@ class WorkManagementController extends GetxController {
     }
   }
 
-  // Tải danh sách công việc giao đến tôi
   Future<void> loadTasksToMe({bool refresh = false}) async {
     if (refresh) {
       currentPageToMe.value = 1;
@@ -125,11 +113,10 @@ class WorkManagementController extends GetxController {
       final request = TaskRequest(
         pageIndex: currentPageToMe.value,
         pageSize: pageSize,
-        type: 1, // Việc giao đến tôi
+        type: 1,
         keyword: searchQueryToMe.value.isNotEmpty
             ? searchQueryToMe.value
             : null,
-        // startDate: filterToMe.value.startDate,
         dueDate: filterToMe.value.dueDate,
       );
 
@@ -137,7 +124,6 @@ class WorkManagementController extends GetxController {
         ApiEndpoints.getTasks,
         data: request.toJson(),
       );
-      print('responsesss: ${response.data}');
 
       if (response.statusCode == 200) {
         final taskResponse = TaskResponse.fromJson(response.data);
@@ -165,7 +151,6 @@ class WorkManagementController extends GetxController {
     }
   }
 
-  // Tải thêm dữ liệu (phân trang)
   Future<void> loadMore() async {
     if (currentTab.value == 0) {
       if (tasksByMe.length < totalRecordByMe.value) {
@@ -180,7 +165,6 @@ class WorkManagementController extends GetxController {
     }
   }
 
-  // Làm mới dữ liệu
   Future<void> refresh() async {
     if (currentTab.value == 0) {
       await loadTasksByMe(refresh: true);
@@ -189,45 +173,90 @@ class WorkManagementController extends GetxController {
     }
   }
 
-  // Tìm kiếm cho tab "Việc tôi giao"
+  Future<void> silentRefresh() async {
+    try {
+      if (currentTab.value == 0) {
+        currentPageByMe.value = 1;
+
+        final request = TaskRequest(
+          pageIndex: currentPageByMe.value,
+          pageSize: pageSize,
+          type: 2,
+          keyword: searchQueryByMe.value.isNotEmpty
+              ? searchQueryByMe.value
+              : null,
+          dueDate: filterByMe.value.dueDate,
+        );
+
+        final response = await _dioApi.post(
+          ApiEndpoints.getTasks,
+          data: request.toJson(),
+        );
+
+        if (response.statusCode == 200) {
+          final taskResponse = TaskResponse.fromJson(response.data);
+          _originalTasksByMe.value = taskResponse.data;
+          _applyFilterByMe();
+          totalRecordByMe.value = taskResponse.totalRecord;
+        }
+      } else {
+        currentPageToMe.value = 1;
+
+        final request = TaskRequest(
+          pageIndex: currentPageToMe.value,
+          pageSize: pageSize,
+          type: 1,
+          keyword: searchQueryToMe.value.isNotEmpty
+              ? searchQueryToMe.value
+              : null,
+          dueDate: filterToMe.value.dueDate,
+        );
+
+        final response = await _dioApi.post(
+          ApiEndpoints.getTasks,
+          data: request.toJson(),
+        );
+
+        if (response.statusCode == 200) {
+          final taskResponse = TaskResponse.fromJson(response.data);
+          _originalTasksToMe.value = taskResponse.data;
+          _applyFilterToMe();
+          totalRecordToMe.value = taskResponse.totalRecord;
+        }
+      }
+    } catch (e) {}
+  }
+
   void onSearchChangedByMe(String query) {
     searchQueryByMe.value = query;
 
-    // Hủy timer cũ nếu có
     _searchDebounceByMe?.cancel();
 
-    // Nếu query rỗng, thực hiện search ngay lập tức
     if (query.isEmpty) {
       loadTasksByMe(refresh: true);
       return;
     }
 
-    // Tạo timer mới với delay 500ms chỉ khi có query
     _searchDebounceByMe = Timer(const Duration(milliseconds: 500), () {
       loadTasksByMe(refresh: true);
     });
   }
 
-  // Tìm kiếm cho tab "Việc giao đến tôi"
   void onSearchChangedToMe(String query) {
     searchQueryToMe.value = query;
 
-    // Hủy timer cũ nếu có
     _searchDebounceToMe?.cancel();
 
-    // Nếu query rỗng, thực hiện search ngay lập tức
     if (query.isEmpty) {
       loadTasksToMe(refresh: true);
       return;
     }
 
-    // Tạo timer mới với delay 500ms chỉ khi có query
     _searchDebounceToMe = Timer(const Duration(milliseconds: 500), () {
       loadTasksToMe(refresh: true);
     });
   }
 
-  // Clear search cho tab "Việc tôi giao"
   void clearSearchByMe() {
     _searchDebounceByMe?.cancel();
     searchControllerByMe.clear();
@@ -235,7 +264,6 @@ class WorkManagementController extends GetxController {
     loadTasksByMe(refresh: true);
   }
 
-  // Clear search cho tab "Việc giao đến tôi"
   void clearSearchToMe() {
     _searchDebounceToMe?.cancel();
     searchControllerToMe.clear();
@@ -243,7 +271,6 @@ class WorkManagementController extends GetxController {
     loadTasksToMe(refresh: true);
   }
 
-  // Lọc danh sách theo từ khóa tìm kiếm (không cần nữa vì search đã được thực hiện ở server)
   List<TaskModel> get filteredTasksByMe {
     return tasksByMe;
   }
@@ -252,56 +279,48 @@ class WorkManagementController extends GetxController {
     return tasksToMe;
   }
 
-  // Lấy màu sắc theo trạng thái
   Color getStatusColor(int status) {
     switch (status) {
-      case 1: // Đang thực hiện
+      case 1:
         return Colors.orange;
-      case 2: // Hoàn thành
+      case 2:
         return Colors.green;
-      case 3: // Trễ hạn
+      case 3:
         return Colors.red;
       default:
         return Colors.grey;
     }
   }
 
-  // Lấy màu sắc theo độ ưu tiên
   Color getPriorityColor(int priority) {
     switch (priority) {
-      case 0: // Khẩn cấp
+      case 0:
         return Colors.red;
-      case 1: // Ưu tiên cao
+      case 1:
         return Colors.orange;
-      case 2: // Trung bình
+      case 2:
         return const Color(0xFF006884);
-      case 3: // Bình thường
+      case 3:
         return Colors.grey;
       default:
         return Colors.grey;
     }
   }
 
-  // Áp dụng filter cho tab "Việc tôi giao"
   void _applyFilterByMe() {
     final filteredTasks = _filterTasks(_originalTasksByMe, filterByMe.value);
     tasksByMe.value = filteredTasks;
   }
 
-  // Áp dụng filter cho tab "Việc giao đến tôi"
   void _applyFilterToMe() {
     final filteredTasks = _filterTasks(_originalTasksToMe, filterToMe.value);
     tasksToMe.value = filteredTasks;
   }
 
-  // Logic filter chung (chỉ filter client-side cho status, priority, role)
-  // Date filtering được thực hiện ở server
   List<TaskModel> _filterTasks(
     List<TaskModel> originalTasks,
     FilterModel filter,
   ) {
-    // Chỉ filter client-side nếu có status, priority, hoặc role
-    // Date filtering được thực hiện ở server nên không cần filter client-side
     final hasClientSideFilter =
         filter.status != null || filter.priority != null || filter.role != null;
 
@@ -310,17 +329,14 @@ class WorkManagementController extends GetxController {
     }
 
     return originalTasks.where((task) {
-      // Filter theo trạng thái
       if (filter.status != null && task.status != filter.status) {
         return false;
       }
 
-      // Filter theo mức độ ưu tiên
       if (filter.priority != null && task.priority != filter.priority) {
         return false;
       }
 
-      // Filter theo vai trò (chỉ áp dụng cho tab "Việc giao đến tôi")
       if (filter.role != null && task.roleId != filter.role) {
         return false;
       }
@@ -329,11 +345,9 @@ class WorkManagementController extends GetxController {
     }).toList();
   }
 
-  // Áp dụng filter mới cho tab hiện tại
   void applyFilter(FilterModel newFilter) {
     if (currentTab.value == 0) {
       filterByMe.value = newFilter;
-      // Nếu có date filter, reload data từ server
       if (newFilter.dueDate != null) {
         loadTasksByMe(refresh: true);
       } else {
@@ -341,7 +355,6 @@ class WorkManagementController extends GetxController {
       }
     } else {
       filterToMe.value = newFilter;
-      // Nếu có date filter, reload data từ server
       if (newFilter.dueDate != null) {
         loadTasksToMe(refresh: true);
       } else {
@@ -350,21 +363,16 @@ class WorkManagementController extends GetxController {
     }
   }
 
-  // Áp dụng filter cho tab cụ thể (dùng khi navigation từ home)
   void applyFilterForTab(FilterModel newFilter, int targetTab) {
     if (targetTab == 0) {
-      // Áp dụng cho tab "Việc tôi giao"
       filterByMe.value = newFilter;
-      // Nếu có date filter, reload data từ server
       if (newFilter.dueDate != null) {
         loadTasksByMe(refresh: true);
       } else {
         _applyFilterByMe();
       }
     } else {
-      // Áp dụng cho tab "Việc giao đến tôi"
       filterToMe.value = newFilter;
-      // Nếu có date filter, reload data từ server
       if (newFilter.dueDate != null) {
         loadTasksToMe(refresh: true);
       } else {
@@ -373,32 +381,26 @@ class WorkManagementController extends GetxController {
     }
   }
 
-  // Reset filter cho tab hiện tại
   void resetFilter() {
     if (currentTab.value == 0) {
-      // Reset filter về empty state - force tất cả về null
       filterByMe.value = FilterModel(
         status: null,
         priority: null,
         role: null,
         dueDate: null,
       );
-      // Reload data từ server với filter empty
       _loadTasksByMeWithoutFilter(refresh: true);
     } else {
-      // Reset filter về empty state - force tất cả về null
       filterToMe.value = FilterModel(
         status: null,
         priority: null,
         role: null,
         dueDate: null,
       );
-      // Reload data từ server với filter empty
       _loadTasksToMeWithoutFilter(refresh: true);
     }
   }
 
-  // Load tasks by me với filter empty (để reset)
   Future<void> _loadTasksByMeWithoutFilter({bool refresh = false}) async {
     if (refresh) {
       currentPageByMe.value = 1;
@@ -411,19 +413,18 @@ class WorkManagementController extends GetxController {
       final request = TaskRequest(
         pageIndex: currentPageByMe.value,
         pageSize: pageSize,
-        type: 2, // Việc tôi giao
+        type: 2,
         keyword: searchQueryByMe.value.isNotEmpty
             ? searchQueryByMe.value
             : null,
-        startDate: null, // Không có date filter
-        dueDate: null, // Không có date filter
+        startDate: null,
+        dueDate: null,
       );
 
       final response = await _dioApi.post(
         ApiEndpoints.getTasks,
         data: request.toJson(),
       );
-      print('responsesss: ${response.data}');
 
       if (response.statusCode == 200) {
         final taskResponse = TaskResponse.fromJson(response.data);
@@ -451,7 +452,6 @@ class WorkManagementController extends GetxController {
     }
   }
 
-  // Load tasks to me với filter empty (để reset)
   Future<void> _loadTasksToMeWithoutFilter({bool refresh = false}) async {
     if (refresh) {
       currentPageToMe.value = 1;
@@ -464,19 +464,18 @@ class WorkManagementController extends GetxController {
       final request = TaskRequest(
         pageIndex: currentPageToMe.value,
         pageSize: pageSize,
-        type: 1, // Việc giao đến tôi
+        type: 1,
         keyword: searchQueryToMe.value.isNotEmpty
             ? searchQueryToMe.value
             : null,
-        startDate: null, // Không có date filter
-        dueDate: null, // Không có date filter
+        startDate: null,
+        dueDate: null,
       );
 
       final response = await _dioApi.post(
         ApiEndpoints.getTasks,
         data: request.toJson(),
       );
-      print('responsesss: ${response.data}');
 
       if (response.statusCode == 200) {
         final taskResponse = TaskResponse.fromJson(response.data);
@@ -504,12 +503,10 @@ class WorkManagementController extends GetxController {
     }
   }
 
-  // Lấy filter hiện tại của tab
   FilterModel getCurrentFilter() {
     return currentTab.value == 0 ? filterByMe.value : filterToMe.value;
   }
 
-  // Kiểm tra có filter active không - CHỈ cho tab hiện tại
   bool get hasActiveFilter {
     return getCurrentFilter().hasActiveFilter;
   }

@@ -3,7 +3,19 @@ import 'package:tcs_e_office/common/Services/config.dart';
 
 class ApiEndpoints {
   //notification
-  static String notification = "${Config.baseUrl}/device/onesignal-register";
+  static String notification = "${Config.baseUrl}/user/onesignal-register";
+  static String unregisterNotification =
+      "${Config.baseUrl}/user/onesignal-unregister";
+  static String getNotificationList({int pageIndex = 1, int pageSize = 20}) =>
+      "${Config.baseUrl}/notification/getlistnotify?pageIndex=$pageIndex&pageSize=$pageSize";
+  static String getNotificationDetail(String notificationId) =>
+      "${Config.baseUrl}/notification/getnotifydetail/$notificationId";
+  static String markNotificationAsRead(String notificationId) =>
+      "${Config.baseUrl}/notification/markasread/$notificationId";
+  static String readNotifications =
+      "${Config.baseUrl}/notification/readnotifications";
+  static String readAllNotifications =
+      "${Config.baseUrl}/notification/readallnotifications";
 
   static String login = "${Config.baseUrl}/users/oauth2-google";
   static String loginUrlMicrosoft(int platform, int type) =>
@@ -24,6 +36,8 @@ class ApiEndpoints {
       "${Config.baseUrl}/documenttask/complete-task/$taskId"; // POST
   static String forwardTask =
       "${Config.baseUrl}/documenttask/forward-task"; // POST
+  static String reprocessTask =
+      "${Config.baseUrl}/documenttask/reprocess-task"; // POST
   static String getPriorityOptions =
       "${Config.baseUrl}/documenttask/get-priority-options"; // GET
   static String getStatusOptions =
@@ -35,11 +49,35 @@ class ApiEndpoints {
 
   // document endpoints
   static String getDocuments = "${Config.baseUrl}/document/get-documents";
+  static String getDocumentById(String documentId) =>
+      "${Config.baseUrl}/document/get-document-by-id/$documentId";
+  static String getDocumentById4Mobile(String documentId) =>
+      "${Config.baseUrl}/document/get-document-by-id-4-mobile/$documentId";
+  static String getDocumentStatusOptions =
+      "${Config.baseUrl}/document/get-status-options";
+  static String getDocumentTypeOptions =
+      "${Config.baseUrl}/document/get-document-type-options";
+  static String getDocumentCountByStatus =
+      "${Config.baseUrl}/document/get-count-by-status"; // GET
 
   // comment endpoints
   static String addComment = "${Config.baseUrl}/document/comment-document";
   static String getComments(String documentId) =>
       "${Config.baseUrl}/document/comments/$documentId";
+
+  // document preview endpoint
+  static String previewDocument(String documentId) =>
+      "${Config.baseUrl}/document/preview-document/$documentId";
+
+  // document action endpoints
+  static String finishDocuments = "${Config.baseUrl}/document/finish-documents";
+  static String getIssueUnitOptions =
+      "${Config.baseUrl}/document/get-issue-unit-options";
+  static String getEmployeesByDepartment =
+      "${Config.baseUrl}/employee/get-list-employee-of-department";
+  static String forwardDocument = "${Config.baseUrl}/document/forward-document";
+  static String approveDocuments =
+      "${Config.baseUrl}/document/approve-documents";
 
   // profile
   static String profile = "${Config.baseUrl}/user/get-info-mine";

@@ -109,8 +109,14 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            color: AppColors.primary.withOpacity(0.1),
             padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -159,32 +165,35 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
               ],
             ),
           ),
-             GestureDetector(
-              onTap: onAdd,
-              child: Obx(() {
-                final totalCount =
-                    selectedEmployeeCodes.length +
-                    selectedDepartmentCodes.length;
-                if (totalCount == 0) {
-                  return SizedBox();
-                }
+          GestureDetector(
+            onTap: onAdd,
+            child: Obx(() {
+              final totalCount =
+                  selectedEmployeeCodes.length + selectedDepartmentCodes.length;
+              if (totalCount == 0) {
+                return EmptyStatePresets.listEmpty(title: 'Không có dữ liệu');
+              }
 
-                // Map mã -> tên nhân viên và phòng ban
-                final employeeCodeToInfo = {
-                  for (final e in controller.allEmployees)
-                    e.employeeCode: {
-                      'name': e.employeeName,
-                      'departmentName': e.departmentName,
-                    },
-                };
+              // Map mã -> tên nhân viên và phòng ban
+              final employeeCodeToInfo = {
+                for (final e in controller.allEmployees)
+                  e.employeeCode: {
+                    'name': e.employeeName,
+                    'departmentName': e.departmentName,
+                  },
+              };
 
-                // Map mã -> tên phòng ban
-                final departmentCodeToName = {
-                  for (final dept in controller.departmentTree)
-                    ..._buildDepartmentMap(dept),
-                };
+              // Map mã -> tên phòng ban
+              final departmentCodeToName = {
+                for (final dept in controller.departmentTree)
+                  ..._buildDepartmentMap(dept),
+              };
 
-                return Padding(padding:  EdgeInsets.all( selectedEmployeeCodes.length > 0 ? 8 : 0), child:   Column(
+              return Padding(
+                padding: EdgeInsets.all(
+                  selectedEmployeeCodes.length > 0 ? 8 : 0,
+                ),
+                child: Column(
                   children: [
                     // Hiển thị employees
                     ...selectedEmployeeCodes.map((code) {
@@ -309,10 +318,10 @@ class UpdateTaskAssigneeSection extends StatelessWidget {
                       );
                     }),
                   ],
-                ));
-              }),
-            ),
-          
+                ),
+              );
+            }),
+          ),
         ],
       ),
     );

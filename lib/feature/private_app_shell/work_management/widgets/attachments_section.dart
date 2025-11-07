@@ -37,7 +37,6 @@ class _AttachmentsSectionState extends State<AttachmentsSection> {
             },
           ),
         ),
-        const SizedBox(height: 6), // Chuẩn hóa spacing
         if (_isExpanded)
           widget.attachments.isEmpty
               ? EmptyStatePresets.listEmpty(title: 'Chưa có tệp đính kèm')
@@ -107,7 +106,7 @@ class _AttachmentsSectionState extends State<AttachmentsSection> {
                     );
                   }).toList(),
                 ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
       ],
     );
   }

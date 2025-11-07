@@ -18,6 +18,8 @@ import '../widgets/task_detail_section.dart';
 import '../widget/assignee_selector_bottom_sheet.dart';
 import '../controllers/task_api_service.dart';
 import 'update_task_view.dart';
+import '../widgets/reprocess_reason_dialog.dart';
+import '../controllers/work_management_controller.dart';
 
 class TaskDetailView extends StatefulWidget {
   final String taskId;
@@ -327,9 +329,11 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                             // Header card
                             TaskHeaderCard(detail: detail),
                             // Content HTML (nội dung công việc)
-                            TaskDetailSection(
-                              child: ContentSection(content: detail.content),
-                            ),
+                            if (detail.content != null &&
+                                detail.content!.isNotEmpty)
+                              TaskDetailSection(
+                                child: ContentSection(content: detail.content),
+                              ),
                             // Attachments
                             TaskDetailSection(
                               child: AttachmentsSection(
@@ -396,6 +400,110 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                             ),
                           );
                         },
+                      ),
+
+                    // Button "Xử lý lại" - chỉ hiển thị khi là "việc tôi giao" và đã hoàn thành
+                    if (widget.tabType == 'assigned_by_me' &&
+                        _isTaskCompleted(detail))
+                      Obx(
+                        () => Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 6,
+                                offset: Offset(0, -2),
+                              ),
+                            ],
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: c.isReprocessing.value
+                                  ? null
+                                  : () async {
+                                      HapticFeedback.lightImpact();
+                                      await ReprocessReasonDialog.show(
+                                        context: context,
+                                        onConfirm: (reason) async {
+                                          final success = await c.reprocessTask(
+                                            note: reason,
+                                          );
+                                          if (success) {
+                                            // Silent refresh list (không hiển thị loading UI)
+                                            try {
+                                              final listController =
+                                                  Get.find<
+                                                    WorkManagementController
+                                                  >();
+                                              await listController
+                                                  .silentRefresh();
+                                            } catch (e) {
+                                              // Nếu không tìm thấy controller thì bỏ qua
+                                              print(
+                                                '🔍 WorkManagementController not found: $e',
+                                              );
+                                            }
+
+                                            // Hiển thị success dialog
+                                            await SuccessDialogWithBackdrop.show(
+                                              context: context,
+                                              title: 'Thành công',
+                                              message:
+                                                  'Xử lý lại công việc thành công',
+                                              buttonText: 'Đóng',
+                                              autoClose: true,
+                                              autoCloseDelay: const Duration(
+                                                seconds: 2,
+                                              ),
+                                            );
+                                          } else {
+                                            Get.snackbar(
+                                              'Lỗi',
+                                              c.error.value.isNotEmpty
+                                                  ? c.error.value
+                                                  : 'Không thể xử lý lại công việc',
+                                              backgroundColor: Colors.red,
+                                              colorText: Colors.white,
+                                            );
+                                          }
+                                        },
+                                      );
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                              ),
+                              child: c.isReprocessing.value
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Yêu cầu xử lý lại',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
                       ),
                   ],
                 ),

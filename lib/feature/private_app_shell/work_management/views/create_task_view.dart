@@ -13,10 +13,12 @@ import '../widgets/task_submit_button.dart';
 class CreateTaskView extends StatefulWidget {
   final String assignerCode; // mã người giao việc
   final String? documentId; // id tài liệu đã lưu (optional)
+  final String? documentTitle; // tiêu đề tài liệu (optional)
   const CreateTaskView({
     super.key,
     required this.assignerCode,
     this.documentId,
+    this.documentTitle,
   });
 
   @override
@@ -37,6 +39,9 @@ class _CreateTaskViewState extends State<CreateTaskView> {
     return GetBuilder<CreateTaskController>(
       init: CreateTaskController(),
       builder: (c) {
+        if (widget.documentTitle != null) {
+          c.titleController.text = widget.documentTitle!;
+        }
         // Gán documentId nếu có (chỉ gán một lần)
         if (c.documentId == null && widget.documentId != null) {
           c.documentId = widget.documentId;
@@ -74,7 +79,6 @@ class _CreateTaskViewState extends State<CreateTaskView> {
                         const TaskAttachmentSection(),
                         const TaskAssigneeSection(),
                         const SizedBox(height: 16), // Thêm spacing cuối
-                  
                       ],
                     ),
                   ),

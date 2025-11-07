@@ -4,7 +4,6 @@ import 'package:tcs_e_office/common/Services/api_endpoints.dart';
 import 'package:tcs_e_office/common/utils/api_response_handler.dart';
 import '../models/task_detail_model.dart';
 import 'task_api_service.dart';
-// Controller chi tiết
 
 class TaskDetailController extends GetxController {
   final String taskId;
@@ -14,9 +13,10 @@ class TaskDetailController extends GetxController {
   final TaskApiService _taskApiService = TaskApiService();
 
   final RxBool isLoading = false.obs;
-  final RxBool isRefreshing = false.obs; // Thêm state cho refresh mượt mà
+  final RxBool isRefreshing = false.obs;
   final RxBool isCompleting = false.obs;
   final RxBool isForwarding = false.obs;
+  final RxBool isReprocessing = false.obs;
   final Rxn<TaskDetailModel> detail = Rxn<TaskDetailModel>();
   final RxString error = ''.obs;
 
@@ -33,9 +33,8 @@ class TaskDetailController extends GetxController {
 
       final url = ApiEndpoints.getTaskById(taskId);
       final response = await _dioApi.get(url);
-      print('🔍 TaskDetailController: Response: ${response.data}');
+      print("responsesss: ${response.data}");
 
-      // Sử dụng ApiResponseHandler để parse response
       final result = ApiResponseHandler.handleResponse<TaskDetailModel>(
         response,
         TaskDetailModel.fromJson,
@@ -53,25 +52,21 @@ class TaskDetailController extends GetxController {
     }
   }
 
-  /// Refresh data mượt mà sau khi update
   Future<void> refreshDetail() async {
     try {
-      // Chỉ hiển thị loading indicator nếu cần thiết
       isRefreshing.value = true;
       error.value = '';
 
       final url = ApiEndpoints.getTaskById(taskId);
       final response = await _dioApi.get(url);
-      print('🔍 TaskDetailController: Refresh response: ${response.data}');
 
-      // Sử dụng ApiResponseHandler để parse response
       final result = ApiResponseHandler.handleResponse<TaskDetailModel>(
         response,
         TaskDetailModel.fromJson,
       );
+      print("result.data: ${result.data}");
 
       if (result.isSuccess) {
-        // Cập nhật data với animation mượt mà
         detail.value = result.data!;
       } else {
         error.value = result.error ?? 'Lỗi không xác định';
@@ -79,21 +74,18 @@ class TaskDetailController extends GetxController {
     } catch (e) {
       error.value = 'Đã xảy ra lỗi khi refresh chi tiết: $e';
     } finally {
-      // Tắt loading indicator nhanh hơn
       Future.delayed(const Duration(milliseconds: 100), () {
         isRefreshing.value = false;
       });
     }
   }
 
-  /// Hoàn thành task
   Future<bool> completeTask() async {
     try {
       isCompleting.value = true;
       error.value = '';
 
       final success = await _taskApiService.completeTask(taskId);
-      print('🔍 TaskDetailController: Complete task success: $success');
 
       if (success) {
         await fetchDetail();
@@ -110,7 +102,6 @@ class TaskDetailController extends GetxController {
     }
   }
 
-  /// Chuyển tiếp task
   Future<bool> forwardTask({
     required List<String> selectedEmployeeCodes,
     required String dueDate,
@@ -124,7 +115,6 @@ class TaskDetailController extends GetxController {
         dueDate: dueDate,
         selectedEmployeeCodes: selectedEmployeeCodes,
       );
-      print('🔍 TaskDetailController: Forward task success: $success');
 
       if (success) {
         await fetchDetail();
@@ -134,11 +124,35 @@ class TaskDetailController extends GetxController {
         return false;
       }
     } catch (e) {
-      print('🔍 TaskDetailController: Forward task error: $e');
       error.value = 'Lỗi khi chuyển tiếp công việc: $e';
       return false;
     } finally {
       isForwarding.value = false;
+    }
+  }
+
+  Future<bool> reprocessTask({required String note}) async {
+    try {
+      isReprocessing.value = true;
+      error.value = '';
+
+      final success = await _taskApiService.reprocessTask(
+        taskId: taskId,
+        note: note,
+      );
+
+      if (success) {
+        await refreshDetail();
+        return true;
+      } else {
+        error.value = 'Không thể xử lý lại công việc';
+        return false;
+      }
+    } catch (e) {
+      error.value = 'Lỗi khi xử lý lại công việc: $e';
+      return false;
+    } finally {
+      isReprocessing.value = false;
     }
   }
 }

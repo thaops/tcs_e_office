@@ -4,6 +4,7 @@ import 'package:tcs_e_office/common/Services/services.dart';
 import 'package:tcs_e_office/common/share/cache/my_id.dart';
 import 'package:tcs_e_office/common/share/auth/controller_cache_clear.dart';
 import 'package:tcs_e_office/router/app_router.dart';
+import 'package:tcs_e_office/router/one_signal_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SignOutClear extends GetxService {
@@ -49,8 +50,17 @@ class SignOutClear extends GetxService {
       // 7. Clear controllers nhưng KHÔNG reset GetX hoàn toàn
       ControllerCacheClear.clearControllersOnly();
 
-      // 8. Clear OneSignal cached token (nếu cần)
-      // await OneSignalService.clearCachedToken();
+      // 8. Unregister OneSignal device trước khi clear token
+      try {
+        await OneSignalService().unregisterDevice();
+        print("✅ OneSignal device unregistered");
+      } catch (e) {
+        print("❌ Lỗi khi unregister OneSignal device: $e");
+        // Không block logout flow nếu unregister fail
+      }
+
+      // 9. Clear OneSignal cached token
+      await OneSignalService.clearCachedToken();
     } catch (e) {
       // Log error nhưng vẫn navigate về login
       print('Error during sign out: $e');

@@ -63,6 +63,7 @@ class _AssigneesSectionState extends State<AssigneesSection> {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: const Color(0xFFE8E8E8), width: 1),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +71,13 @@ class _AssigneesSectionState extends State<AssigneesSection> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(8),
-            color: AppColors.primaryOpacity,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+            ),
             child: Text(
               title,
               style: const TextStyle(
@@ -81,7 +88,7 @@ class _AssigneesSectionState extends State<AssigneesSection> {
           ),
           const SizedBox(height: 6), // Giảm spacing
           if (assignees.isEmpty)
-            EmptyStatePresets.listEmpty(title: 'Chưa có người thực hiện')
+            EmptyStatePresets.listEmpty(title: 'Không có dữ liệu')
           else
             // Hiển thị cây đổ xuống trong group
             _buildAssigneeTree(assignees),

@@ -28,14 +28,12 @@ class _WorkManagementTabState extends State<WorkManagementTab>
     _controller = Get.put(WorkManagementController());
     _tabController = TabController(length: 2, vsync: this);
 
-    // Lắng nghe thay đổi tab từ controller
     _tabSubscription = _controller.currentTab.listen((index) {
       if (mounted && _tabController.index != index) {
         _tabController.animateTo(index);
       }
     });
 
-    // Lắng nghe thay đổi tab từ TabController
     _tabController.addListener(() {
       if (mounted && _controller.currentTab.value != _tabController.index) {
         _controller.changeTab(_tabController.index);
@@ -50,7 +48,6 @@ class _WorkManagementTabState extends State<WorkManagementTab>
     super.dispose();
   }
 
-  // Hiển thị bottom sheet filter
   void _showFilterBottomSheet() {
     showModalBottomSheet(
       context: context,
@@ -76,7 +73,7 @@ class _WorkManagementTabState extends State<WorkManagementTab>
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         elevation: 0,
-        automaticallyImplyLeading: false, // Không có back button
+        automaticallyImplyLeading: false,
         title: Text(
           'Quản lý công việc',
           style: TextStyle(
@@ -98,12 +95,10 @@ class _WorkManagementTabState extends State<WorkManagementTab>
             child: IconButton(
               padding: EdgeInsets.zero,
               onPressed: () async {
-                // TODO: lấy assignerCode từ profile nếu có
                 const assignerCode = '';
                 await Get.to(
                   () => const CreateTaskView(assignerCode: assignerCode),
                 );
-                // Sau khi tạo xong, refresh tab "Việc tôi giao"
                 _controller.loadTasksByMe(refresh: true);
               },
               icon: const Icon(Icons.add, color: Colors.white, size: 18),
@@ -112,14 +107,12 @@ class _WorkManagementTabState extends State<WorkManagementTab>
         ],
       ),
       body: GestureDetector(
-        behavior: HitTestBehavior.translucent, // Cho phép click events pass through
+        behavior: HitTestBehavior.translucent,
         onTap: () {
-          // Ẩn bàn phím khi click bất kỳ đâu
           FocusScope.of(context).unfocus();
         },
         child: Column(
           children: [
-            // Tab bar với Material Design underline
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -176,7 +169,6 @@ class _WorkManagementTabState extends State<WorkManagementTab>
               ),
             ),
 
-            // Search bar với Material 3 design - tối ưu kích thước
             Container(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
               decoration: BoxDecoration(
@@ -193,10 +185,8 @@ class _WorkManagementTabState extends State<WorkManagementTab>
               ),
               child: Row(
                 children: [
-                  // TextField với thiết kế mới - Search riêng cho từng tab
                   Expanded(
                     child: Obx(() {
-                      // Xác định controller và search query dựa trên tab hiện tại
                       final isTabByMe = _controller.currentTab.value == 0;
                       final searchQuery = isTabByMe
                           ? _controller.searchQueryByMe.value
@@ -295,7 +285,6 @@ class _WorkManagementTabState extends State<WorkManagementTab>
                     }),
                   ),
                   const SizedBox(width: 8),
-                  // Icon filter với Material 3 design - tối ưu kích thước
                   Container(
                     width: 48,
                     height: 48,
@@ -324,7 +313,6 @@ class _WorkManagementTabState extends State<WorkManagementTab>
               ),
             ),
 
-            // Tab content với Material 3 background
             Expanded(
               child: Container(
                 color: Colors.white,

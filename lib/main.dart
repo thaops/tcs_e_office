@@ -5,7 +5,7 @@ import 'package:calendar_view/calendar_view.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, kDebugMode, TargetPlatform;
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,7 +13,6 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:intl/date_symbol_data_local.dart';
-// import 'package:shorebird_code_push/shorebird_code_push.dart';
 import 'package:tcs_e_office/common/Services/device_udid.dart';
 import 'package:tcs_e_office/common/Services/network_controller.dart';
 import 'package:tcs_e_office/common/share/auth/sign_out_clear.dart';
@@ -25,13 +24,13 @@ import 'package:tcs_e_office/controllers/splash_controller.dart';
 import 'package:tcs_e_office/core/configs/theme/app_theme.dart';
 import 'package:tcs_e_office/router/app_router.dart';
 import 'package:tcs_e_office/router/deep_link_handler.dart';
+import 'package:tcs_e_office/router/one_signal_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
 
 Future<bool> _isIPad() async {
   if (kIsWeb) return false;
-  
-  // macOS không phải iPad
+
   if (defaultTargetPlatform == TargetPlatform.macOS) {
     return false;
   }
@@ -53,19 +52,11 @@ Future<bool> _isIPad() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Init ShorebirdCodePush để kiểm soát OTA updates
-  // final shorebirdCodePush = ShorebirdCodePush();
-  // await shorebirdCodePush.isNewPatchAvailableForDownload();
-
   await GetStorage.init();
 
   final appLinks = AppLinks();
   final initialDeepLink = await appLinks.getInitialLink();
   await _initializeServices();
-  // Removed problematic MediaQuery calls that can cause UI issues
-  if (kDebugMode) {
-    print("App initialized successfully");
-  }
 
   runApp(
     CalendarControllerProvider(
@@ -78,17 +69,12 @@ void main() async {
 Future<void> _initializeServices() async {
   await Hive.initFlutter();
 
-  // Kiểm tra xem có môi trường được set thủ công không
   final savedBaseUrl = GetStorage().read<String>('base_url');
   final isManualEnv =
       GetStorage().read<bool>('manual_environment_set') ?? false;
 
   if (savedBaseUrl != null && savedBaseUrl.isNotEmpty && isManualEnv) {
-    // URL đã được set thủ công, giữ nguyên và không bị ghi đè
-    print("Using manually set base URL: $savedBaseUrl");
-  } else {
-    // Chưa có URL thủ công, để Config tự động chọn dựa trên awaiting flag
-    print("No manual URL set, using awaiting logic");
+    // Manual URL set
   }
   Get.put(NetworkController());
 
@@ -96,7 +82,7 @@ Future<void> _initializeServices() async {
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     await generateUUID();
   } catch (e) {
-    debugPrint('Lỗi khi khởi tạo ứng dụng: $e');
+    // Error handling
   }
 
   final serviceCheckawaiting =
@@ -121,12 +107,13 @@ Future<void> _initializeServices() async {
   await serviceCheckawaiting.saveawaiting(result);
   await initializeDateFormatting('vi_VN', null);
   await Get.put(SignOutClear());
-}
 
-// Future<void> _loadUserData() async {
-//   final controllerProfile = Get.put(ProfileLogic());
-//   await controllerProfile.loadUserData();
-// }
+  try {
+    await OneSignalService().init();
+  } catch (e) {
+    // Error handling
+  }
+}
 
 class MyApp extends StatefulWidget {
   final Uri? initialDeepLink;
@@ -144,12 +131,16 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await OneSignalService().handlePendingNavigation();
+    });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // OneSignalService().handlePendingNavigation();
+      OneSignalService().handlePendingNavigation();
     }
   }
 
@@ -165,7 +156,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return FutureBuilder<bool>(
       future: _isIPad(),
       builder: (context, snapshot) {
-        // Thêm error handling
         if (snapshot.hasError) {
           return MaterialApp(
             home: Scaffold(
@@ -187,13 +177,12 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
             ),
           );
         }
-        
+
         final isIPad = snapshot.data ?? false;
-        
-        // Cải thiện design size cho macOS
+
         Size designSize;
         if (defaultTargetPlatform == TargetPlatform.macOS) {
-          designSize = const Size(1200, 800); // Desktop size
+          designSize = const Size(1200, 800);
         } else if (isIPad) {
           designSize = const Size(768, 1024);
         } else {
@@ -225,7 +214,6 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
-    // Sử dụng MaterialApp cho tất cả platform để tránh lỗi MaterialLocalizations
     return GetMaterialApp(
       home: SplashScreen(initialDeepLink: widget.initialDeepLink),
       getPages: AppRouter.routes,
@@ -262,13 +250,11 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize splash controller
     Get.put(SplashController());
 
     return SplashScreenWidget(
       onComplete: () {
-        // Navigation sẽ được handle bởi SplashController
-        // Không cần làm gì ở đây
+        // Navigation handled by SplashController
       },
     );
   }

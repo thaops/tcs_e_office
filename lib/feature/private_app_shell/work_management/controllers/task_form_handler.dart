@@ -26,7 +26,6 @@ class TaskFormHandler {
 
   final Rxn<PriorityOption> selectedPriority = Rxn<PriorityOption>();
 
-  /// Clear tất cả form data
   void clearForm() {
     titleController.clear();
     noteController.clear();
@@ -50,7 +49,6 @@ class TaskFormHandler {
     selectedPriority.value = null;
   }
 
-  /// Populate form với data từ API
   void populateFromTaskData(Map<String, dynamic> data) {
     clearForm();
 
@@ -75,19 +73,12 @@ class TaskFormHandler {
     _populateAttachments(data);
   }
 
-  /// Populate form với data từ TaskDetailModel (tối ưu hơn)
   void populateFromTaskDetailModel(TaskDetailModel taskData) {
     clearForm();
 
     titleController.text = taskData.taskName;
     contentController.text = taskData.content ?? '';
 
-    print('🔍 TaskFormHandler: Populated content: "${taskData.content}"');
-    print(
-      '🔍 TaskFormHandler: ContentController text: "${contentController.text}"',
-    );
-
-    // Set dates từ String
     if (taskData.startDate.isNotEmpty) {
       final startDateTime = DateTime.tryParse(taskData.startDate);
       if (startDateTime != null) {
@@ -102,10 +93,8 @@ class TaskFormHandler {
       }
     }
 
-    // Populate assignees từ TaskDetailModel
     _populateAssigneesFromTaskDetail(taskData);
 
-    // Populate attachments từ TaskDetailModel
     _populateAttachmentsFromTaskDetail(taskData);
   }
 
@@ -161,29 +150,23 @@ class TaskFormHandler {
     }
   }
 
-  /// Populate assignees từ TaskDetailModel
   void _populateAssigneesFromTaskDetail(TaskDetailModel taskData) {
-    // Primary assignees
     primaryEmployeeCodes.assignAll(taskData.primary.employeeCodes);
     primaryDepartmentCodes.assignAll(taskData.primary.departmentCodes);
 
-    // Collaborators
     collabEmployeeCodes.assignAll(taskData.collab.employeeCodes);
     collabDepartmentCodes.assignAll(taskData.collab.departmentCodes);
 
-    // Followers
     followEmployeeCodes.assignAll(taskData.follow.employeeCodes);
     followDepartmentCodes.assignAll(taskData.follow.departmentCodes);
   }
 
-  /// Populate attachments từ TaskDetailModel
   void _populateAttachmentsFromTaskDetail(TaskDetailModel taskData) {
     attachmentFileNames.assignAll(
       taskData.attachments.map((a) => a.name).toList(),
     );
   }
 
-  /// Set priority từ value
   void setPriorityFromValue(
     int? priorityValue,
     List<PriorityOption> priorities,
@@ -198,7 +181,6 @@ class TaskFormHandler {
     }
   }
 
-  /// Xóa file đính kèm theo index
   void removeAttachment(int index) {
     if (index >= 0 && index < attachmentFileNames.length) {
       attachmentFileNames.removeAt(index);
@@ -208,7 +190,6 @@ class TaskFormHandler {
     }
   }
 
-  /// Xóa tất cả file đính kèm
   void clearAllAttachments() {
     attachmentFileNames.clear();
     attachmentPaths.clear();

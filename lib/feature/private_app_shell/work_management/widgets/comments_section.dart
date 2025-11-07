@@ -30,7 +30,6 @@ class CommentsSection extends StatelessWidget {
             onPressed: () => _showCommentDialog(context),
           ),
         ),
-        const SizedBox(height: 6), // Giảm spacing
 
         comments.isEmpty
             ? EmptyStatePresets.listEmpty(
@@ -99,7 +98,7 @@ class CommentsSection extends StatelessWidget {
                   );
                 }).toList(),
               ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 4),
       ],
     );
   }

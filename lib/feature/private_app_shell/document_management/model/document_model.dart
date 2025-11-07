@@ -17,6 +17,10 @@ class DocumentModel {
   final String documentCode;
   final int category;
   final String createdDate;
+  final num totalAttachment;
+  final num totalComment;
+  final String relatedUnits;
+  final String distributor;
 
   DocumentModel({
     required this.id,
@@ -37,6 +41,10 @@ class DocumentModel {
     required this.documentCode,
     required this.category,
     required this.createdDate,
+    required this.totalAttachment,
+    required this.totalComment,
+    required this.relatedUnits,
+    required this.distributor,
   });
 
   factory DocumentModel.fromJson(Map<String, dynamic> json) {
@@ -59,6 +67,10 @@ class DocumentModel {
       documentCode: json['documentCode'] ?? '',
       category: json['category'] ?? 0,
       createdDate: json['createdDate'] ?? '',
+      totalAttachment: (json['totalAttachment'] as num?) ?? 0,
+      totalComment: (json['totalComment'] as num?) ?? 0,
+      relatedUnits: json['relatedUnits'] ?? '',
+      distributor: json['distributor'] ?? '',
     );
   }
 
@@ -82,6 +94,10 @@ class DocumentModel {
       'documentCode': documentCode,
       'category': category,
       'createdDate': createdDate,
+      'totalAttachment': totalAttachment,
+      'totalComment': totalComment,
+      'relatedUnits': relatedUnits,
+      'distributor': distributor,
     };
   }
 }

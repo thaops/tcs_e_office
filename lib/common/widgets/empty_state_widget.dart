@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tcs_e_office/common/img/img.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 
 /// Widget hiển thị trạng thái rỗng có thể tái sử dụng
@@ -59,23 +60,21 @@ class EmptyStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = Center(
       child: Padding(
-        padding: padding,
+        padding: EdgeInsets.only(top: 0, bottom: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: iconColor ?? AppColors.textSecondary,
-              size: iconSize,
-            ),
+            Image.asset(Img.empty_icon, width: 44, height: 44),
             SizedBox(height: spacing),
             Text(
               title,
               style: TextStyle(
-                color: titleColor ?? const Color(0xFF666666),
-                fontSize: titleFontSize,
+                color:
+                    titleColor?.withOpacity(0.5) ??
+                    const Color(0xFF666666).withOpacity(0.5),
+                fontSize: 10,
               ),
               textAlign: TextAlign.center,
             ),
@@ -84,7 +83,9 @@ class EmptyStateWidget extends StatelessWidget {
               Text(
                 subtitle!,
                 style: TextStyle(
-                  color: subtitleColor ?? const Color(0xFF999999),
+                  color:
+                      subtitleColor?.withOpacity(0.5) ??
+                      const Color(0xFF999999).withOpacity(0.5),
                   fontSize: subtitleFontSize,
                 ),
                 textAlign: TextAlign.center,

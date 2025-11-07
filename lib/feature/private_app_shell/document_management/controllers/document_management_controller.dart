@@ -66,12 +66,10 @@ class DocumentManagementController extends GetxController {
     super.onClose();
   }
 
-  // Chuyển tab
   void changeTab(int index) {
     currentTab.value = index;
   }
 
-  // Tải danh sách văn bản đến
   Future<void> loadDocumentsIncoming({bool refresh = false}) async {
     if (refresh) {
       currentPageIncoming.value = 1;
@@ -82,20 +80,26 @@ class DocumentManagementController extends GetxController {
     try {
       isLoadingIncoming.value = true;
 
-      response = await _dioApi.get(
-        ApiEndpoints.getDocuments,
-        params: {
-          'pageIndex': currentPageIncoming.value,
-          'pageSize': pageSize,
-          'status': 10, // Văn bản đến
-        },
-      );
+      final params = <String, dynamic>{
+        'pageIndex': currentPageIncoming.value,
+        'pageSize': pageSize,
+        'status': 10, 
+      };
 
-      // Parse response data trực tiếp với null safety
+      if (searchQueryIncoming.value.isNotEmpty) {
+        params['keyword'] = searchQueryIncoming.value;
+      }
+
+      if (filterIncoming.value.status != null) {
+        params['status'] = filterIncoming.value.status;
+      }
+
+
+      response = await _dioApi.get(ApiEndpoints.getDocuments, params: params);
+
       if (response.data is Map<String, dynamic>) {
         final responseData = response.data as Map<String, dynamic>;
 
-        // Kiểm tra status code
         if (responseData['statusCode'] == 200) {
           final dataList = responseData['data'] as List<dynamic>? ?? [];
           final documents = dataList
@@ -130,17 +134,16 @@ class DocumentManagementController extends GetxController {
         throw Exception('Invalid response format');
       }
     } catch (e) {
-      // Không sử dụng Get.snackbar
-      print('Error loading documents incoming: $e');
-      print('Response data type: ${response.data.runtimeType}');
-      print('Response data: ${response.data}');
+
     } finally {
       isLoadingIncoming.value = false;
     }
   }
 
-  // Tải danh sách văn bản đi
-  Future<void> loadDocumentsOutgoing({bool refresh = false}) async {
+  Future<void> loadDocumentsOutgoing({
+    bool refresh = false,
+    int? customStatus,
+  }) async {
     if (refresh) {
       currentPageOutgoing.value = 1;
       documentsOutgoing.clear();
@@ -150,20 +153,24 @@ class DocumentManagementController extends GetxController {
     try {
       isLoadingOutgoing.value = true;
 
-      response = await _dioApi.get(
-        ApiEndpoints.getDocuments,
-        params: {
-          'pageIndex': currentPageOutgoing.value,
-          'pageSize': pageSize,
-          'status': 20, // Văn bản đi
-        },
-      );
+      final params = <String, dynamic>{
+        'pageIndex': currentPageOutgoing.value,
+        'pageSize': pageSize,
+      };
 
-      // Parse response data trực tiếp với null safety
+      if (searchQueryOutgoing.value.isNotEmpty) {
+        params['keyword'] = searchQueryOutgoing.value;
+      }
+
+      if (filterOutgoing.value.status != null) {
+        params['status'] = filterOutgoing.value.status;
+      }
+
+      response = await _dioApi.get(ApiEndpoints.getDocuments, params: params);
+
       if (response.data is Map<String, dynamic>) {
         final responseData = response.data as Map<String, dynamic>;
 
-        // Kiểm tra status code
         if (responseData['statusCode'] == 200) {
           final dataList = responseData['data'] as List<dynamic>? ?? [];
           final documents = dataList
@@ -198,16 +205,11 @@ class DocumentManagementController extends GetxController {
         throw Exception('Invalid response format');
       }
     } catch (e) {
-      // Không sử dụng Get.snackbar
-      print('Error loading documents outgoing: $e');
-      print('Response data type: ${response.data.runtimeType}');
-      print('Response data: ${response.data}');
     } finally {
       isLoadingOutgoing.value = false;
     }
   }
 
-  // Tải thêm dữ liệu (phân trang)
   Future<void> loadMore() async {
     if (currentTab.value == 0) {
       if (documentsIncoming.length < totalRecordIncoming.value) {
@@ -222,7 +224,6 @@ class DocumentManagementController extends GetxController {
     }
   }
 
-  // Làm mới dữ liệu
   Future<void> refresh() async {
     if (currentTab.value == 0) {
       await loadDocumentsIncoming(refresh: true);
@@ -231,7 +232,6 @@ class DocumentManagementController extends GetxController {
     }
   }
 
-  // Tìm kiếm cho tab "Văn bản đến"
   void onSearchChangedIncoming(String query) {
     searchQueryIncoming.value = query;
     _searchDebounceIncoming?.cancel();
@@ -246,7 +246,6 @@ class DocumentManagementController extends GetxController {
     });
   }
 
-  // Tìm kiếm cho tab "Văn bản đi"
   void onSearchChangedOutgoing(String query) {
     searchQueryOutgoing.value = query;
     _searchDebounceOutgoing?.cancel();
@@ -261,7 +260,6 @@ class DocumentManagementController extends GetxController {
     });
   }
 
-  // Clear search cho tab "Văn bản đến"
   void clearSearchIncoming() {
     _searchDebounceIncoming?.cancel();
     searchControllerIncoming.clear();
@@ -284,16 +282,36 @@ class DocumentManagementController extends GetxController {
   // Lấy màu sắc theo trạng thái
   Color getStatusColor(String status) {
     switch (status) {
-      case '1': // Chờ duyệt
-        return Colors.orange;
-      case '2': // Đang xử lý
-        return Colors.blue;
-      case '3': // Hoàn thành
-        return Colors.green;
-      case '4': // Từ chối
-        return Colors.red;
+      case '1': // Draft
+        return const Color(0xFF898989); // Gray
+      case '2': // Submitted
+        return const Color(0xFFE39516); // Orange
+      case '3': // Approved
+        return const Color(0xFF339B00); // Green
+      case '4': // Published
+        return const Color(0xFF1B1FB8); // Blue
+      case '5': // Rejected
+        return const Color(0xFFFF2323); // Red
       default:
         return Colors.grey;
+    }
+  }
+
+  // Lấy text theo trạng thái
+  String getStatusText(String status) {
+    switch (status) {
+      case '1':
+        return 'Bản nháp';
+      case '2':
+        return 'Đã gửi';
+      case '3':
+        return 'Đã duyệt';
+      case '4':
+        return 'Đã xuất bản';
+      case '5':
+        return 'Đã từ chối';
+      default:
+        return 'Không xác định';
     }
   }
 
@@ -321,7 +339,9 @@ class DocumentManagementController extends GetxController {
     DocumentFilterModel filter,
   ) {
     final hasClientSideFilter =
-        filter.status != null || filter.documentType != null;
+        filter.status != null ||
+        filter.documentType != null ||
+        filter.isRead != null;
 
     if (!hasClientSideFilter) {
       return originalDocuments;
@@ -331,38 +351,61 @@ class DocumentManagementController extends GetxController {
       if (filter.status != null && document.status != filter.status) {
         return false;
       }
-      if (filter.documentType != null &&
-          document.documentType != filter.documentType) {
+      if (filter.documentType != null) {
+        final category = int.tryParse(filter.documentType!);
+        if (category == null || document.category != category) {
+          return false;
+        }
+      }
+      if (filter.isRead != null && document.remark != filter.isRead) {
         return false;
       }
       return true;
     }).toList();
   }
 
-  // Áp dụng filter mới cho tab hiện tại
+  DocumentFilterModel getCurrentFilter() {
+    return currentTab.value == 0 ? filterIncoming.value : filterOutgoing.value;
+  }
+
   void applyFilter(DocumentFilterModel newFilter) {
     if (currentTab.value == 0) {
       filterIncoming.value = newFilter;
-      _applyFilterIncoming();
+      loadDocumentsIncoming(refresh: true);
     } else {
       filterOutgoing.value = newFilter;
-      _applyFilterOutgoing();
+      loadDocumentsOutgoing(refresh: true);
     }
   }
 
-  // Reset filter cho tab hiện tại
+  void applyFilterForTab(DocumentFilterModel newFilter, int targetTab) {
+    if (targetTab == 0) {
+      filterIncoming.value = newFilter;
+      loadDocumentsIncoming(refresh: true);
+    } else {
+      filterOutgoing.value = newFilter;
+      loadDocumentsOutgoing(refresh: true);
+    }
+  }
+
   void resetFilter() {
     if (currentTab.value == 0) {
       filterIncoming.value = DocumentFilterModel.empty();
-      _applyFilterIncoming();
+      loadDocumentsIncoming(refresh: true);
     } else {
       filterOutgoing.value = DocumentFilterModel.empty();
-      _applyFilterOutgoing();
+      loadDocumentsOutgoing(refresh: true);
     }
   }
 
-  // Lấy filter hiện tại của tab
-  DocumentFilterModel getCurrentFilter() {
-    return currentTab.value == 0 ? filterIncoming.value : filterOutgoing.value;
+  Future<void> refreshWithStatus(int? status) async {
+    await loadDocumentsOutgoing(refresh: true, customStatus: status);
+  }
+
+  Future<void> loadMoreWithStatus(int? status) async {
+    if (documentsOutgoing.length < totalRecordOutgoing.value) {
+      currentPageOutgoing.value++;
+      await loadDocumentsOutgoing(customStatus: status);
+    }
   }
 }

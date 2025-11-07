@@ -394,27 +394,21 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         options: _statusOptions,
         currentValue: currentValue,
         onSelected: (value) {
-          print('Status picker selected: $value');
           if (mounted && !_isDisposed) {
-            final newStatus = value == 0 ? null : value;
-            print(
-              'Setting new status: $newStatus (was: ${_tempFilter.status})',
-            );
             setState(() {
-              _tempFilter = _tempFilter.copyWith(status: newStatus);
-            });
-            print('After setState, _tempFilter.status: ${_tempFilter.status}');
-            print('Display value will be: ${_getStatusDisplayValue()}');
-
-            // Verify fix
-            if (value == 0) {
-              print('VERIFY: Expected null, got: ${_tempFilter.status}');
-              if (_tempFilter.status == null) {
-                print('✅ SUCCESS: copyWith now correctly sets null!');
+              if (value == 0) {
+                // Chọn "Tất cả" - tạo filter mới với status = null
+                _tempFilter = FilterModel(
+                  status: null,
+                  priority: _tempFilter.priority,
+                  role: _tempFilter.role,
+                  dueDate: _tempFilter.dueDate,
+                );
               } else {
-                print('❌ FAILED: copyWith still not working correctly');
+                // Chọn giá trị cụ thể - dùng copyWith
+                _tempFilter = _tempFilter.copyWith(status: value);
               }
-            }
+            });
           }
         },
       ),
@@ -430,12 +424,20 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         options: _priorityOptions,
         currentValue: _tempFilter.priority ?? 0,
         onSelected: (value) {
-          print('Priority picker selected: $value');
           if (mounted && !_isDisposed) {
             setState(() {
-              _tempFilter = _tempFilter.copyWith(
-                priority: value == 0 ? null : value,
-              );
+              if (value == 0) {
+                // Chọn "Tất cả" - tạo filter mới với priority = null
+                _tempFilter = FilterModel(
+                  status: _tempFilter.status,
+                  priority: null,
+                  role: _tempFilter.role,
+                  dueDate: _tempFilter.dueDate,
+                );
+              } else {
+                // Chọn giá trị cụ thể - dùng copyWith
+                _tempFilter = _tempFilter.copyWith(priority: value);
+              }
             });
           }
         },
@@ -452,12 +454,20 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         options: _roleOptions,
         currentValue: _tempFilter.role ?? 0,
         onSelected: (value) {
-          print('Role picker selected: $value');
           if (mounted && !_isDisposed) {
             setState(() {
-              _tempFilter = _tempFilter.copyWith(
-                role: value == 0 ? null : value,
-              );
+              if (value == 0) {
+                // Chọn "Tất cả" - tạo filter mới với role = null
+                _tempFilter = FilterModel(
+                  status: _tempFilter.status,
+                  priority: _tempFilter.priority,
+                  role: null,
+                  dueDate: _tempFilter.dueDate,
+                );
+              } else {
+                // Chọn giá trị cụ thể - dùng copyWith
+                _tempFilter = _tempFilter.copyWith(role: value);
+              }
             });
           }
         },
