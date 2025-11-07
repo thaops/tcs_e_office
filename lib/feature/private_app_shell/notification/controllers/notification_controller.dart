@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:tcs_e_office/feature/private_app_shell/notification/models/notification_model.dart';
+import 'package:tcs_e_office/feature/private_app_shell/notification/models/notification_filter_model.dart';
 import 'package:tcs_e_office/feature/private_app_shell/notification/services/notification_service.dart';
 import 'package:tcs_e_office/feature/private_app_shell/notification/handlers/notification_navigation_handler.dart';
 
@@ -16,6 +17,7 @@ class NotificationController extends GetxController {
   final _hasMore = true.obs;
   final _isSelectAll = false.obs;
   final _selectedNotificationIds = <String>{}.obs;
+  final _currentFilter = NotificationFilterModel.empty().obs;
   List<NotificationItem> get allNotifications => _allNotifications;
   List<NotificationItem> get unreadNotifications => _unreadNotifications;
   List<NotificationItem> get readNotifications => _readNotifications;
@@ -25,6 +27,7 @@ class NotificationController extends GetxController {
   bool get hasMore => _hasMore.value;
   bool get isSelectAll => _isSelectAll.value;
   Set<String> get selectedNotificationIds => _selectedNotificationIds;
+  NotificationFilterModel get currentFilter => _currentFilter.value;
   bool isNotificationSelected(String notificationId) =>
       _selectedNotificationIds.contains(notificationId);
 
@@ -103,10 +106,36 @@ class NotificationController extends GetxController {
   }
 
   void _updateFilteredLists() {
-    _unreadNotifications.value = _allNotifications
+    List<NotificationItem> filtered = _allNotifications;
+
+    // Áp dụng filter loại thông báo
+    if (_currentFilter.value.notificationType != null) {
+      filtered = filtered
+          .where((item) => item.source == _currentFilter.value.notificationType)
+          .toList();
+    }
+
+    // Áp dụng filter trạng thái đọc
+    if (_currentFilter.value.readStatus != null) {
+      filtered = filtered
+          .where((item) => item.isRead == _currentFilter.value.readStatus)
+          .toList();
+    }
+
+    _unreadNotifications.value = filtered
         .where((item) => !item.isRead)
         .toList();
-    _readNotifications.value = _allNotifications.toList();
+    _readNotifications.value = filtered;
+  }
+
+  void applyFilter(NotificationFilterModel filter) {
+    _currentFilter.value = filter;
+    _updateFilteredLists();
+  }
+
+  void resetFilter() {
+    _currentFilter.value = NotificationFilterModel.empty();
+    _updateFilteredLists();
   }
 
   void _markAsReadLocal(String notificationId) {

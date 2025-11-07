@@ -7,6 +7,7 @@ import 'package:tcs_e_office/common/widgets/common_tab_bar.dart';
 import 'package:tcs_e_office/feature/private_app_shell/notification/controllers/notification_controller.dart';
 import 'package:tcs_e_office/feature/private_app_shell/notification/models/notification_model.dart';
 import 'package:tcs_e_office/feature/private_app_shell/notification/widgets/notification_item_widget.dart';
+import 'package:tcs_e_office/feature/private_app_shell/notification/widgets/notification_filter_bottom_sheet.dart';
 
 class NotificationView extends StatefulWidget {
   const NotificationView({super.key});
@@ -73,11 +74,32 @@ class _NotificationViewState extends State<NotificationView>
     });
   }
 
+  void _showFilterBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => NotificationFilterBottomSheet(
+        currentFilter: _controller.currentFilter,
+        onApplyFilter: (filter) {
+          _controller.applyFilter(filter);
+        },
+        onResetFilter: () {
+          _controller.resetFilter();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBarWidget(title: 'Thông báo'),
+      appBar: AppBarWidget(
+        title: 'Thông báo',
+        iconRightfirst: Icons.filter_list,
+        functionfirst: _showFilterBottomSheet,
+      ),
       body: Column(
         children: [
           CommonTabBar(
