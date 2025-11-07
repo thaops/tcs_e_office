@@ -20,10 +20,9 @@ class _NotificationViewState extends State<NotificationView>
   late TabController _tabController;
   late NotificationController _controller;
   bool _isLoadingMore = false;
-  bool _hasNavigatedAway = false;
+  AppLifecycleState? _lastLifecycleState;
   DateTime? _lastSyncTime;
-  bool _isFirstBuild = true;
-  static const _syncDebounceMs = 500;
+  static const _syncDebounceMs = 1000;
 
   @override
   void initState() {
@@ -43,41 +42,31 @@ class _NotificationViewState extends State<NotificationView>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed && _hasNavigatedAway) {
+
+    // Chỉ sync khi app resume từ background (paused/inactive -> resumed)
+    // Không sync khi chỉ navigate giữa các màn hình
+    if (state == AppLifecycleState.resumed &&
+        (_lastLifecycleState == AppLifecycleState.paused ||
+            _lastLifecycleState == AppLifecycleState.inactive)) {
       _syncOnResume();
     }
-  }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_isFirstBuild) {
-      _isFirstBuild = false;
-      return;
-    }
-
-    if (_hasNavigatedAway) {
-      final now = DateTime.now();
-      if (_lastSyncTime == null ||
-          now.difference(_lastSyncTime!).inMilliseconds > _syncDebounceMs) {
-        _syncOnResume();
-      }
-    }
+    _lastLifecycleState = state;
   }
 
   void _syncOnResume() {
-    if (!_hasNavigatedAway) return;
-
     final now = DateTime.now();
+
+    // Debounce để tránh spam
     if (_lastSyncTime != null &&
         now.difference(_lastSyncTime!).inMilliseconds < _syncDebounceMs) {
       return;
     }
 
-    _hasNavigatedAway = false;
     _lastSyncTime = now;
 
-    Future.delayed(const Duration(milliseconds: 300), () {
+    // Delay nhỏ để đảm bảo UI đã render xong
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         _controller.syncOnResume();
       }
@@ -235,7 +224,6 @@ class _NotificationViewState extends State<NotificationView>
                     _controller.toggleSelectNotification(notification.id);
                   },
                   onTap: () {
-                    _hasNavigatedAway = true;
                     _controller.handleNotificationClick(notification.id);
                   },
                 ),

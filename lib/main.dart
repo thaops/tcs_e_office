@@ -125,7 +125,7 @@ class MyApp extends StatefulWidget {
 }
 
 class MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  final DeepLinkHandler _deepLinkHandler = DeepLinkHandler();
+  // final DeepLinkHandler _deepLinkHandler = DeepLinkHandler();
 
   @override
   void initState() {
@@ -147,7 +147,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _deepLinkHandler.dispose();
+    // _deepLinkHandler.dispose();
     super.dispose();
   }
 
@@ -219,7 +219,6 @@ class _MainAppState extends State<MainApp> {
       getPages: AppRouter.routes,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      navigatorKey: NavigationUtils.navigatorKey,
       onUnknownRoute: (settings) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Get.offAllNamed(AppRouter.main);

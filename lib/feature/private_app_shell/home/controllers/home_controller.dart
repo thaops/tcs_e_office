@@ -29,14 +29,17 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Tự động load data khi khởi tạo
-    loadAllData();
+    // Tự động load data ngầm khi khởi tạo (không hiển thị loading)
+    loadAllData(silent: true);
   }
 
   /// Load tất cả data (task count và document count)
-  Future<void> loadAllData() async {
+  /// [silent] = true: load ngầm không hiển thị loading indicator
+  Future<void> loadAllData({bool silent = false}) async {
     try {
-      _isLoading.value = true;
+      if (!silent) {
+        _isLoading.value = true;
+      }
       _error.value = null;
 
       // Load cả 2 API song song
@@ -74,7 +77,9 @@ class HomeController extends GetxController {
       _taskCount.value = null;
       _documentCount.value = null;
     } finally {
-      _isLoading.value = false;
+      if (!silent) {
+        _isLoading.value = false;
+      }
     }
   }
 
@@ -83,9 +88,9 @@ class HomeController extends GetxController {
     await loadAllData();
   }
 
-  /// Refresh data
+  /// Refresh data (hiển thị loading khi refresh)
   Future<void> refresh() async {
-    await loadAllData();
+    await loadAllData(silent: false);
   }
 
   /// Kiểm tra có data không

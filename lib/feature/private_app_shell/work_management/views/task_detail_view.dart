@@ -386,7 +386,6 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                               onComplete: () async {
                                 final success = await c.completeTask();
                                 if (success) {
-                                  // Hiển thị success dialog khi hoàn thành task thành công
                                   await SuccessDialogWithBackdrop.show(
                                     context: context,
                                     title: 'Thành công',

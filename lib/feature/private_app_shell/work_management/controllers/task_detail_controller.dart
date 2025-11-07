@@ -86,6 +86,7 @@ class TaskDetailController extends GetxController {
       error.value = '';
 
       final success = await _taskApiService.completeTask(taskId);
+      print("successssss: $success");
 
       if (success) {
         await fetchDetail();

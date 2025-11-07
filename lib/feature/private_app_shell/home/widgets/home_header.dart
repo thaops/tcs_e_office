@@ -14,7 +14,7 @@ class HomeHeader extends StatefulWidget {
 
 class _HomeHeaderState extends State<HomeHeader> {
   late ProfileLogic _profileLogic;
-  NotificationController? _notificationController;
+  late NotificationController _notificationController;
 
   @override
   void initState() {
@@ -34,6 +34,10 @@ class _HomeHeaderState extends State<HomeHeader> {
       // Nếu chưa có NotificationController, tạo mới
       _notificationController = Get.put(NotificationController());
     }
+
+    // Đảm bảo load notifications ngầm khi vào màn hình home
+    // Refresh để lấy data mới nhất từ server
+    _notificationController.loadNotifications(refresh: true, silent: true);
   }
 
   @override
@@ -98,9 +102,15 @@ class _HomeHeaderState extends State<HomeHeader> {
 
               // Notification bell - giảm kích thước
               GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
+                onTap: () async {
+                  // Navigate đến NotificationView và đợi kết quả
+                  await Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const NotificationView()),
+                  );
+                  // Refresh notifications khi quay lại để có số liệu realtime
+                  _notificationController.loadNotifications(
+                    refresh: true,
+                    silent: true,
                   );
                 },
                 child: Container(
@@ -120,15 +130,18 @@ class _HomeHeaderState extends State<HomeHeader> {
                         ),
                       ),
                       // Notification badge - hiển thị số lượng thông báo chưa đọc
+                      // Lấy data trực tiếp từ controller để đảm bảo chính xác
                       Obx(() {
-                        final unreadCount =
-                            _notificationController
-                                ?.unreadNotifications
-                                .length ??
-                            0;
+                        // Lấy danh sách unread notifications trực tiếp từ controller
+                        final unreadList =
+                            _notificationController.unreadNotifications;
+                        final unreadCount = unreadList.length;
+
+                        // Chỉ hiển thị badge khi có thông báo chưa đọc (unreadCount > 0)
                         if (unreadCount == 0) {
                           return const SizedBox.shrink();
                         }
+
                         return Positioned(
                           right: 2.w,
                           top: 2.h,

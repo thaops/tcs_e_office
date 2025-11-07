@@ -135,26 +135,17 @@ class TaskApiService {
     try {
       final res = await _dioApi.post(ApiEndpoints.completeTask(taskId));
 
-      if (res.statusCode != 200) {
-        throw Exception('HTTP Error: ${res.statusCode}');
-      }
+      final responseData = res.data;
 
-      if (res.data is Map<String, dynamic>) {
-        final responseData = res.data as Map<String, dynamic>;
+      final statusCode =
+          responseData['statusCode'] ?? responseData['StatusCode'];
+      final message =
+          responseData['message'] ?? responseData['Message'] as String?;
 
-        final statusCode =
-            responseData['statusCode'] ?? responseData['StatusCode'];
-        final message =
-            responseData['message'] ?? responseData['Message'] as String?;
-        final data = responseData['data'];
-
-        if (statusCode == 200) {
-          return data == true;
-        } else {
-          throw message ?? statusCode.toString();
-        }
+      if (statusCode == 200) {
+        return true;
       } else {
-        throw Exception('Response format không hợp lệ');
+        throw message ?? statusCode.toString();
       }
     } catch (e) {
       if (e is dioLib.DioException) {

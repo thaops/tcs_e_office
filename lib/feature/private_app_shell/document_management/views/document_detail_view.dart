@@ -20,7 +20,7 @@ import '../../work_management/views/create_task_view.dart';
 
 class DocumentDetailView extends StatefulWidget {
   final String documentId;
-  final String? tabType; 
+  final String? tabType;
 
   const DocumentDetailView({super.key, required this.documentId, this.tabType});
 
@@ -328,10 +328,8 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
     try {
       final result = await _actionService.approveDocuments(
         [widget.documentId],
-        false, 
-        note: note.isEmpty
-            ? 'Từ chối'
-            : note,
+        false,
+        note: note.isEmpty ? 'Từ chối' : note,
       );
 
       if (mounted) {
@@ -464,7 +462,6 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
         });
       }
     } catch (e) {
-    
       if (mounted) {
         setState(() {
           _isDocumentRead = detail.distributors.any(
@@ -548,8 +545,9 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
                             );
                           }),
 
-
-                        if (widget.tabType != outgoingKey)
+                        if (detail.category == 1 ||
+                            detail.status == 2 ||
+                            detail.status == 3)
                           DocumentDetailSection(
                             child: DocumentPreviewSection(
                               documentId: widget.documentId,
@@ -557,7 +555,6 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
                             ),
                           ),
                         const SizedBox(height: 20),
-
                       ],
                     ),
                   ),

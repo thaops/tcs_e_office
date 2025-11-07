@@ -41,7 +41,9 @@ class HomeTab extends StatelessWidget {
             // Nội dung chính - responsive cho macOS
             Expanded(
               child: Obx(() {
-                if (controller.isLoading) {
+                // Chỉ hiển thị loading khi đang refresh (đã có data trước đó)
+                // Không hiển thị loading khi load lần đầu (silent load)
+                if (controller.isLoading && controller.hasData) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -64,7 +66,7 @@ class HomeTab extends StatelessWidget {
                   );
                 }
 
-                if (controller.hasError) {
+                if (controller.hasError && !controller.hasData) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

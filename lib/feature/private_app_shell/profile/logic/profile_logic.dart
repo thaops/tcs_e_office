@@ -209,24 +209,36 @@ class ProfileLogic extends GetxController {
 
     try {
       isloading.value = true;
-      final endpoint =
-          ischeckApple ? ApiEndpoints.usersProfileApple : ApiEndpoints.profile;
+      final endpoint = ischeckApple
+          ? ApiEndpoints.usersProfileApple
+          : ApiEndpoints.profile;
 
       final respon = await dioApi.get(endpoint);
       final data = (respon.data ?? {})['data'] ?? {};
       print("datasss: $data");
-      myId.saveMyId(data['user']['id']);
 
       if (data == null || data.isEmpty) {
         if (ischeckApple) {
           final regularRespon = await dioApi.get(ApiEndpoints.profile);
           final regularData = (regularRespon.data ?? {})['data'] ?? {};
           if (regularData != null && regularData.isNotEmpty) {
-            profile.value = Profile(
-              user: User.fromJson(regularData as Map<String, dynamic>),
-            );
+            final userData = regularData['user'] as Map<String, dynamic>?;
+            if (userData != null) {
+              if (userData['id'] != null) {
+                myId.saveMyId(userData['id'].toString());
+              }
 
-            await loadUserData();
+              profile.value = Profile(
+                user: User.fromJson(userData),
+                permissions:
+                    (regularData['permissions'] as List<dynamic>?)
+                        ?.map((e) => e.toString())
+                        .toList() ??
+                    [],
+              );
+
+              await loadUserData();
+            }
           }
         }
         return;
@@ -236,6 +248,11 @@ class ProfileLogic extends GetxController {
         final appleProfile = AppleProfile(
           user: AppleUser.fromJson(data as Map<String, dynamic>),
         );
+        // Save user ID sau khi đã kiểm tra user không null
+        if (appleProfile.user?.id != null) {
+          myId.saveMyId(appleProfile.user!.id.toString());
+        }
+
         profile.value = Profile(
           user: User(
             id: appleProfile.user?.id,
@@ -273,6 +290,11 @@ class ProfileLogic extends GetxController {
       } else {
         final userData = data['user'] as Map<String, dynamic>?;
         if (userData != null) {
+          // Save user ID sau khi đã kiểm tra userData không null
+          if (userData['id'] != null) {
+            myId.saveMyId(userData['id'].toString());
+          }
+
           profile.value = Profile(
             user: User.fromJson(userData),
             permissions:
@@ -448,8 +470,8 @@ class ProfileLogic extends GetxController {
                         height: 50.h,
                         child: ElevatedButton(
                           onPressed: () async {
-                            String currentBaseUrl =
-                                baseUrlController.text.trim();
+                            String currentBaseUrl = baseUrlController.text
+                                .trim();
                             if (currentBaseUrl != initialBaseUrl) {
                               Config.baseUrl = baseUrlController.text;
                               dioApi = DioApi();
