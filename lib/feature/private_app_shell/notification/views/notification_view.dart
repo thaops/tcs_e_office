@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:tcs_e_office/common/widgets/app_bar_widget.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import 'package:tcs_e_office/common/widgets/common_tab_bar.dart';
 import 'package:tcs_e_office/feature/private_app_shell/notification/controllers/notification_controller.dart';
@@ -87,23 +88,7 @@ class _NotificationViewState extends State<NotificationView>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Thông báo',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18.sp,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      appBar: AppBarWidget(title: 'Thông báo'),
       body: Column(
         children: [
           CommonTabBar(

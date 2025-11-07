@@ -28,29 +28,64 @@ class OneSignalService {
     if (_initialized) return;
     _initialized = true;
 
-    OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-
-    OneSignal.initialize(_appId);
-
-    await OneSignal.User.addTagWithKey("test_user", "true");
-    await OneSignal.User.addTags({"test_user": "true"});
-
-    bool hasPermission = OneSignal.Notifications.permission;
-    if (!hasPermission) {
-      hasPermission = await OneSignal.Notifications.requestPermission(true);
+    try {
+      OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+      
+      // Initialize OneSignal
+      OneSignal.initialize(_appId);
+      
+      // iOS cần thời gian lâu hơn để SDK sẵn sàng
+      if (Platform.isIOS) {
+        await Future.delayed(Duration(milliseconds: 1000));
+        print('✅ OneSignal initialized for iOS');
+      } else {
+        await Future.delayed(Duration(milliseconds: 500));
+        print('✅ OneSignal initialized for Android');
+      }
+      
+      // iOS: Request permission TRƯỚC khi làm các thao tác khác
+      bool hasPermission = OneSignal.Notifications.permission;
+      if (!hasPermission) {
+        print('⏳ Requesting OneSignal permission...');
+        hasPermission = await OneSignal.Notifications.requestPermission(true);
+        print('📱 OneSignal permission granted: $hasPermission');
+        
+        // iOS: Đợi thêm sau khi có permission
+        if (Platform.isIOS && hasPermission) {
+          await Future.delayed(Duration(milliseconds: 500));
+        }
+      }
+      
+      // Chỉ optIn sau khi có permission
+      if (hasPermission) {
+        await OneSignal.User.pushSubscription.optIn();
+        print('✅ OneSignal opted in');
+      } else {
+        print('⚠️ OneSignal permission denied');
+      }
+      
+      // Thêm tags sau khi đã optIn
+      if (hasPermission) {
+        await OneSignal.User.addTagWithKey("test_user", "true");
+        await OneSignal.User.addTags({"test_user": "true"});
+      }
+      
+      OneSignal.Notifications.lifecycleInit();
+      
+      OneSignal.Notifications.addClickListener((event) async {
+        _cachedClickEvent = event;
+        _notificationHandled = false;
+        await _handleNotificationClick(event);
+      });
+      
+      await listenForPushToken();
+      
+      print('✅ OneSignal initialized successfully');
+    } catch (e) {
+      print('❌ OneSignal initialization error: $e');
+      _initialized = false; // Cho phép retry
+      rethrow;
     }
-
-    await OneSignal.User.pushSubscription.optIn();
-
-    OneSignal.Notifications.lifecycleInit();
-
-    OneSignal.Notifications.addClickListener((event) async {
-      _cachedClickEvent = event;
-      _notificationHandled = false;
-      await _handleNotificationClick(event);
-    });
-
-    await listenForPushToken();
   }
 
   Future<void> handlePendingNavigation() async {
@@ -72,25 +107,43 @@ class OneSignalService {
   }
 
   Future<void> listenForPushToken() async {
-    for (int i = 0; i < 3; i++) {
-      String? token = await getPushToken();
-      if (token != null) {
-        await registerPushTokenToBackend(token);
-        break;
-      }
-      await Future.delayed(Duration(seconds: 1));
-    }
-
-    OneSignal.User.pushSubscription.addObserver((state) {
-      if (state.current.id != null && state.current.optedIn) {
-        try {
-          final token = state.current.id;
-          registerPushTokenToBackend(token!);
-        } catch (e) {
-          // ignore
+    try {
+      // iOS cần thời gian lâu hơn để nhận token
+      int maxRetries = Platform.isIOS ? 10 : 5;
+      int retryDelay = Platform.isIOS ? 2 : 1;
+      
+      for (int i = 0; i < maxRetries; i++) {
+        String? token = await getPushToken();
+        if (token != null && token.isNotEmpty) {
+          print('✅ OneSignal push token received: $token');
+          await registerPushTokenToBackend(token);
+          break;
         }
+        print('⏳ Waiting for OneSignal token... attempt ${i + 1}/$maxRetries');
+        await Future.delayed(Duration(seconds: retryDelay));
       }
-    });
+      
+      // Observer để lắng nghe token changes
+      OneSignal.User.pushSubscription.addObserver((state) {
+        print('📱 OneSignal subscription state changed:');
+        print('   - ID: ${state.current.id}');
+        print('   - OptedIn: ${state.current.optedIn}');
+        
+        if (state.current.id != null && state.current.optedIn) {
+          try {
+            final token = state.current.id;
+            if (token != null && token.isNotEmpty) {
+              print('✅ Token received from observer: $token');
+              registerPushTokenToBackend(token);
+            }
+          } catch (e) {
+            print('❌ Error registering token from observer: $e');
+          }
+        }
+      });
+    } catch (e) {
+      print('❌ Error in listenForPushToken: $e');
+    }
   }
 
   Future<void> registerPushTokenToBackend(String token) async {
@@ -129,8 +182,9 @@ class OneSignalService {
       _sentToken = token;
       box.write(_storageKeyLastToken, token);
       box.write(_storageKeyDeviceUUID, deviceUUID);
+      print('✅ Push token registered to backend: $token');
     } catch (e) {
-      // ignore
+      print('❌ Error registering push token to backend: $e');
     }
   }
 
