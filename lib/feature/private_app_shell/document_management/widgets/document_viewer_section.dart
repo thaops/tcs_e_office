@@ -11,10 +11,16 @@ import '../utils/pdf_loader_isolate.dart';
 import 'section_header.dart';
 
 class DocumentViewerSection extends StatefulWidget {
-  final String pdfUrl;
+  final String? pdfUrl;
+  final Uint8List? pdfBytes;
   final String title;
 
-  const DocumentViewerSection({super.key, required this.pdfUrl, required this.title});
+  const DocumentViewerSection({
+    super.key,
+    this.pdfUrl,
+    this.pdfBytes,
+    required this.title,
+  }) : assert(pdfUrl != null || pdfBytes != null, 'Either pdfUrl or pdfBytes must be provided');
 
   // Validation method để kiểm tra URL hợp lệ
   static bool isValidPdfUrl(String? url) {
@@ -63,6 +69,31 @@ class _DocumentViewerSectionState extends State<DocumentViewerSection> {
       _pdfBytes = null;
     });
 
+    // Nếu đã có pdfBytes, sử dụng trực tiếp
+    if (widget.pdfBytes != null) {
+      if (mounted) {
+        setState(() {
+          _pdfBytes = widget.pdfBytes;
+          _isLoading = false;
+          _hasError = false;
+          _retryCount = 0;
+        });
+      }
+      return;
+    }
+
+    // Nếu có pdfUrl, tải từ URL
+    if (widget.pdfUrl == null) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+          _errorMessage = 'Không có URL hoặc dữ liệu PDF';
+        });
+      }
+      return;
+    }
+
     // Timeout mechanism
     _timeoutTimer?.cancel();
     _timeoutTimer = Timer(const Duration(seconds: 40), () {
@@ -77,7 +108,7 @@ class _DocumentViewerSectionState extends State<DocumentViewerSection> {
 
     try {
       // Tải PDF trong isolate để không block UI
-      final bytes = await PdfLoaderIsolate.loadPdfBytes(widget.pdfUrl);
+      final bytes = await PdfLoaderIsolate.loadPdfBytes(widget.pdfUrl!);
 
       if (mounted) {
         setState(() {
@@ -155,8 +186,8 @@ class _DocumentViewerSectionState extends State<DocumentViewerSection> {
 
   @override
   Widget build(BuildContext context) {
-    // Kiểm tra URL hợp lệ trước khi render
-    if (!DocumentViewerSection.isValidPdfUrl(widget.pdfUrl)) {
+    // Kiểm tra URL hợp lệ trước khi render (chỉ khi có pdfUrl)
+    if (widget.pdfUrl != null && !DocumentViewerSection.isValidPdfUrl(widget.pdfUrl)) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -284,40 +315,41 @@ class _DocumentViewerSectionState extends State<DocumentViewerSection> {
                     ),
                     const SizedBox(width: 12),
                   ],
-                  TextButton.icon(
-                    onPressed: () async {
-                      try {
-                        final uri = Uri.parse(widget.pdfUrl);
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(
-                            uri,
-                            mode: LaunchMode.externalApplication,
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Không thể mở PDF trong trình duyệt',
+                  if (widget.pdfUrl != null)
+                    TextButton.icon(
+                      onPressed: () async {
+                        try {
+                          final uri = Uri.parse(widget.pdfUrl!);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Không thể mở PDF trong trình duyệt',
+                                ),
+                                backgroundColor: AppColors.colorRed,
                               ),
+                            );
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Lỗi: $e'),
                               backgroundColor: AppColors.colorRed,
                             ),
                           );
                         }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Lỗi: $e'),
-                            backgroundColor: AppColors.colorRed,
-                          ),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.open_in_browser),
-                    label: const Text('Mở trong trình duyệt'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primary,
+                      },
+                      icon: const Icon(Icons.open_in_browser),
+                      label: const Text('Mở trong trình duyệt'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ],
@@ -342,7 +374,7 @@ class _DocumentViewerSectionState extends State<DocumentViewerSection> {
             if (_pdfBytes != null)
               SfPdfViewer.memory(
                 _pdfBytes!,
-                key: ValueKey('pdf_viewer_memory_${widget.pdfUrl}'),
+                key: ValueKey('pdf_viewer_memory_${widget.pdfUrl ?? 'bytes'}'),
                 enableDoubleTapZooming: true,
                 enableTextSelection: true,
                 initialZoomLevel: 1.0,

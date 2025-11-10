@@ -183,6 +183,29 @@ class DioApi {
     }
   }
 
+  Future<dioLib.Response> getBytes(
+    String url, {
+    Map<String, dynamic>? params,
+    dioLib.CancelToken? cancelToken,
+  }) async {
+    await _checkNetwork();
+    await _buildHeader();
+    try {
+      final response = await dio.get(
+        url,
+        queryParameters: params,
+        options: dioLib.Options(
+          headers: header,
+          responseType: dioLib.ResponseType.bytes,
+        ),
+        cancelToken: cancelToken,
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      throw Exception('Failed to load binary data: $e');
+    }
+  }
+
   Future<dioLib.Response> post(
     String url, {
     dynamic data,

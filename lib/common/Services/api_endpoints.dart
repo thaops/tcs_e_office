@@ -68,6 +68,10 @@ class ApiEndpoints {
   // document preview endpoint
   static String previewDocument(String documentId) =>
       "${Config.baseUrl}/document/preview-document/$documentId";
+  
+  // document export endpoint (returns binary PDF)
+  static String exportDocument(String documentId) =>
+      "${Config.baseUrl}/document/export-document/$documentId";
 
   // document action endpoints
   static String finishDocuments = "${Config.baseUrl}/document/finish-documents";

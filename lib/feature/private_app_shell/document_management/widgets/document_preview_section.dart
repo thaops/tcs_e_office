@@ -1,14 +1,22 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import 'package:tcs_e_office/common/widgets/enhanced_text_widget.dart';
 import '../services/document_preview_service.dart';
 import 'document_viewer_section.dart';
-import 'section_header.dart';
 
 class DocumentPreviewSection extends StatefulWidget {
   final String documentId;
   final String title;
-  const DocumentPreviewSection({super.key, required this.documentId, required this.title});
+  final int? category;
+  final int? status;
+  const DocumentPreviewSection({
+    super.key,
+    required this.documentId,
+    required this.title,
+    this.category,
+    this.status,
+  });
 
   @override
   State<DocumentPreviewSection> createState() => _DocumentPreviewSectionState();
@@ -17,6 +25,7 @@ class DocumentPreviewSection extends StatefulWidget {
 class _DocumentPreviewSectionState extends State<DocumentPreviewSection> {
   final DocumentPreviewService _previewService = DocumentPreviewService();
   String? _previewUrl;
+  Uint8List? _pdfBytes;
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
@@ -24,27 +33,45 @@ class _DocumentPreviewSectionState extends State<DocumentPreviewSection> {
   @override
   void initState() {
     super.initState();
-    _loadPreviewUrl();
+    _loadPreview();
   }
 
-  Future<void> _loadPreviewUrl() async {
+  Future<void> _loadPreview() async {
     setState(() {
       _isLoading = true;
       _hasError = false;
       _errorMessage = '';
+      _previewUrl = null;
+      _pdfBytes = null;
     });
 
     try {
-      final url = await _previewService.getPreviewUrl(widget.documentId);
-      if (mounted) {
-        setState(() {
-          _previewUrl = url;
-          _isLoading = false;
-          if (url == null) {
-            _hasError = true;
-            _errorMessage = 'Không thể tải tài liệu preview';
-          }
-        });
+      // Nếu category == 3, gọi API export-document để lấy binary PDF
+      if (widget.category == 3 ||  widget.status == 3) {
+        final bytes = await _previewService.getExportDocumentBytes(widget.documentId);
+        if (mounted) {
+          setState(() {
+            _pdfBytes = bytes;
+            _isLoading = false;
+            if (bytes == null) {
+              _hasError = true;
+              _errorMessage = 'Không thể tải tài liệu PDF';
+            }
+          });
+        }
+      } else {
+        // Nếu category != 3, gọi API preview-document để lấy URL
+        final url = await _previewService.getPreviewUrl(widget.documentId);
+        if (mounted) {
+          setState(() {
+            _previewUrl = url;
+            _isLoading = false;
+            if (url == null) {
+              _hasError = true;
+              _errorMessage = 'Không thể tải tài liệu preview';
+            }
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -58,7 +85,7 @@ class _DocumentPreviewSectionState extends State<DocumentPreviewSection> {
   }
 
   void _retryLoad() {
-    _loadPreviewUrl();
+    _loadPreview();
   }
 
   @override
@@ -70,6 +97,8 @@ class _DocumentPreviewSectionState extends State<DocumentPreviewSection> {
           _buildLoadingState()
         else if (_hasError)
           _buildErrorState()
+        else if (_pdfBytes != null)
+          DocumentViewerSection(pdfBytes: _pdfBytes!, title: widget.title)
         else if (_previewUrl != null)
           DocumentViewerSection(pdfUrl: _previewUrl!, title: widget.title)
         else

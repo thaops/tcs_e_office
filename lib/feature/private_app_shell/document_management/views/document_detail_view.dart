@@ -546,12 +546,15 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
                           }),
 
                         if (detail.category == 1 ||
+                            detail.category == 3 ||
                             detail.status == 2 ||
                             detail.status == 3)
                           DocumentDetailSection(
                             child: DocumentPreviewSection(
                               documentId: widget.documentId,
                               title: "Phiếu triển khai tài liệu bên ngoài",
+                              category: detail.category,
+                              status: detail.status,
                             ),
                           ),
                         const SizedBox(height: 20),
