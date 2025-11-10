@@ -62,4 +62,21 @@ import UserNotifications
     super.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
     completionHandler()
   }
+  
+  // QUAN TRỌNG: Xử lý Universal Links khi app đang chạy
+  override func application(
+    _ application: UIApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+  ) -> Bool {
+    // Xử lý Universal Links
+    if userActivity.activityType == NSUserActivityTypeBrowsingWeb {
+      if let url = userActivity.webpageURL {
+        print("🔗 Universal Link received: \(url.absoluteString)")
+        // FlutterAppDelegate sẽ tự động xử lý URL này và chuyển đến app_links package
+        return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
+      }
+    }
+    return false
+  }
 }

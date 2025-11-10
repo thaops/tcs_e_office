@@ -7,6 +7,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:eoffice-tcs-dev.azurewebsites.net</string>
+		<string>applinks:eoffice-tcs.azurewebsites.net</string>
 	</array>
 </dict>
 </plist>

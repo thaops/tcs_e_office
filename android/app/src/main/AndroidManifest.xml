@@ -25,6 +25,16 @@
           android:scheme="https"
           android:host="eoffice-tcs-dev.azurewebsites.net" />
       </intent-filter>
+      <!-- Intent filter cho deep links và universal links - Production -->
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <!-- Universal Links: https://eoffice-tcs.azurewebsites.net -->
+        <data
+          android:scheme="https"
+          android:host="eoffice-tcs.azurewebsites.net" />
+      </intent-filter>
       <!-- Intent filter cho deep links với custom scheme (nếu cần) -->
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
