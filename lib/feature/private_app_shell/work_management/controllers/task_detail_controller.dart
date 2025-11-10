@@ -28,12 +28,16 @@ class TaskDetailController extends GetxController {
 
   Future<void> fetchDetail() async {
     try {
+      if (taskId.isEmpty) {
+        error.value = 'Task ID không được để trống';
+        return;
+      }
+
       isLoading.value = true;
       error.value = '';
 
       final url = ApiEndpoints.getTaskById(taskId);
       final response = await _dioApi.get(url);
-      print("responsesss: ${response.data}");
 
       final result = ApiResponseHandler.handleResponse<TaskDetailModel>(
         response,
@@ -64,7 +68,6 @@ class TaskDetailController extends GetxController {
         response,
         TaskDetailModel.fromJson,
       );
-      print("result.data: ${result.data}");
 
       if (result.isSuccess) {
         detail.value = result.data!;
@@ -86,7 +89,6 @@ class TaskDetailController extends GetxController {
       error.value = '';
 
       final success = await _taskApiService.completeTask(taskId);
-      print("successssss: $success");
 
       if (success) {
         await fetchDetail();

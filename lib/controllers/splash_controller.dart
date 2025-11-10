@@ -4,9 +4,13 @@ import 'package:get/get.dart';
 import 'package:tcs_e_office/common/Services/services.dart';
 import 'package:tcs_e_office/common/services/ota_update_service.dart';
 import 'package:tcs_e_office/router/app_router.dart';
+import 'package:tcs_e_office/router/deep_link_handler.dart';
 
 class SplashController extends GetxController {
   final OTAUpdateService _otaService = OTAUpdateService();
+  final Uri? initialDeepLink;
+
+  SplashController({this.initialDeepLink});
 
   // Observable states
   final RxString loadingText = 'Đang khởi tạo...'.obs;
@@ -129,6 +133,12 @@ class SplashController extends GetxController {
   /// Navigate to main app
   Future<void> _navigateToMain() async {
     await Get.offAllNamed(AppRouter.main);
+    
+    // Xử lý initial deep link sau khi vào main
+    if (initialDeepLink != null) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      await DeepLinkHandler().processDeepLink(initialDeepLink!);
+    }
   }
 
   /// Navigate to login

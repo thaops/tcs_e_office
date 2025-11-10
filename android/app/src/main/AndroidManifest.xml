@@ -15,11 +15,25 @@
         <action android:name="android.intent.action.MAIN"/>
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
-      <!-- Intent filter cho notification click khi app bị kill -->
+      <!-- Intent filter cho deep links và universal links -->
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <!-- Universal Links: https://eoffice-tcs-dev.azurewebsites.net -->
+        <data
+          android:scheme="https"
+          android:host="eoffice-tcs-dev.azurewebsites.net" />
+      </intent-filter>
+      <!-- Intent filter cho deep links với custom scheme (nếu cần) -->
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
+        <!-- Deep Links: com.nps.tcs:// -->
+        <data
+          android:scheme="com.nps.tcs"
+          android:host="*" />
       </intent-filter>
     </activity>
     <!-- Don't delete the meta-data below.

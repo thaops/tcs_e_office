@@ -18,7 +18,6 @@ import 'package:tcs_e_office/common/Services/network_controller.dart';
 import 'package:tcs_e_office/common/share/auth/sign_out_clear.dart';
 import 'package:tcs_e_office/common/utils/check_awaiting_approval.dart';
 import 'package:tcs_e_office/common/utils/check_awaiting_services.dart';
-import 'package:tcs_e_office/common/utils/navigation_utils.dart';
 import 'package:tcs_e_office/common/widgets/splash_screen_widget.dart';
 import 'package:tcs_e_office/controllers/splash_controller.dart';
 import 'package:tcs_e_office/core/configs/theme/app_theme.dart';
@@ -125,7 +124,7 @@ class MyApp extends StatefulWidget {
 }
 
 class MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  // final DeepLinkHandler _deepLinkHandler = DeepLinkHandler();
+  final DeepLinkHandler _deepLinkHandler = DeepLinkHandler();
 
   @override
   void initState() {
@@ -134,6 +133,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await OneSignalService().handlePendingNavigation();
+      _deepLinkHandler.init();
     });
   }
 
@@ -147,7 +147,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // _deepLinkHandler.dispose();
+    _deepLinkHandler.dispose();
     super.dispose();
   }
 
@@ -249,7 +249,7 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(SplashController());
+    Get.put(SplashController(initialDeepLink: initialDeepLink));
 
     return SplashScreenWidget(
       onComplete: () {

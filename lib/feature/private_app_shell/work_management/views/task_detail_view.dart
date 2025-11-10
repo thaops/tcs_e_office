@@ -85,36 +85,23 @@ class _TaskDetailViewState extends State<TaskDetailView> {
   /// Kiểm tra xem task có quá hạn hay không
   /// Dựa trên statusCode của assignees (statusCode == 3 là quá hạn)
   bool _isTaskOverdue(detail) {
-    print('🔍 Checking task overdue status...');
-    print('🔍 Task status: ${detail.status}');
-
     // Kiểm tra status tổng thể của task
     if (detail.status == 3) {
-      print('🔍 Task is overdue by overall status');
       return true;
     }
 
     // Kiểm tra statusCode của assignees
     // Nếu có bất kỳ assignee nào có statusCode == 3 thì task quá hạn
     if (detail.assignees.isNotEmpty) {
-      print('🔍 Checking assignees status codes...');
-      for (final assignee in detail.assignees) {
-        print(
-          '🔍 Assignee: ${assignee.name} - statusCode: ${assignee.statusCode}',
-        );
-      }
-
       final hasOverdueAssignee = detail.assignees.any(
         (assignee) => assignee.statusCode == 3,
       );
 
       if (hasOverdueAssignee) {
-        print('🔍 Task is overdue by assignee status code');
         return true;
       }
     }
 
-    print('🔍 Task is not overdue');
     return false;
   }
 
@@ -124,10 +111,7 @@ class _TaskDetailViewState extends State<TaskDetailView> {
       final myId = await MyId.create();
       final currentUserId = await myId.getMyId();
 
-      print('🔍 Current user ID: $currentUserId');
-
       if (currentUserId.isEmpty) {
-        print('🔍 Current user ID is empty');
         return false;
       }
 
@@ -136,27 +120,15 @@ class _TaskDetailViewState extends State<TaskDetailView> {
           .where((a) => a.id == currentUserId)
           .toList();
 
-      print(
-        '🔍 Current user assignees: ${currentUserAssignees.map((a) => '${a.id} - ${a.code} - ${a.name} - roleId: ${a.roleId} - status: ${a.statusCode}').toList()}',
-      );
-
       // Kiểm tra xem có bất kỳ role nào của user hiện tại đã hoàn thành (statusCode == 2)
       for (final assignee in currentUserAssignees) {
-        print(
-          '🔍 Checking assignee ID: ${assignee.id} vs current: $currentUserId, roleId: ${assignee.roleId}, status: ${assignee.statusCode}',
-        );
         if (assignee.statusCode == 2) {
-          print(
-            '🔍 Found completed assignee: ${assignee.name} with roleId: ${assignee.roleId}',
-          );
           return true; // User hiện tại đã hoàn thành trong ít nhất một role
         }
       }
 
-      print('🔍 No completed assignee found for current user');
       return false;
     } catch (e) {
-      print('Error checking current user completion: $e');
       return false;
     }
   }
@@ -270,13 +242,8 @@ class _TaskDetailViewState extends State<TaskDetailView> {
 
               // Chỉ refresh khi thực sự có thay đổi (result == 'updated')
               if (result == 'updated') {
-                print(
-                  '🔍 TaskDetailView: Task was updated, refreshing data...',
-                );
                 // Refresh ngay lập tức để tránh giật
                 c.refreshDetail();
-              } else {
-                print('🔍 TaskDetailView: No changes made, skipping refresh');
               }
             }
           },
@@ -287,8 +254,13 @@ class _TaskDetailViewState extends State<TaskDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    // Kiểm tra Get.isRegistered trước khi tạo controller
+    final controller = Get.isRegistered<TaskDetailController>()
+        ? Get.find<TaskDetailController>()
+        : Get.put(TaskDetailController(widget.taskId));
+
     return GetBuilder<TaskDetailController>(
-      init: TaskDetailController(widget.taskId),
+      init: controller,
       builder: (c) {
         return Scaffold(
           backgroundColor: AppColors.bacgroundApp,
@@ -441,9 +413,6 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                                                   .silentRefresh();
                                             } catch (e) {
                                               // Nếu không tìm thấy controller thì bỏ qua
-                                              print(
-                                                '🔍 WorkManagementController not found: $e',
-                                              );
                                             }
 
                                             // Hiển thị success dialog
@@ -565,9 +534,8 @@ class _ControllerWithData {
         // Update departmentTree với kết quả search
         _departmentTree.clear();
         _departmentTree.addAll(searchResults);
-        print('🔍 Search results: ${searchResults.length} departments found');
       } catch (e) {
-        print('🔍 Search error: $e');
+        // Ignore search error
       } finally {
         _searching.value = false;
       }
