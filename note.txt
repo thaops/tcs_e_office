@@ -68,7 +68,7 @@ Shorebird SDK sẽ được nhúng vào app để quản lý patch OTA.
 
 🧩 2. Tạo patch cho iOS
 shorebird patch ios --release-version=1.0.0+1
-
+dev040504
 
 Lưu ý:
 
