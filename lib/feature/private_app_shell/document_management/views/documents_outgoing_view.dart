@@ -4,6 +4,7 @@ import '../controllers/document_management_controller.dart';
 import '../widgets/document_card_widget.dart';
 import '../widgets/refreshable_empty_state.dart';
 import '../../../../common/widgets/common_loading_indicator.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class DocumentsOutgoingView extends StatelessWidget {
   final int? status;
@@ -57,7 +58,7 @@ class DocumentsOutgoingView extends StatelessWidget {
               final document = controller.filteredDocumentsOutgoing[index];
               return DocumentCardWidget(
                 document: document,
-                tabType: 'outgoing',
+                tabType: AppTabTypes.DOCUMENT_OUT,
               );
             },
           ),

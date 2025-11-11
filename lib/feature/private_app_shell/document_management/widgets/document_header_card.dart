@@ -3,13 +3,13 @@ import 'package:tcs_e_office/common/widgets/text_widget.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import '../models/document_detail_model.dart';
 import 'document_container.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class DocumentHeaderCard extends StatelessWidget {
   final DocumentDetailModel detail;
   final String? tabType;
 
   const DocumentHeaderCard({super.key, required this.detail, this.tabType});
-  final String incomingKey = 'incoming';
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +52,7 @@ class DocumentHeaderCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (tabType != incomingKey) _buildStatusChip(),
+                if (tabType != AppTabTypes.DOCUMENT_IN) _buildStatusChip(),
               ],
             ),
 
@@ -77,7 +77,7 @@ class DocumentHeaderCard extends StatelessWidget {
                     'Ngày tiếp nhận công văn',
                     _formatDate(detail.receiveDate),
                   ),
-                if (detail.distributor.isNotEmpty && tabType != incomingKey)
+                if (detail.distributor.isNotEmpty && tabType != AppTabTypes.DOCUMENT_IN)
                   _buildIconTextInfoRow(
                     Icons.person_outline,
                     'Người phân phối',

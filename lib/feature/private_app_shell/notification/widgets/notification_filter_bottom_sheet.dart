@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../models/notification_filter_model.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class NotificationFilterOption {
   final String value;
@@ -51,12 +52,21 @@ class _NotificationFilterBottomSheetState
   // Lấy danh sách loại thông báo từ local
   List<NotificationFilterOption> _getNotificationTypeOptions() {
     return [
-      NotificationFilterOption(value: 'DocumentIn', label: 'Văn bản đến'),
-      NotificationFilterOption(value: 'DocumentOut', label: 'Văn bản đi'),
-      NotificationFilterOption(value: 'TaskAssign', label: 'Việc tôi giao'),
       NotificationFilterOption(
-        value: 'TaskReceived',
-        label: 'Việc giao đến tôi',
+        value: AppTabTypes.DOCUMENT_IN,
+        label: AppTabTypes.documentIncomingLabel,
+      ),
+      NotificationFilterOption(
+        value: AppTabTypes.DOCUMENT_OUT,
+        label: AppTabTypes.documentOutgoingLabel,
+      ),
+      NotificationFilterOption(
+        value: AppTabTypes.TASK_ASSIGN,
+        label: AppTabTypes.taskAssignedByMeLabel,
+      ),
+      NotificationFilterOption(
+        value: AppTabTypes.TASK_RECEIVED,
+        label: AppTabTypes.taskAssignedToMeLabel,
       ),
     ];
   }

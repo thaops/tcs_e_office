@@ -4,6 +4,7 @@ import 'package:tcs_e_office/common/widgets/app_dialog.dart';
 import 'package:tcs_e_office/feature/private_app_shell/document_management/views/document_detail_view.dart';
 import 'package:tcs_e_office/feature/private_app_shell/work_management/views/task_detail_view.dart';
 import 'package:tcs_e_office/feature/private_app_shell/notification/services/notification_service.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class NotificationNavigationHandler {
   static final NotificationService _notificationService = NotificationService();
@@ -61,26 +62,16 @@ class NotificationNavigationHandler {
       await Future.delayed(const Duration(milliseconds: 300));
 
       switch (source) {
-        case 'DocumentIn':
-        case 'DocumentOut':
+        case AppTabTypes.DOCUMENT_IN:
+        case AppTabTypes.DOCUMENT_OUT:
           await Get.to(
-            () => DocumentDetailView(
-              documentId: sourceId,
-              tabType: source == 'DocumentIn' ? 'incoming' : 'outgoing',
-            ),
+            () => DocumentDetailView(documentId: sourceId, tabType: source),
           );
           break;
 
-        case 'TaskAssign':
-        case 'TaskReceived':
-          await Get.to(
-            () => TaskDetailView(
-              taskId: sourceId,
-              tabType: source == 'TaskAssign'
-                  ? 'assigned_by_me'
-                  : 'assigned_to_me',
-            ),
-          );
+        case AppTabTypes.TASK_ASSIGN:
+        case AppTabTypes.TASK_RECEIVED:
+          await Get.to(() => TaskDetailView(taskId: sourceId, tabType: source));
           break;
 
         case 'DayOff':

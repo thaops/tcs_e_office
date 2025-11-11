@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/document_detail_model.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class DocumentHistoryDialog extends StatelessWidget {
   final List<WorkflowModel>? workflows;
   final List<HistoryModel>? histories;
-  final String? tabType; // 'incoming' hoặc 'outgoing'
+  final String? tabType;
 
   const DocumentHistoryDialog({
     super.key,
@@ -42,9 +43,7 @@ class DocumentHistoryDialog extends StatelessWidget {
   }
 
   String _getTitle() {
-    // Nếu là văn bản đi thì hiển thị "Tiến trình phê duyệt"
-    // Nếu là văn bản đến thì hiển thị "Lịch sử cập nhật"
-    if (tabType == 'outgoing') {
+    if (tabType == AppTabTypes.DOCUMENT_OUT) {
       return 'Tiến trình phê duyệt';
     }
     return 'Lịch sử cập nhật';
@@ -69,7 +68,6 @@ class DocumentHistoryDialog extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Stack(
@@ -98,12 +96,11 @@ class DocumentHistoryDialog extends StatelessWidget {
 
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
 
-          // Timeline list
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: workflows != null && workflows!.isNotEmpty
-                  ? _TimelineList(items: workflows!)
+                  ? _TimelineList(items: workflows!, tabType: tabType)
                   : histories != null && histories!.isNotEmpty
                   ? _HistoryTimelineList(items: histories!)
                   : const Center(
@@ -123,7 +120,6 @@ class DocumentHistoryDialog extends StatelessWidget {
 
           const SizedBox(height: 8),
 
-          // Footer button
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: OutlinedButton(
@@ -154,7 +150,6 @@ class _HistoryTimelineList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sắp xếp histories theo actionDate (mới nhất trước)
     final sortedItems = List<HistoryModel>.from(items)
       ..sort((a, b) {
         try {
@@ -219,7 +214,6 @@ class _HistoryTimelineTile extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Timeline axis
         Column(
           children: [
             Container(
@@ -241,7 +235,6 @@ class _HistoryTimelineTile extends StatelessWidget {
         ),
         const SizedBox(width: 12),
 
-        // Content
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -292,13 +285,14 @@ class _HistoryTimelineTile extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 4),
-                Text(
-                  dateText,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF9E9E9E),
+                if (dateText.isNotEmpty)
+                  Text(
+                    dateText,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF9E9E9E),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -310,37 +304,71 @@ class _HistoryTimelineTile extends StatelessWidget {
 
 class _TimelineList extends StatelessWidget {
   final List<WorkflowModel> items;
-  const _TimelineList({required this.items});
+  final String? tabType;
+  const _TimelineList({required this.items, this.tabType});
 
   @override
   Widget build(BuildContext context) {
-    // Sắp xếp workflows theo step
     final sortedItems = List<WorkflowModel>.from(items)
       ..sort((a, b) => a.step.compareTo(b.step));
+
+    final bool isOutgoing = tabType == AppTabTypes.DOCUMENT_OUT;
 
     return Column(
       children: List.generate(sortedItems.length, (index) {
         final item = sortedItems[index];
         final bool isLast = index == sortedItems.length - 1;
-        // Workflow hiện tại là step đã hoàn thành (isCompleted = true hoặc status = 1)
-        final bool isCurrent = item.isCompleted || item.status == 1;
+        final bool isApproved = item.status == 1;
+        final bool isRejected = item.status == 3;
+        final bool isPending = item.status == 0;
+        final bool isNotIssued = isLast && !item.isCompleted;
+        final bool isCurrent = item.isCompleted || isApproved || isRejected;
         final Color dotColor = isCurrent
             ? const Color(0xFF006884)
             : const Color(0xFFBDBDBD);
 
+        final bool shouldHideDate = isOutgoing && (isPending || isNotIssued);
+        final String statusText = _statusText(item, isLast, isOutgoing);
+        final String? dateText = shouldHideDate
+            ? null
+            : _getDateText(item, isApproved, isRejected, isOutgoing);
+
+        final Color statusColor = _getStatusColor(
+          item.status,
+          isNotIssued,
+          isOutgoing,
+        );
+
         return _TimelineTile(
           actor: item.name,
           department: item.jobTitle,
-          statusText: _statusText(item),
-          dateText: _getDateText(item),
+          statusText: statusText,
+          statusColor: statusColor,
+          dateText: dateText,
+          note: item.note,
           dotColor: dotColor,
           showConnector: !isLast,
+          isOutgoing: isOutgoing,
         );
       }),
     );
   }
 
-  String _statusText(WorkflowModel workflow) {
+  String _statusText(WorkflowModel workflow, bool isLast, bool isOutgoing) {
+    if (isOutgoing) {
+      if (isLast && !workflow.isCompleted) {
+        return 'Chưa ban hành';
+      }
+      if (workflow.status == 3) {
+        return 'Từ chối';
+      }
+      if (workflow.status == 1) {
+        return 'Phê duyệt';
+      }
+      if (workflow.status == 0) {
+        return 'Chưa duyệt';
+      }
+    }
     if (workflow.isCompleted) {
       return 'Đã xử lý';
     } else if (workflow.status == 1) {
@@ -350,22 +378,51 @@ class _TimelineList extends StatelessWidget {
     }
   }
 
-  String _getDateText(WorkflowModel workflow) {
-    // Ưu tiên actionDate, nếu không có thì dùng createdDate
+  String? _getDateText(
+    WorkflowModel workflow,
+    bool isApproved,
+    bool isRejected,
+    bool isOutgoing,
+  ) {
     final dateString = workflow.actionDate.isNotEmpty
         ? workflow.actionDate
         : workflow.createdDate;
 
-    return _dateOnly(dateString);
+    if (dateString.isEmpty) {
+      return null;
+    }
+
+    if (isOutgoing) {
+      final formatted = _formatDateTime(dateString);
+      return formatted.isNotEmpty ? formatted : null;
+    } else {
+      return null;
+    }
   }
 
-  String _dateOnly(String iso) {
+  String _formatDateTime(String iso) {
     try {
       final d = DateTime.parse(iso);
-      return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+      return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     } catch (_) {
       return iso;
     }
+  }
+
+  Color _getStatusColor(int status, bool isNotIssued, bool isOutgoing) {
+    if (!isOutgoing) {
+      return const Color(0xFF424242);
+    }
+    if (isNotIssued || status == 0) {
+      return const Color(0xFF9E9E9E);
+    }
+    if (status == 1) {
+      return const Color(0xFF006884);
+    }
+    if (status == 3) {
+      return const Color(0xFFD32F2F);
+    }
+    return const Color(0xFF424242);
   }
 }
 
@@ -373,17 +430,23 @@ class _TimelineTile extends StatelessWidget {
   final String actor;
   final String department;
   final String statusText;
-  final String dateText;
+  final Color statusColor;
+  final String? dateText;
+  final String? note;
   final Color dotColor;
   final bool showConnector;
+  final bool isOutgoing;
 
   const _TimelineTile({
     required this.actor,
     required this.department,
     required this.statusText,
-    required this.dateText,
+    required this.statusColor,
+    this.dateText,
+    this.note,
     required this.dotColor,
     required this.showConnector,
+    required this.isOutgoing,
   });
 
   @override
@@ -391,7 +454,6 @@ class _TimelineTile extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Timeline axis
         Column(
           children: [
             Container(
@@ -405,7 +467,7 @@ class _TimelineTile extends StatelessWidget {
             if (showConnector)
               Container(
                 width: 2,
-                height: 56,
+                height: 45,
                 margin: const EdgeInsets.symmetric(vertical: 6),
                 color: const Color(0xFFE0E0E0),
               ),
@@ -413,12 +475,18 @@ class _TimelineTile extends StatelessWidget {
         ),
         const SizedBox(width: 12),
 
-        // Content
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.only(
+              bottom:
+                  (note != null && note!.isNotEmpty) ||
+                      (dateText != null && dateText!.isNotEmpty)
+                  ? 12
+                  : 0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 RichText(
                   text: TextSpan(
@@ -444,21 +512,67 @@ class _TimelineTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  statusText,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF424242),
+                if (isOutgoing && dateText != null && dateText!.isNotEmpty)
+                  Row(
+                    children: [
+                      Text(
+                        statusText,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: statusColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        ': ',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: statusColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        dateText!,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF9E9E9E),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  Text(
+                    statusText,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: statusColor,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  dateText,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF9E9E9E),
+                if (note != null && note!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Lý do: $note',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF757575),
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
-                ),
+                ],
+                if (!isOutgoing &&
+                    dateText != null &&
+                    dateText!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    dateText!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF9E9E9E),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

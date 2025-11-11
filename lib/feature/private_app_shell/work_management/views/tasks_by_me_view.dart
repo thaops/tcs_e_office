@@ -4,6 +4,7 @@ import '../controllers/work_management_controller.dart';
 // import '../models/task_model.dart';
 import '../widget/task_card_widget.dart';
 import 'create_task_view.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class TasksByMeView extends StatelessWidget {
   const TasksByMeView({super.key});
@@ -50,7 +51,7 @@ class TasksByMeView extends StatelessWidget {
               }
 
               final task = controller.filteredTasksByMe[index];
-              return TaskCardWidget(task: task, tabType: 'assigned_by_me');
+              return TaskCardWidget(task: task, tabType: AppTabTypes.TASK_ASSIGN);
             },
           ),
         ),

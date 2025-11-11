@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/task_detail_model.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class TaskHistoryDialog extends StatelessWidget {
   final List<TaskHistory> histories;
-  final String tabType; // 'assigned_by_me' hoặc 'assigned_to_me'
+  final String tabType; // AppTabTypes.TASK_ASSIGN hoặc TASK_RECEIVED
 
   const TaskHistoryDialog({
     super.key,
@@ -109,9 +110,9 @@ class TaskHistoryDialog extends StatelessWidget {
 
   String _getDialogTitle() {
     switch (tabType) {
-      case 'assigned_by_me':
+      case AppTabTypes.TASK_ASSIGN:
         return 'Lịch sử';
-      case 'assigned_to_me':
+      case AppTabTypes.TASK_RECEIVED:
         return 'Tiến trình xử lý';
       default:
         return 'Tiến trình xử lý';

@@ -12,6 +12,7 @@ import 'package:tcs_e_office/feature/private_app_shell/work_management/controlle
 import 'package:tcs_e_office/feature/private_app_shell/work_management/controllers/task_detail_controller.dart';
 import 'package:tcs_e_office/feature/private_app_shell/document_management/controllers/document_detail_controller.dart';
 import 'package:tcs_e_office/feature/private_app_shell/document_management/controllers/document_management_controller.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class DeepLinkHandler {
   static final DeepLinkHandler _instance = DeepLinkHandler._internal();
@@ -139,8 +140,10 @@ class DeepLinkHandler {
     await _navigateDetail<DocumentDetailController>(
       id: documentId,
       switchTab: _switchToDocumentManagementTab,
-      createView: () =>
-          DocumentDetailView(documentId: documentId, tabType: 'incoming'),
+      createView: () => DocumentDetailView(
+        documentId: documentId,
+        tabType: AppTabTypes.DOCUMENT_IN,
+      ),
     );
   }
 
@@ -148,8 +151,10 @@ class DeepLinkHandler {
     await _navigateDetail<DocumentDetailController>(
       id: documentId,
       switchTab: _switchToDocumentManagementTab,
-      createView: () =>
-          DocumentDetailView(documentId: documentId, tabType: 'outgoing'),
+      createView: () => DocumentDetailView(
+        documentId: documentId,
+        tabType: AppTabTypes.DOCUMENT_OUT,
+      ),
     );
   }
 
@@ -157,8 +162,10 @@ class DeepLinkHandler {
     await _navigateDetail<DocumentDetailController>(
       id: documentId,
       switchTab: _switchToDocumentManagementTab,
-      createView: () =>
-          DocumentDetailView(documentId: documentId, tabType: 'outgoing'),
+      createView: () => DocumentDetailView(
+        documentId: documentId,
+        tabType: AppTabTypes.DOCUMENT_OUT,
+      ),
     );
   }
 
@@ -166,8 +173,10 @@ class DeepLinkHandler {
     await _navigateDetail<DocumentDetailController>(
       id: documentId,
       switchTab: _switchToDocumentManagementTab,
-      createView: () =>
-          DocumentDetailView(documentId: documentId, tabType: 'outgoing'),
+      createView: () => DocumentDetailView(
+        documentId: documentId,
+        tabType: AppTabTypes.DOCUMENT_OUT,
+      ),
     );
   }
 
@@ -175,8 +184,10 @@ class DeepLinkHandler {
     await _navigateDetail<DocumentDetailController>(
       id: documentId,
       switchTab: _switchToDocumentManagementTab,
-      createView: () =>
-          DocumentDetailView(documentId: documentId, tabType: 'outgoing'),
+      createView: () => DocumentDetailView(
+        documentId: documentId,
+        tabType: AppTabTypes.DOCUMENT_OUT,
+      ),
     );
   }
 
@@ -184,8 +195,10 @@ class DeepLinkHandler {
     await _navigateDetail<DocumentDetailController>(
       id: documentId,
       switchTab: _switchToDocumentManagementTab,
-      createView: () =>
-          DocumentDetailView(documentId: documentId, tabType: 'outgoing'),
+      createView: () => DocumentDetailView(
+        documentId: documentId,
+        tabType: AppTabTypes.DOCUMENT_OUT,
+      ),
     );
   }
 
@@ -195,7 +208,7 @@ class DeepLinkHandler {
       id: taskId,
       switchTab: _switchToWorkManagementTab,
       createView: () =>
-          TaskDetailView(taskId: taskId, tabType: 'assigned_by_me'),
+          TaskDetailView(taskId: taskId, tabType: AppTabTypes.TASK_RECEIVED),
     );
   }
 
@@ -204,7 +217,7 @@ class DeepLinkHandler {
       id: taskId,
       switchTab: _switchToWorkManagementTab,
       createView: () =>
-          TaskDetailView(taskId: taskId, tabType: 'assigned_to_me'),
+          TaskDetailView(taskId: taskId, tabType: AppTabTypes.TASK_ASSIGN),
     );
   }
 

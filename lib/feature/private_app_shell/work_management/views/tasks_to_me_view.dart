@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/work_management_controller.dart';
 // import '../models/task_model.dart';
 import '../widget/task_card_widget.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 // Hằng số style\
 
@@ -53,7 +54,7 @@ class TasksToMeView extends StatelessWidget {
               }
 
               final task = controller.filteredTasksToMe[index];
-              return TaskCardWidget(task: task, tabType: 'assigned_to_me');
+              return TaskCardWidget(task: task, tabType: AppTabTypes.TASK_RECEIVED);
             },
           ),
         ),

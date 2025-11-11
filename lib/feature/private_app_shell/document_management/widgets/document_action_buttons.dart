@@ -3,9 +3,10 @@ import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import '../models/document_detail_model.dart';
 import 'document_approve_dialog.dart';
 import 'document_reject_dialog.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class DocumentActionButtons extends StatelessWidget {
-  final String tabType; // 'incoming' hoặc 'outgoing'
+  final String tabType; // AppTabTypes.DOCUMENT_IN hoặc DOCUMENT_OUT
   final VoidCallback? onProcess; // Chuyển xử lý (văn bản đến)
   final VoidCallback? onMarkRead; // Đã đọc (văn bản đến)
   final VoidCallback? onCreateTask; // Tạo công việc (văn bản đến)
@@ -42,7 +43,7 @@ class DocumentActionButtons extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (tabType == 'incoming')
+          if (tabType == AppTabTypes.DOCUMENT_IN)
             _buildIncomingActions()
           else
             _buildOutgoingActions(context),

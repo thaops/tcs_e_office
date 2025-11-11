@@ -23,7 +23,9 @@ class _NotificationViewState extends State<NotificationView>
   bool _isLoadingMore = false;
   AppLifecycleState? _lastLifecycleState;
   DateTime? _lastSyncTime;
+  DateTime? _lastVisibleSyncTime;
   static const _syncDebounceMs = 1000;
+  static const _visibleSyncDebounceMs = 500;
 
   @override
   void initState() {
@@ -31,6 +33,16 @@ class _NotificationViewState extends State<NotificationView>
     _controller = Get.put(NotificationController());
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Sync khi màn hình được hiển thị lại (khi back về)
+    // Chỉ sync nếu đã có data (không sync lần đầu khi init)
+    if (_controller.allNotifications.isNotEmpty) {
+      _syncWhenVisible();
+    }
   }
 
   @override
@@ -68,6 +80,26 @@ class _NotificationViewState extends State<NotificationView>
 
     // Delay nhỏ để đảm bảo UI đã render xong
     Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _controller.syncOnResume();
+      }
+    });
+  }
+
+  void _syncWhenVisible() {
+    final now = DateTime.now();
+
+    // Debounce để tránh spam khi didChangeDependencies được gọi nhiều lần
+    if (_lastVisibleSyncTime != null &&
+        now.difference(_lastVisibleSyncTime!).inMilliseconds <
+            _visibleSyncDebounceMs) {
+      return;
+    }
+
+    _lastVisibleSyncTime = now;
+
+    // Sync khi màn hình được hiển thị lại (khi back về từ màn hình khác)
+    Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         _controller.syncOnResume();
       }
@@ -242,6 +274,9 @@ class _NotificationViewState extends State<NotificationView>
                     notification.id,
                   ),
                   enableCheckbox: isCheckboxEnabled,
+                  isProcessing: _controller.isNotificationProcessing(
+                    notification.id,
+                  ),
                   onCheckboxChanged: () {
                     _controller.toggleSelectNotification(notification.id);
                   },
@@ -280,7 +315,7 @@ class _NotificationViewState extends State<NotificationView>
   Widget _buildSelectAllHeader() {
     return Obx(
       () => Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border(
@@ -293,11 +328,13 @@ class _NotificationViewState extends State<NotificationView>
               value: _controller.isSelectAll,
               onChanged: (_) => _controller.toggleSelectAll(),
               activeColor: AppColors.primary,
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            SizedBox(width: 8.w),
+            SizedBox(width: 6.w),
             Text(
               'Tất cả',
-              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500),
             ),
             const Spacer(),
             InkWell(
@@ -305,12 +342,12 @@ class _NotificationViewState extends State<NotificationView>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.check, size: 20.sp, color: Colors.grey.shade600),
-                  SizedBox(width: 8.w),
+                  Icon(Icons.check, size: 18.sp, color: Colors.grey.shade600),
+                  SizedBox(width: 6.w),
                   Text(
                     'Đã đọc',
                     style: TextStyle(
-                      fontSize: 14.sp,
+                      fontSize: 13.sp,
                       color: Colors.grey.shade600,
                     ),
                   ),

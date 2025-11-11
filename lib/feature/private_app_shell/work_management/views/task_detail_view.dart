@@ -20,10 +20,11 @@ import '../controllers/task_api_service.dart';
 import 'update_task_view.dart';
 import '../widgets/reprocess_reason_dialog.dart';
 import '../controllers/work_management_controller.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class TaskDetailView extends StatefulWidget {
   final String taskId;
-  final String? tabType; // 'assigned_by_me' hoặc 'assigned_to_me'
+  final String? tabType; // AppTabTypes.TASK_ASSIGN hoặc TASK_RECEIVED
   const TaskDetailView({super.key, required this.taskId, this.tabType});
 
   @override
@@ -35,11 +36,11 @@ class _TaskDetailViewState extends State<TaskDetailView> {
 
   // Method để xác định title dựa trên tabType
   void _updateAppBarTitle() {
-    if (widget.tabType == 'assigned_by_me') {
+    if (widget.tabType == AppTabTypes.TASK_ASSIGN) {
       setState(() {
         _appBarTitle = 'Việc tôi giao';
       });
-    } else if (widget.tabType == 'assigned_to_me') {
+    } else if (widget.tabType == AppTabTypes.TASK_RECEIVED) {
       setState(() {
         _appBarTitle = 'Việc giao đến tôi';
       });
@@ -210,7 +211,7 @@ class _TaskDetailViewState extends State<TaskDetailView> {
       child: Obx(() {
         final detail = c.detail.value;
         final showEditIcon =
-            widget.tabType == 'assigned_by_me' &&
+            widget.tabType == AppTabTypes.TASK_ASSIGN &&
             detail != null &&
             !_isTaskCompleted(detail);
 
@@ -225,7 +226,7 @@ class _TaskDetailViewState extends State<TaskDetailView> {
             TaskHistoryDialog.show(
               context,
               histories,
-              widget.tabType ?? 'assigned_to_me',
+              widget.tabType ?? AppTabTypes.TASK_RECEIVED,
             );
           },
           functionSecond: () async {
@@ -339,7 +340,7 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                     // Action bar - chỉ hiển thị khi task chưa hoàn thành, không quá hạn, không phải "việc tôi giao" và user chưa hoàn thành trong bất kỳ role nào
                     if (!_isTaskCompleted(detail) &&
                         !_isTaskOverdue(detail) && // Không hiển thị khi quá hạn
-                        widget.tabType != 'assigned_by_me')
+                        widget.tabType != AppTabTypes.TASK_ASSIGN)
                       FutureBuilder<bool>(
                         future: _isCurrentUserCompleted(detail),
                         builder: (context, snapshot) {
@@ -374,7 +375,7 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                       ),
 
                     // Button "Xử lý lại" - chỉ hiển thị khi là "việc tôi giao" và đã hoàn thành
-                    if (widget.tabType == 'assigned_by_me' &&
+                    if (widget.tabType == AppTabTypes.TASK_ASSIGN &&
                         _isTaskCompleted(detail))
                       Obx(
                         () => Container(

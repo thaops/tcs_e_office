@@ -1,5 +1,7 @@
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
+
 class NotificationFilterModel {
-  final String? notificationType; // "DocumentIn", "DocumentOut", "TaskAssign", "TaskReceived"
+  final String? notificationType; // AppTabTypes.DOCUMENT_IN, DOCUMENT_OUT, TASK_ASSIGN, TASK_RECEIVED
   final bool? readStatus; // true: Đã đọc, false: Chưa đọc, null: Tất cả
 
   NotificationFilterModel({
@@ -46,18 +48,7 @@ class NotificationFilterModel {
 
   // Lấy tên loại thông báo
   String getNotificationTypeName() {
-    switch (notificationType) {
-      case 'DocumentIn':
-        return 'Văn bản đến';
-      case 'DocumentOut':
-        return 'Văn bản đi';
-      case 'TaskAssign':
-        return 'Việc tôi giao';
-      case 'TaskReceived':
-        return 'Việc giao đến tôi';
-      default:
-        return 'Tất cả';
-    }
+    return AppTabTypes.getLabelFromDetailKey(notificationType);
   }
 
   // Lấy tên trạng thái đọc

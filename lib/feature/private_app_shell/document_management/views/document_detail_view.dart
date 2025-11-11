@@ -17,10 +17,11 @@ import '../widgets/document_distributors_dept_section.dart';
 import '../services/document_action_service.dart';
 import '../models/document_detail_model.dart';
 import '../../work_management/views/create_task_view.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class DocumentDetailView extends StatefulWidget {
   final String documentId;
-  final String? tabType;
+  final String? tabType; // AppTabTypes.DOCUMENT_IN hoặc DOCUMENT_OUT
 
   const DocumentDetailView({super.key, required this.documentId, this.tabType});
 
@@ -30,7 +31,6 @@ class DocumentDetailView extends StatefulWidget {
 
 class _DocumentDetailViewState extends State<DocumentDetailView> {
   String _appBarTitle = 'Chi tiết văn bản';
-  String outgoingKey = 'outgoing';
   final DocumentActionService _actionService = DocumentActionService();
   bool _isProcessingAction = false;
   bool _isDocumentRead = false;
@@ -39,9 +39,9 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
   void _updateAppBarTitle({int? status}) {
     String baseTitle = 'Chi tiết văn bản';
 
-    if (widget.tabType == 'incoming') {
+    if (widget.tabType == AppTabTypes.DOCUMENT_IN) {
       baseTitle = 'Văn bản đến';
-    } else if (widget.tabType == 'outgoing') {
+    } else if (widget.tabType == AppTabTypes.DOCUMENT_OUT) {
       baseTitle = 'Văn bản đi';
     }
 
@@ -62,7 +62,7 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
     _updateAppBarTitle();
     _loadCurrentUserId();
 
-    if (widget.tabType == 'outgoing') {
+    if (widget.tabType == AppTabTypes.DOCUMENT_OUT) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final controller = Get.find<DocumentDetailController>();
         controller.fetchDistributors();
@@ -113,7 +113,7 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
       return;
     }
 
-    if (widget.tabType == 'incoming' && detail.histories.isNotEmpty) {
+    if (widget.tabType == AppTabTypes.DOCUMENT_IN && detail.histories.isNotEmpty) {
       DocumentHistoryDialog.showHistories(
         context,
         detail.histories,
@@ -526,7 +526,7 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
                             attachments: detail.attachments,
                           ),
                         ),
-                        if (widget.tabType == outgoingKey)
+                        if (widget.tabType == AppTabTypes.DOCUMENT_OUT)
                           DocumentDetailSection(
                             child: DocumentCommentsSection(
                               comments: detail.comments,
@@ -535,7 +535,7 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
                             ),
                           ),
 
-                        if (widget.tabType == outgoingKey)
+                        if (widget.tabType == AppTabTypes.DOCUMENT_OUT)
                           Obx(() {
                             final distributors = c.distributors;
                             return DocumentDetailSection(
@@ -575,7 +575,7 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
                     ],
                   ),
                   child: DocumentActionButtons(
-                    tabType: widget.tabType ?? 'incoming',
+                    tabType: widget.tabType ?? AppTabTypes.DOCUMENT_IN,
                     onProcess: _handleProcess,
                     onMarkRead: _handleMarkRead,
                     onCreateTask: () => _handleCreateTask(detail.title),

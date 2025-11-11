@@ -1,7 +1,7 @@
 /// Model cho Notification Detail Response từ API
 class NotificationDetailModel {
   final String id;
-  final String source; // "DocumentIn", "DocumentOut", "TaskAssign", "TaskReceived", "DayOff"
+  final String source; // AppTabTypes.DOCUMENT_IN, DOCUMENT_OUT, TASK_ASSIGN, TASK_RECEIVED, "DayOff"
   final String sourceId;
   final String title;
   final String content;

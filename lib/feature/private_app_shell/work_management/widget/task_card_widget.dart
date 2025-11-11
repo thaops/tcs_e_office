@@ -54,7 +54,7 @@ class AppDecorations {
 
 class TaskCardWidget extends StatelessWidget {
   final TaskModel task;
-  final String? tabType; // 'assigned_by_me' hoặc 'assigned_to_me'
+  final String? tabType; // AppTabTypes.TASK_ASSIGN hoặc TASK_RECEIVED
 
   const TaskCardWidget({super.key, required this.task, this.tabType});
 

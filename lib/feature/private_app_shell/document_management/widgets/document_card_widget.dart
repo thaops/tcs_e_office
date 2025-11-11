@@ -5,6 +5,7 @@ import 'package:tcs_e_office/common/widgets/enhanced_text_widget.dart';
 import '../model/document_model.dart';
 import '../views/document_detail_view.dart';
 import '../controllers/document_management_controller.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class DocumentCardStyles {
   static TextStyle get documentTitle =>
@@ -129,10 +130,10 @@ class DocumentCardWidget extends StatelessWidget {
       children: [
         _buildInfoRow(
           Icons.date_range_outlined,
-          tabType != "outgoing"
+          tabType != AppTabTypes.DOCUMENT_OUT
               ? 'Ngày văn bản: '
               : 'Ngày tiếp nhận công văn: ',
-          tabType != "outgoing"
+          tabType != AppTabTypes.DOCUMENT_OUT
               ? _formatDate(document.createdDate)
               : _formatDate(document.receiveDate),
         ),
@@ -146,7 +147,7 @@ class DocumentCardWidget extends StatelessWidget {
           'Đơn vị liên quan: ',
           document.relatedUnits,
         ),
-        if (tabType != "outgoing")
+        if (tabType != AppTabTypes.DOCUMENT_OUT)
           _buildInfoRow(
             Icons.person_outline_rounded,
             'Người phân phối: ',
@@ -180,7 +181,7 @@ class DocumentCardWidget extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (tabType != 'incoming') ...[
+        if (tabType != AppTabTypes.DOCUMENT_IN) ...[
           _buildTypeChipIcon(document.status, isSource: false),
           const SizedBox(width: 8),
         ],

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:tcs_e_office/core/configs/theme/app_colors.dart';
 import 'package:tcs_e_office/feature/private_app_shell/notification/models/notification_model.dart';
+import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
 class NotificationItemWidget extends StatelessWidget {
   final NotificationItem notification;
@@ -11,6 +12,7 @@ class NotificationItemWidget extends StatelessWidget {
   final bool isSelected;
   final VoidCallback? onCheckboxChanged;
   final bool enableCheckbox; // Cho phép enable/disable checkbox
+  final bool isProcessing; // Trạng thái đang xử lý
 
   const NotificationItemWidget({
     super.key,
@@ -20,6 +22,7 @@ class NotificationItemWidget extends StatelessWidget {
     this.isSelected = false,
     this.onCheckboxChanged,
     this.enableCheckbox = true, // Mặc định cho phép click
+    this.isProcessing = false, // Mặc định không xử lý
   });
 
   @override
@@ -29,105 +32,111 @@ class NotificationItemWidget extends StatelessWidget {
         ? Colors.white
         : const Color(0xFFE3F2FD); // Màu xanh nhẹ
 
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(12.h),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          border: Border.all(
-            color: AppColors.primary.withOpacity(0.4),
-            width: 0.4,
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Checkbox - hiển thị nếu showCheckbox = true
-            // Disable nếu enableCheckbox = false hoặc notification đã đọc
-            if (showCheckbox) ...[
-              Checkbox(
-                value: isSelected,
-                onChanged: enableCheckbox && !notification.isRead
-                    ? (value) {
-                        onCheckboxChanged?.call();
-                      }
-                    : null, // Disable checkbox nếu đã đọc hoặc enableCheckbox = false
-                activeColor: AppColors.primary,
-              ),
-              SizedBox(width: 8.w),
-            ],
-
-            // Icon bên trái - circular background màu teal/blue
-            Container(
-              width: 48.w,
-              height: 48.h,
-              decoration: BoxDecoration(
-                color: AppColors.primary, // Màu teal/blue
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                notification.source == 'Document' ||
-                        notification.source == 'DocumentIn' ||
-                        notification.source == 'DocumentOut'
-                    ? Icons.description_outlined
-                    : Icons.assignment_outlined,
-                color: Colors.white,
-                size: 24.sp,
-              ),
+    return AnimatedOpacity(
+      opacity: isProcessing ? 0.6 : 1.0,
+      duration: const Duration(milliseconds: 200),
+      child: InkWell(
+        onTap: isProcessing ? null : onTap, // Disable tap khi đang xử lý
+        child: Container(
+          padding: EdgeInsets.all(10.h),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            border: Border.all(
+              color: AppColors.primary.withOpacity(0.4),
+              width: 0.4,
             ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Checkbox - hiển thị nếu showCheckbox = true
+              // Disable nếu enableCheckbox = false hoặc notification đã đọc
+              if (showCheckbox) ...[
+                Checkbox(
+                  value: isSelected,
+                  onChanged: enableCheckbox && !notification.isRead
+                      ? (value) {
+                          onCheckboxChanged?.call();
+                        }
+                      : null, // Disable checkbox nếu đã đọc hoặc enableCheckbox = false
+                  activeColor: AppColors.primary,
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                SizedBox(width: 6.w),
+              ],
 
-            SizedBox(width: 12.w),
+              // Icon bên trái - circular background màu teal/blue
+              Container(
+                width: 40.w,
+                height: 40.h,
+                decoration: BoxDecoration(
+                  color: AppColors.primary, // Màu teal/blue
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  notification.source == 'Document' ||
+                          notification.source == AppTabTypes.DOCUMENT_IN ||
+                          notification.source == AppTabTypes.DOCUMENT_OUT
+                      ? Icons.description_outlined
+                      : Icons.assignment_outlined,
+                  color: Colors.white,
+                  size: 20.sp,
+                ),
+              ),
 
-            // Text content bên phải
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title - dòng 1
-                  Text(
-                    notification.title,
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+              SizedBox(width: 10.w),
 
-                  SizedBox(height: 4.h),
-
-                  // Content - dòng 2
-                  if (notification.content.isNotEmpty)
+              // Text content bên phải
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title - dòng 1
                     Text(
-                      notification.content,
+                      notification.title,
                       style: TextStyle(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey.shade600,
-                        height: 1.4,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                        height: 1.3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
 
-                  SizedBox(height: 4.h),
+                    SizedBox(height: 3.h),
 
-                  // Date - dòng 3
-                  Text(
-                    _formatDate(notification.createdDate),
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.grey.shade500,
+                    // Content - dòng 2
+                    if (notification.content.isNotEmpty)
+                      Text(
+                        notification.content,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey.shade600,
+                          height: 1.4,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                    SizedBox(height: 3.h),
+
+                    // Date - dòng 3
+                    Text(
+                      _formatDate(notification.createdDate),
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey.shade500,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
