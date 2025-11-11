@@ -83,7 +83,7 @@ class DocumentManagementController extends GetxController {
       final params = <String, dynamic>{
         'pageIndex': currentPageIncoming.value,
         'pageSize': pageSize,
-        'status': 10, 
+        'status': 10,
       };
 
       if (searchQueryIncoming.value.isNotEmpty) {
@@ -94,8 +94,15 @@ class DocumentManagementController extends GetxController {
         params['status'] = filterIncoming.value.status;
       }
 
+      if (filterIncoming.value.isRead != null) {
+        params['read'] = filterIncoming.value.isRead;
+        print('📖 Filter isRead: ${filterIncoming.value.isRead}');
+        print('📖 Params read: ${params['read']}');
+      }
 
+      print('📋 All params: $params');
       response = await _dioApi.get(ApiEndpoints.getDocuments, params: params);
+      print('📡 Response: ${response.data}');
 
       if (response.data is Map<String, dynamic>) {
         final responseData = response.data as Map<String, dynamic>;
@@ -134,7 +141,6 @@ class DocumentManagementController extends GetxController {
         throw Exception('Invalid response format');
       }
     } catch (e) {
-
     } finally {
       isLoadingIncoming.value = false;
     }
@@ -334,14 +340,14 @@ class DocumentManagementController extends GetxController {
   }
 
   // Logic filter chung
+  // Lưu ý: isRead được filter ở server-side qua API, không filter ở client
   List<DocumentModel> _filterDocuments(
     List<DocumentModel> originalDocuments,
     DocumentFilterModel filter,
   ) {
     final hasClientSideFilter =
-        filter.status != null ||
-        filter.documentType != null ||
-        filter.isRead != null;
+        filter.status != null || filter.documentType != null;
+    // isRead được filter ở server-side, không filter ở client
 
     if (!hasClientSideFilter) {
       return originalDocuments;
@@ -357,9 +363,7 @@ class DocumentManagementController extends GetxController {
           return false;
         }
       }
-      if (filter.isRead != null && document.remark != filter.isRead) {
-        return false;
-      }
+      // isRead được filter ở server-side qua API param 'read'
       return true;
     }).toList();
   }

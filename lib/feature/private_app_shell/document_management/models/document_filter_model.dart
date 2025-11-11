@@ -1,8 +1,7 @@
 class DocumentFilterModel {
   final String? status; // Trạng thái văn bản (1-5) - dùng cho văn bản đi
   final String? documentType; // Loại văn bản (CV, BC, GUQ, etc.)
-  final bool?
-  isRead; // Trạng thái đọc (true: Đã đọc, false: Chưa đọc) - dùng cho văn bản đến
+  final bool? isRead; // Trạng thái đọc (true: Đã đọc, false: Chưa đọc) - dùng cho văn bản đến
   final DateTime? fromDate; // Từ ngày
   final DateTime? toDate; // Đến ngày
 

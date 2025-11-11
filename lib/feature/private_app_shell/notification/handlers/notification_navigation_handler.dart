@@ -31,8 +31,7 @@ class NotificationNavigationHandler {
         source: notificationDetail.source,
         sourceId: notificationDetail.sourceId,
       );
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   static Future<void> handleNotificationNavigationWithData({
@@ -101,7 +100,6 @@ class NotificationNavigationHandler {
             useBackdrop: false,
           );
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 }
