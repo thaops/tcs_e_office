@@ -136,6 +136,9 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
       context,
       detail.workflows,
       tabType: widget.tabType,
+      histories: widget.tabType == AppTabTypes.DOCUMENT_OUT
+          ? detail.histories
+          : null,
     );
   }
 

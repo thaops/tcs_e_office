@@ -2,6 +2,18 @@ import 'package:flutter/material.dart';
 import '../models/document_detail_model.dart';
 import 'package:tcs_e_office/common/constants/app_tab_types.dart';
 
+class _GroupedHistoryAction {
+  final String actionCode;
+  final String action;
+  final String actionDate;
+
+  _GroupedHistoryAction({
+    required this.actionCode,
+    required this.action,
+    required this.actionDate,
+  });
+}
+
 class DocumentHistoryDialog extends StatelessWidget {
   final List<WorkflowModel>? workflows;
   final List<HistoryModel>? histories;
@@ -18,13 +30,17 @@ class DocumentHistoryDialog extends StatelessWidget {
     BuildContext context,
     List<WorkflowModel> workflows, {
     String? tabType,
+    List<HistoryModel>? histories,
   }) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) =>
-          DocumentHistoryDialog(workflows: workflows, tabType: tabType),
+      builder: (ctx) => DocumentHistoryDialog(
+        workflows: workflows,
+        histories: histories,
+        tabType: tabType,
+      ),
     );
   }
 
@@ -47,6 +63,197 @@ class DocumentHistoryDialog extends StatelessWidget {
       return 'Tiến trình phê duyệt';
     }
     return 'Lịch sử cập nhật';
+  }
+
+  List<WorkflowModel> _getMergedWorkflows() {
+    if (workflows == null || workflows!.isEmpty) {
+      return [];
+    }
+
+    final mergedWorkflows = List<WorkflowModel>.from(workflows!);
+
+    if (tabType == AppTabTypes.DOCUMENT_OUT &&
+        histories != null &&
+        histories!.isNotEmpty) {
+      final filteredHistories = histories!
+          .where((h) => h.actionCode == 'Create' || h.actionCode == 'Submit')
+          .toList();
+
+      if (filteredHistories.isNotEmpty) {
+        final groupedByActor = <String, List<HistoryModel>>{};
+        for (final history in filteredHistories) {
+          final key = history.actor;
+          if (!groupedByActor.containsKey(key)) {
+            groupedByActor[key] = [];
+          }
+          groupedByActor[key]!.add(history);
+        }
+
+        final historyWorkflows = <WorkflowModel>[];
+        for (final entry in groupedByActor.entries) {
+          final actorHistories = entry.value;
+          actorHistories.sort((a, b) {
+            try {
+              final dateA = DateTime.parse(a.actionDate);
+              final dateB = DateTime.parse(b.actionDate);
+              return dateA.compareTo(dateB);
+            } catch (_) {
+              return 0;
+            }
+          });
+
+          final hasCreate = actorHistories.any((h) => h.actionCode == 'Create');
+          final hasSubmit = actorHistories.any((h) => h.actionCode == 'Submit');
+
+          if (hasCreate && hasSubmit) {
+            final createHistory = actorHistories.firstWhere(
+              (h) => h.actionCode == 'Create',
+            );
+            final submitHistory = actorHistories.firstWhere(
+              (h) => h.actionCode == 'Submit',
+            );
+            final workflow = _convertGroupedHistoryToWorkflow(
+              createHistory,
+              submitHistory,
+            );
+            historyWorkflows.add(workflow);
+          } else {
+            for (final history in actorHistories) {
+              historyWorkflows.add(_convertHistoryToWorkflow(history));
+            }
+          }
+        }
+
+        historyWorkflows.sort((a, b) {
+          try {
+            final dateA = DateTime.parse(a.actionDate);
+            final dateB = DateTime.parse(b.actionDate);
+            return dateA.compareTo(dateB);
+          } catch (_) {
+            return 0;
+          }
+        });
+
+        mergedWorkflows.insertAll(0, historyWorkflows);
+      }
+    }
+
+    return mergedWorkflows;
+  }
+
+  Map<String, List<_GroupedHistoryAction>> _getHistoryActionMap() {
+    final map = <String, List<_GroupedHistoryAction>>{};
+    if (tabType == AppTabTypes.DOCUMENT_OUT &&
+        histories != null &&
+        histories!.isNotEmpty) {
+      final filteredHistories = histories!
+          .where((h) => h.actionCode == 'Create' || h.actionCode == 'Submit')
+          .toList();
+
+      final groupedByActor = <String, List<HistoryModel>>{};
+      for (final history in filteredHistories) {
+        final key = history.actor;
+        if (!groupedByActor.containsKey(key)) {
+          groupedByActor[key] = [];
+        }
+        groupedByActor[key]!.add(history);
+      }
+
+      for (final entry in groupedByActor.entries) {
+        final actorHistories = entry.value;
+        actorHistories.sort((a, b) {
+          try {
+            final dateA = DateTime.parse(a.actionDate);
+            final dateB = DateTime.parse(b.actionDate);
+            return dateA.compareTo(dateB);
+          } catch (_) {
+            return 0;
+          }
+        });
+
+        final hasCreate = actorHistories.any((h) => h.actionCode == 'Create');
+        final hasSubmit = actorHistories.any((h) => h.actionCode == 'Submit');
+
+        if (hasCreate && hasSubmit) {
+          final createHistory = actorHistories.firstWhere(
+            (h) => h.actionCode == 'Create',
+          );
+          final submitHistory = actorHistories.firstWhere(
+            (h) => h.actionCode == 'Submit',
+          );
+          final workflowId = '${createHistory.id}_${submitHistory.id}';
+          map[workflowId] = [
+            _GroupedHistoryAction(
+              actionCode: createHistory.actionCode,
+              action: _getActionDisplayText(createHistory.actionCode),
+              actionDate: createHistory.actionDate,
+            ),
+            _GroupedHistoryAction(
+              actionCode: submitHistory.actionCode,
+              action: _getActionDisplayText(submitHistory.actionCode),
+              actionDate: submitHistory.actionDate,
+            ),
+          ];
+        } else {
+          for (final history in actorHistories) {
+            map[history.id] = [
+              _GroupedHistoryAction(
+                actionCode: history.actionCode,
+                action: history.action,
+                actionDate: history.actionDate,
+              ),
+            ];
+          }
+        }
+      }
+    }
+    return map;
+  }
+
+  String _getActionDisplayText(String actionCode) {
+    switch (actionCode) {
+      case 'Create':
+        return 'Khởi tạo';
+      case 'Submit':
+        return 'Gửi văn bản';
+      default:
+        return '';
+    }
+  }
+
+  WorkflowModel _convertHistoryToWorkflow(HistoryModel history) {
+    return WorkflowModel(
+      id: history.id,
+      userId: '',
+      name: history.actor,
+      email: '',
+      jobTitle: history.actorDepartment,
+      step: -1,
+      status: history.actionCode == 'Create' ? 1 : 0,
+      isCompleted: history.actionCode == 'Create',
+      actionDate: history.actionDate,
+      createdDate: history.actionDate,
+      note: history.note,
+    );
+  }
+
+  WorkflowModel _convertGroupedHistoryToWorkflow(
+    HistoryModel createHistory,
+    HistoryModel submitHistory,
+  ) {
+    return WorkflowModel(
+      id: '${createHistory.id}_${submitHistory.id}',
+      userId: '',
+      name: createHistory.actor,
+      email: '',
+      jobTitle: createHistory.actorDepartment,
+      step: -1,
+      status: 1,
+      isCompleted: true,
+      actionDate: createHistory.actionDate,
+      createdDate: createHistory.actionDate,
+      note: submitHistory.note ?? createHistory.note,
+    );
   }
 
   @override
@@ -99,22 +306,7 @@ class DocumentHistoryDialog extends StatelessWidget {
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: workflows != null && workflows!.isNotEmpty
-                  ? _TimelineList(items: workflows!, tabType: tabType)
-                  : histories != null && histories!.isNotEmpty
-                  ? _HistoryTimelineList(items: histories!)
-                  : const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: Text(
-                          'Không có lịch sử cập nhật',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF9E9E9E),
-                          ),
-                        ),
-                      ),
-                    ),
+              child: _buildContent(),
             ),
           ),
 
@@ -139,6 +331,34 @@ class DocumentHistoryDialog extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    if (workflows != null && workflows!.isNotEmpty) {
+      final mergedWorkflows = _getMergedWorkflows();
+      if (mergedWorkflows.isNotEmpty) {
+        final historyActionMap = _getHistoryActionMap();
+        return _TimelineList(
+          items: mergedWorkflows,
+          tabType: tabType,
+          historyActionMap: historyActionMap,
+        );
+      }
+    }
+
+    if (histories != null && histories!.isNotEmpty) {
+      return _HistoryTimelineList(items: histories!);
+    }
+
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(32.0),
+        child: Text(
+          'Không có lịch sử cập nhật',
+          style: TextStyle(fontSize: 14, color: Color(0xFF9E9E9E)),
+        ),
       ),
     );
   }
@@ -305,7 +525,12 @@ class _HistoryTimelineTile extends StatelessWidget {
 class _TimelineList extends StatelessWidget {
   final List<WorkflowModel> items;
   final String? tabType;
-  const _TimelineList({required this.items, this.tabType});
+  final Map<String, List<_GroupedHistoryAction>> historyActionMap;
+  const _TimelineList({
+    required this.items,
+    this.tabType,
+    this.historyActionMap = const {},
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -328,7 +553,15 @@ class _TimelineList extends StatelessWidget {
             : const Color(0xFFBDBDBD);
 
         final bool shouldHideDate = isOutgoing && (isPending || isNotIssued);
-        final String statusText = _statusText(item, isLast, isOutgoing);
+        final bool isHistoryItem = item.step == -1;
+        final bool isGroupedHistory =
+            isHistoryItem && historyActionMap.containsKey(item.id);
+        final List<_GroupedHistoryAction>? groupedActions = isGroupedHistory
+            ? historyActionMap[item.id]
+            : null;
+        final String statusText = isGroupedHistory && groupedActions != null
+            ? groupedActions.first.action
+            : _statusText(item, isLast, isOutgoing);
         final String? dateText = shouldHideDate
             ? null
             : _getDateText(item, isApproved, isRejected, isOutgoing);
@@ -349,6 +582,7 @@ class _TimelineList extends StatelessWidget {
           dotColor: dotColor,
           showConnector: !isLast,
           isOutgoing: isOutgoing,
+          groupedActions: groupedActions,
         );
       }),
     );
@@ -369,10 +603,8 @@ class _TimelineList extends StatelessWidget {
         return 'Chưa duyệt';
       }
     }
-    if (workflow.isCompleted) {
-      return 'Đã xử lý';
-    } else if (workflow.status == 1) {
-      return 'Đang xử lý';
+    if (workflow.isCompleted && workflow.status == 2) {
+      return 'Phê duyệt';
     } else {
       return 'Chờ xử lý';
     }
@@ -436,6 +668,7 @@ class _TimelineTile extends StatelessWidget {
   final Color dotColor;
   final bool showConnector;
   final bool isOutgoing;
+  final List<_GroupedHistoryAction>? groupedActions;
 
   const _TimelineTile({
     required this.actor,
@@ -447,6 +680,7 @@ class _TimelineTile extends StatelessWidget {
     required this.dotColor,
     required this.showConnector,
     required this.isOutgoing,
+    this.groupedActions,
   });
 
   @override
@@ -467,7 +701,9 @@ class _TimelineTile extends StatelessWidget {
             if (showConnector)
               Container(
                 width: 2,
-                height: 45,
+                height: groupedActions != null && groupedActions!.length > 1
+                    ? 80
+                    : 45,
                 margin: const EdgeInsets.symmetric(vertical: 6),
                 color: const Color(0xFFE0E0E0),
               ),
@@ -480,7 +716,8 @@ class _TimelineTile extends StatelessWidget {
             padding: EdgeInsets.only(
               bottom:
                   (note != null && note!.isNotEmpty) ||
-                      (dateText != null && dateText!.isNotEmpty)
+                      (dateText != null && dateText!.isNotEmpty) ||
+                      (groupedActions != null && groupedActions!.length > 1)
                   ? 12
                   : 0,
             ),
@@ -512,7 +749,42 @@ class _TimelineTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                if (isOutgoing && dateText != null && dateText!.isNotEmpty)
+                if (groupedActions != null && groupedActions!.length > 1)
+                  ...groupedActions!.map((action) {
+                    final formattedDate = _formatDateTime(action.actionDate);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        children: [
+                          Text(
+                            action.action,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: statusColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            ': ',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: statusColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            formattedDate,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF9E9E9E),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  })
+                else if (isOutgoing && dateText != null && dateText!.isNotEmpty)
                   Row(
                     children: [
                       Text(
@@ -579,5 +851,14 @@ class _TimelineTile extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _formatDateTime(String iso) {
+    try {
+      final d = DateTime.parse(iso);
+      return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return iso;
+    }
   }
 }
