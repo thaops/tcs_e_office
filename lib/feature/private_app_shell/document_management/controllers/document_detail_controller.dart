@@ -6,7 +6,8 @@ import '../models/document_detail_model.dart';
 
 class DocumentDetailController extends GetxController {
   final String documentId;
-  DocumentDetailController(this.documentId);
+  final String? tabType;
+  DocumentDetailController(this.documentId, {this.tabType});
 
   final DioApi _dioApi = DioApi();
 
@@ -19,6 +20,9 @@ class DocumentDetailController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    print('📄 DocumentDetailController initialized');
+    print('   - documentId: $documentId');
+    print('   - tabType: $tabType');
     fetchDetail();
   }
 
@@ -40,9 +44,22 @@ class DocumentDetailController extends GetxController {
         return;
       }
 
-      final url = ApiEndpoints.getDocumentById(documentId);
+      String url = ApiEndpoints.getDocumentById4Mobile(documentId);
+      
+      // Truyền source parameter tương ứng với tabType
+      if (tabType != null) {
+        final uri = Uri.parse(url);
+        url = uri.replace(queryParameters: {'source': tabType}).toString();
+      }
  
+      print('🔍 [fetchDetail] Calling API:');
+      print('   - Final URL: $url');
+      print('   - tabType: $tabType');
+      
       final response = await _dioApi.get(url);
+      
+      print('✅ [fetchDetail] API Response received:');
+      print('   - Status Code: ${response.statusCode}');
       final result = ApiResponseHandler.handleResponse<DocumentDetailModel>(
         response,
         DocumentDetailModel.fromJson,
@@ -67,8 +84,22 @@ class DocumentDetailController extends GetxController {
       isRefreshing.value = true;
       error.value = '';
 
-      final url = ApiEndpoints.getDocumentById(documentId);
+      String url = ApiEndpoints.getDocumentById4Mobile(documentId);
+      
+      // Truyền source parameter tương ứng với tabType
+      if (tabType != null) {
+        final uri = Uri.parse(url);
+        url = uri.replace(queryParameters: {'source': tabType}).toString();
+      }
+      
+      print('🔄 [refreshDetail] Calling API:');
+      print('   - Final URL: $url');
+      print('   - tabType: $tabType');
+      
       final response = await _dioApi.get(url);
+      
+      print('✅ [refreshDetail] API Response received:');
+      print('   - Status Code: ${response.statusCode}');
 
       final result = ApiResponseHandler.handleResponse<DocumentDetailModel>(
         response,

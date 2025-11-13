@@ -122,16 +122,7 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
       return;
     }
 
-    if (detail.workflows.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Không có lịch sử cập nhật'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
+    // Luôn mở dialog, để dialog tự check và hiển thị message khi rỗng
     DocumentHistoryDialog.show(
       context,
       detail.workflows,
@@ -478,7 +469,7 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<DocumentDetailController>(
-      init: DocumentDetailController(widget.documentId),
+      init: DocumentDetailController(widget.documentId, tabType: widget.tabType),
       builder: (c) {
         return Scaffold(
           backgroundColor: AppColors.bacgroundApp,

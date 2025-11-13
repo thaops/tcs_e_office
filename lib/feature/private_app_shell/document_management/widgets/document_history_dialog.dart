@@ -336,6 +336,23 @@ class DocumentHistoryDialog extends StatelessWidget {
   }
 
   Widget _buildContent() {
+    // Nếu là "Lịch sử cập nhật" (DOCUMENT_IN), chỉ hiển thị histories, không merge gì cả
+    if (tabType == AppTabTypes.DOCUMENT_IN) {
+      if (histories != null && histories!.isNotEmpty) {
+        return _HistoryTimelineList(items: histories!);
+      }
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Text(
+            'Không có lịch sử cập nhật',
+            style: TextStyle(fontSize: 14, color: Color(0xFF9E9E9E)),
+          ),
+        ),
+      );
+    }
+
+    // Nếu là "Tiến trình phê duyệt" (DOCUMENT_OUT), hiển thị workflows (có merge histories)
     if (workflows != null && workflows!.isNotEmpty) {
       final mergedWorkflows = _getMergedWorkflows();
       if (mergedWorkflows.isNotEmpty) {
@@ -543,16 +560,21 @@ class _TimelineList extends StatelessWidget {
       children: List.generate(sortedItems.length, (index) {
         final item = sortedItems[index];
         final bool isLast = index == sortedItems.length - 1;
-        final bool isApproved = item.status == 1;
+        final bool isApproved = item.status == 2; // status == 2 là Phê duyệt
         final bool isRejected = item.status == 3;
         final bool isPending = item.status == 0;
+        final bool isNotApproved =
+            item.status == 1; // status == 1 là Chưa duyệt
         final bool isNotIssued = isLast && !item.isCompleted;
+        // Chỉ hiển thị dot xanh khi đã phê duyệt (status == 2) hoặc từ chối (status == 3) hoặc completed
         final bool isCurrent = item.isCompleted || isApproved || isRejected;
         final Color dotColor = isCurrent
             ? const Color(0xFF006884)
             : const Color(0xFFBDBDBD);
 
-        final bool shouldHideDate = isOutgoing && (isPending || isNotIssued);
+        // Ẩn date khi status == 0 (pending), status == 1 (Chưa duyệt) hoặc isNotIssued
+        final bool shouldHideDate =
+            isOutgoing && (isPending || isNotApproved || isNotIssued);
         final bool isHistoryItem = item.step == -1;
         final bool isGroupedHistory =
             isHistoryItem && historyActionMap.containsKey(item.id);
@@ -593,11 +615,18 @@ class _TimelineList extends StatelessWidget {
       if (isLast && !workflow.isCompleted) {
         return 'Chưa ban hành';
       }
+      // Nếu step ở cuối và status == 2 thì là "Đã ban hành"
+      if (isLast && workflow.status == 2) {
+        return 'Ban hành';
+      }
       if (workflow.status == 3) {
         return 'Từ chối';
       }
-      if (workflow.status == 1) {
+      if (workflow.status == 2) {
         return 'Phê duyệt';
+      }
+      if (workflow.status == 1) {
+        return 'Chưa duyệt';
       }
       if (workflow.status == 0) {
         return 'Chưa duyệt';
@@ -646,13 +675,16 @@ class _TimelineList extends StatelessWidget {
       return const Color(0xFF424242);
     }
     if (isNotIssued || status == 0) {
-      return const Color(0xFF9E9E9E);
+      return const Color(0xFF9E9E9E); // Xám cho pending
     }
     if (status == 1) {
-      return const Color(0xFF006884);
+      return const Color(0xFF9E9E9E); // Xám cho Chưa duyệt (thay vì xanh)
+    }
+    if (status == 2) {
+      return const Color(0xFF006884); // Xanh cho Phê duyệt
     }
     if (status == 3) {
-      return const Color(0xFFD32F2F);
+      return const Color(0xFFD32F2F); // Đỏ cho Từ chối
     }
     return const Color(0xFF424242);
   }
