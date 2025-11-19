@@ -21,8 +21,8 @@ class TaskHistoryDialog extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder:
-          (ctx) => TaskHistoryDialog(histories: histories, tabType: tabType),
+      builder: (ctx) =>
+          TaskHistoryDialog(histories: histories, tabType: tabType),
     );
   }
 
@@ -131,13 +131,15 @@ class _TimelineList extends StatelessWidget {
         final item = items[index];
         final bool isLast = index == items.length - 1;
         final bool isCurrent = index == isLast; // bước hiện tại cuối danh sách
-        final Color dotColor =
-            isCurrent ? const Color(0xFFBDBDBD) : const Color(0xFF006884);
+        final Color dotColor = isCurrent
+            ? const Color(0xFFBDBDBD)
+            : const Color(0xFF006884);
         return _TimelineTile(
           actor: item.actor,
           department: item.actorDepartment,
-          statusText: _statusText(item),
+          statusText: item.action,
           dateText: _dateOnly(item.actionDate),
+          note: item.note,
           dotColor: dotColor,
           showConnector: !isLast,
         );
@@ -145,20 +147,20 @@ class _TimelineList extends StatelessWidget {
     );
   }
 
-  String _statusText(TaskHistory h) {
-    switch (h.actionCode) {
-      case 'Create':
-        return 'Tạo công việc';
-      case 'Update':
-        return 'Cập nhật';
-      case 'Forward':
-        return 'Được chuyển giao';
-      case 'Forwarded':
-        return 'Chuyển giao';
-      default:
-        return h.action;
-    }
-  }
+  // String _statusText(TaskHistory h) {
+  //   switch (h.actionCode) {
+  //     case 'Create':
+  //       return 'Tạo công việc';
+  //     case 'Update':
+  //       return 'Cập nhật';
+  //     case 'Forward':
+  //       return 'Được chuyển giao';
+  //     case 'Forwarded':
+  //       return 'Chuyển giao';
+  //     default:
+  //       return h.action;
+  //   }
+  // }
 
   String _dateOnly(String iso) {
     try {
@@ -175,6 +177,7 @@ class _TimelineTile extends StatelessWidget {
   final String department;
   final String statusText;
   final String dateText;
+  final String? note;
   final Color dotColor;
   final bool showConnector;
 
@@ -183,6 +186,7 @@ class _TimelineTile extends StatelessWidget {
     required this.department,
     required this.statusText,
     required this.dateText,
+    this.note,
     required this.dotColor,
     required this.showConnector,
   });
@@ -206,7 +210,7 @@ class _TimelineTile extends StatelessWidget {
             if (showConnector)
               Container(
                 width: 2,
-                height: 56,
+                height: note != null && note!.isNotEmpty ? 80 : 56,
                 margin: const EdgeInsets.symmetric(vertical: 6),
                 color: const Color(0xFFE0E0E0),
               ),
@@ -244,14 +248,25 @@ class _TimelineTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  statusText,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF424242),
+                if (statusText != null && statusText!.isNotEmpty) ...[
+                  Text(
+                    statusText,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF424242),
+                    ),
                   ),
-                ),
+                ],
+                if (note != null && note!.isNotEmpty) ...[
+                  Text(
+                    note!,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF757575),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
                   dateText,

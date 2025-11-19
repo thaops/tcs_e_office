@@ -47,7 +47,7 @@ class _DocumentPreviewSectionState extends State<DocumentPreviewSection> {
 
     try {
       // Nếu category == 3, gọi API export-document để lấy binary PDF
-      if (widget.category == 3 ||  widget.status == 3) {
+      if (widget.category == 3 ||  widget.status == 3 || widget.status == 4) {
         final bytes = await _previewService.getExportDocumentBytes(widget.documentId);
         if (mounted) {
           setState(() {

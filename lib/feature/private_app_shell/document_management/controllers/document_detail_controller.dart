@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tcs_e_office/common/repositoty/dio_api.dart';
 import 'package:tcs_e_office/common/Services/api_endpoints.dart';
@@ -15,14 +16,12 @@ class DocumentDetailController extends GetxController {
   final RxBool isRefreshing = false.obs;
   final Rxn<DocumentDetailModel> detail = Rxn<DocumentDetailModel>();
   final RxString error = ''.obs;
-  final RxList<DistributorDeptModel> distributors = <DistributorDeptModel>[].obs;
+  final RxList<DistributorDeptModel> distributors =
+      <DistributorDeptModel>[].obs;
 
   @override
   void onInit() {
     super.onInit();
-    print('📄 DocumentDetailController initialized');
-    print('   - documentId: $documentId');
-    print('   - tabType: $tabType');
     fetchDetail();
   }
 
@@ -45,27 +44,20 @@ class DocumentDetailController extends GetxController {
       }
 
       String url = ApiEndpoints.getDocumentById4Mobile(documentId);
-      
-      // Truyền source parameter tương ứng với tabType
+
       if (tabType != null) {
         final uri = Uri.parse(url);
         url = uri.replace(queryParameters: {'source': tabType}).toString();
       }
- 
-      print('🔍 [fetchDetail] Calling API:');
-      print('   - Final URL: $url');
-      print('   - tabType: $tabType');
-      
+
       final response = await _dioApi.get(url);
-      
-      print('✅ [fetchDetail] API Response received:');
-      print('   - Status Code: ${response.statusCode}');
+
+      debugPrint('responseDocumentDetail: ${response.data}');
+
       final result = ApiResponseHandler.handleResponse<DocumentDetailModel>(
         response,
         DocumentDetailModel.fromJson,
       );
-
-
 
       if (result.isSuccess) {
         detail.value = result.data!;
@@ -85,21 +77,13 @@ class DocumentDetailController extends GetxController {
       error.value = '';
 
       String url = ApiEndpoints.getDocumentById4Mobile(documentId);
-      
-      // Truyền source parameter tương ứng với tabType
+
       if (tabType != null) {
         final uri = Uri.parse(url);
         url = uri.replace(queryParameters: {'source': tabType}).toString();
       }
-      
-      print('🔄 [refreshDetail] Calling API:');
-      print('   - Final URL: $url');
-      print('   - tabType: $tabType');
-      
+
       final response = await _dioApi.get(url);
-      
-      print('✅ [refreshDetail] API Response received:');
-      print('   - Status Code: ${response.statusCode}');
 
       final result = ApiResponseHandler.handleResponse<DocumentDetailModel>(
         response,
@@ -130,10 +114,12 @@ class DocumentDetailController extends GetxController {
 
       if (result.isSuccess && result.data != null) {
         final data = result.data!;
-        final distributorsList = (data['distributors'] as List<dynamic>?)
-            ?.map((e) => DistributorDeptModel.fromJson(e))
-            .toList() ?? [];
-        
+        final distributorsList =
+            (data['distributors'] as List<dynamic>?)
+                ?.map((e) => DistributorDeptModel.fromJson(e))
+                .toList() ??
+            [];
+
         distributors.value = distributorsList;
       }
     } catch (e) {

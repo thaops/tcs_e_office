@@ -34,7 +34,7 @@ class DocumentDetailModel {
   final String creator;
   final bool isInternal;
   final bool isMyFlow;
-  final bool isRead;
+  final bool? isRead;
   final String source;
   final String? airline;
   final String? documentCode;
@@ -83,7 +83,7 @@ class DocumentDetailModel {
     required this.creator,
     required this.isInternal,
     required this.isMyFlow,
-    required this.isRead,
+    this.isRead,
     required this.source,
     this.airline,
     this.documentCode,
@@ -134,7 +134,7 @@ class DocumentDetailModel {
       creator: json['creator'] ?? '',
       isInternal: json['isInternal'] ?? false,
       isMyFlow: json['isMyFlow'] ?? false,
-      isRead: json['isRead'] ?? false,
+      isRead: json['isRead'],
       source: json['source'] ?? '',
       airline: json['airline'],
       documentCode: json['documentCode'],

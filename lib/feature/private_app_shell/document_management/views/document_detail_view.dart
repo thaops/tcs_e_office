@@ -113,7 +113,8 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
       return;
     }
 
-    if (widget.tabType == AppTabTypes.DOCUMENT_IN && detail.histories.isNotEmpty) {
+    if (widget.tabType == AppTabTypes.DOCUMENT_IN &&
+        detail.histories.isNotEmpty) {
       DocumentHistoryDialog.showHistories(
         context,
         detail.histories,
@@ -420,56 +421,24 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
     }
   }
 
-  Future<void> _checkDocumentReadStatus(detail) async {
-    try {
-      final myId = await MyId.create();
-      final currentUserId = await myId.getMyId();
-
-      bool isRead = false;
-
-      if (currentUserId.isEmpty) {
-        isRead = detail.distributors.any(
-          (distributor) => distributor.isRead == true,
-        );
-      } else {
-        DistributorModel? myDistributor;
-        try {
-          myDistributor = detail.distributors.firstWhere(
-            (distributor) => distributor.employeeCode == currentUserId,
-          );
-        } catch (e) {
-          myDistributor = null;
-        }
-
-        if (myDistributor != null) {
-          isRead = myDistributor.isRead == true;
-        } else {
-          isRead = detail.distributors.any(
-            (distributor) => distributor.isRead == true,
-          );
-        }
-      }
-
-      if (mounted) {
-        setState(() {
-          _isDocumentRead = isRead;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isDocumentRead = detail.distributors.any(
-            (distributor) => distributor.isRead == true,
-          );
-        });
-      }
-    }
+  void _checkDocumentReadStatus(DocumentDetailModel detail) {
+    if (mounted) {
+      setState(() {
+        // Khi isRead là null → ẩn nút "Đã đọc" (không cho phép đánh dấu)
+        // Khi isRead là false → hiển thị nút "Đã đọc" (chưa đọc, cho phép đánh dấu)
+        // Khi isRead là true → ẩn nút "Đã đọc" (đã đọc)
+        _isDocumentRead = detail.isRead != false;
+      });
+    } 
   }
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<DocumentDetailController>(
-      init: DocumentDetailController(widget.documentId, tabType: widget.tabType),
+      init: DocumentDetailController(
+        widget.documentId,
+        tabType: widget.tabType,
+      ),
       builder: (c) {
         return Scaffold(
           backgroundColor: AppColors.bacgroundApp,
@@ -542,7 +511,8 @@ class _DocumentDetailViewState extends State<DocumentDetailView> {
                         if (detail.category == 1 ||
                             detail.category == 3 ||
                             detail.status == 2 ||
-                            detail.status == 3)
+                            detail.status == 3 ||
+                            detail.status == 4)
                           DocumentDetailSection(
                             child: DocumentPreviewSection(
                               documentId: widget.documentId,

@@ -56,6 +56,13 @@ class _TaskDetailViewState extends State<TaskDetailView> {
   void initState() {
     super.initState();
     _updateAppBarTitle();
+    
+    // Đảm bảo controller mới được tạo mỗi lần mở detail
+    // Xóa controller cũ nếu tồn tại (nếu user quay lại detail cũ)
+    final tag = 'task_detail_${widget.taskId}';
+    if (Get.isRegistered<TaskDetailController>(tag: tag)) {
+      Get.delete<TaskDetailController>(tag: tag);
+    }
   }
 
   /// Kiểm tra xem task đã hoàn thành hay chưa
@@ -255,13 +262,13 @@ class _TaskDetailViewState extends State<TaskDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    // Kiểm tra Get.isRegistered trước khi tạo controller
-    final controller = Get.isRegistered<TaskDetailController>()
-        ? Get.find<TaskDetailController>()
-        : Get.put(TaskDetailController(widget.taskId));
-
+    // Sử dụng tag dựa trên taskId để mỗi task có controller riêng
+    // GetBuilder sẽ tự động tạo controller mới nếu chưa tồn tại với tag này
+    final tag = 'task_detail_${widget.taskId}';
+    
     return GetBuilder<TaskDetailController>(
-      init: controller,
+      init: TaskDetailController(widget.taskId),
+      tag: tag,
       builder: (c) {
         return Scaffold(
           backgroundColor: AppColors.bacgroundApp,
