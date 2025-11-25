@@ -118,6 +118,7 @@ class OneSignalService {
   }
 
   Future<void> registerPushTokenToBackend(String token) async {
+    print("registerPushTokenToBackend: $token");
     if (_sentToken == token) {
       return;
     }

@@ -56,7 +56,7 @@ class _TaskDetailViewState extends State<TaskDetailView> {
   void initState() {
     super.initState();
     _updateAppBarTitle();
-    
+
     // Đảm bảo controller mới được tạo mỗi lần mở detail
     // Xóa controller cũ nếu tồn tại (nếu user quay lại detail cũ)
     final tag = 'task_detail_${widget.taskId}';
@@ -90,27 +90,25 @@ class _TaskDetailViewState extends State<TaskDetailView> {
     return false;
   }
 
-  /// Kiểm tra xem task có quá hạn hay không
-  /// Dựa trên statusCode của assignees (statusCode == 3 là quá hạn)
-  bool _isTaskOverdue(detail) {
-    // Kiểm tra status tổng thể của task
-    if (detail.status == 3) {
-      return true;
-    }
+  /// Kiểm tra xem user hiện tại có phải là assignee của task không
+  Future<bool> _isCurrentUserAssignee(detail) async {
+    try {
+      final myId = await MyId.create();
+      final currentUserId = await myId.getMyId();
 
-    // Kiểm tra statusCode của assignees
-    // Nếu có bất kỳ assignee nào có statusCode == 3 thì task quá hạn
-    if (detail.assignees.isNotEmpty) {
-      final hasOverdueAssignee = detail.assignees.any(
-        (assignee) => assignee.statusCode == 3,
+      if (currentUserId.isEmpty) {
+        return false;
+      }
+
+      // Kiểm tra xem user hiện tại có trong danh sách assignees không
+      final isAssignee = detail.assignees.any(
+        (assignee) => assignee.id == currentUserId,
       );
 
-      if (hasOverdueAssignee) {
-        return true;
-      }
+      return isAssignee;
+    } catch (e) {
+      return false;
     }
-
-    return false;
   }
 
   /// Kiểm tra xem user hiện tại có phải là người đã hoàn thành trong bất kỳ role nào (xử lý chính, phối hợp, theo dõi)
@@ -265,7 +263,7 @@ class _TaskDetailViewState extends State<TaskDetailView> {
     // Sử dụng tag dựa trên taskId để mỗi task có controller riêng
     // GetBuilder sẽ tự động tạo controller mới nếu chưa tồn tại với tag này
     final tag = 'task_detail_${widget.taskId}';
-    
+
     return GetBuilder<TaskDetailController>(
       init: TaskDetailController(widget.taskId),
       tag: tag,
@@ -344,17 +342,32 @@ class _TaskDetailViewState extends State<TaskDetailView> {
                       ),
                     ),
 
-                    // Action bar - chỉ hiển thị khi task chưa hoàn thành, không quá hạn, không phải "việc tôi giao" và user chưa hoàn thành trong bất kỳ role nào
+                    // Action bar - chỉ hiển thị khi:
+                    // 1. Task chưa hoàn thành (kể cả quá hạn)
+                    // 2. Không phải "việc tôi giao"
+                    // 3. User hiện tại là assignee của task
+                    // 4. User chưa hoàn thành trong bất kỳ role nào
                     if (!_isTaskCompleted(detail) &&
-                        !_isTaskOverdue(detail) && // Không hiển thị khi quá hạn
                         widget.tabType != AppTabTypes.TASK_ASSIGN)
-                      FutureBuilder<bool>(
-                        future: _isCurrentUserCompleted(detail),
+                      FutureBuilder<List<bool>>(
+                        future: Future.wait([
+                          _isCurrentUserAssignee(detail),
+                          _isCurrentUserCompleted(detail),
+                        ]),
                         builder: (context, snapshot) {
-                          final isCurrentUserCompleted = snapshot.data ?? false;
+                          if (!snapshot.hasData) {
+                            return const SizedBox.shrink();
+                          }
 
-                          // Ẩn action bar nếu user hiện tại đã hoàn thành trong bất kỳ role nào (xử lý chính, phối hợp, theo dõi)
-                          if (isCurrentUserCompleted) {
+                          final results = snapshot.data!;
+                          final isCurrentUserAssignee = results[0];
+                          final isCurrentUserCompleted = results[1];
+
+                          // Ẩn action bar nếu:
+                          // - User không phải assignee
+                          // - User đã hoàn thành trong bất kỳ role nào
+                          if (!isCurrentUserAssignee ||
+                              isCurrentUserCompleted) {
                             return const SizedBox.shrink();
                           }
 
