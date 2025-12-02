@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:tcs_e_office/common/Services/api_endpoints.dart';
 import 'package:tcs_e_office/common/repositoty/dio_api.dart';
-import 'package:tcs_e_office/common/utils/navigation_utils.dart';
-import 'package:tcs_e_office/common/utils/notification_utils.dart';
 import 'package:tcs_e_office/feature/private_app_shell/notification/handlers/notification_navigation_handler.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:tcs_e_office/common/Services/device_id_service.dart';
 
 class OneSignalService {
   static const String _appId = "192ddfe5-84c7-4816-9994-4d95b373c823";
@@ -22,7 +22,16 @@ class OneSignalService {
   static String? _sentToken;
   static const String _storageKeyLastToken = 'last_push_token';
   static const String _storageKeyDeviceUUID = 'onesignal_device_uuid';
+  static const String _keychainKeyDeviceUUID = 'onesignal_device_uuid';
   bool _initialized = false;
+
+  // Secure storage cho iOS Keychain
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+  );
 
   Future<void> init() async {
     if (_initialized) return;
@@ -134,8 +143,8 @@ class OneSignalService {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     final deviceInfo = await _getDeviceInfo();
 
-    Uuid uuid = Uuid();
-    String deviceUUID = uuid.v4();
+    // Lấy deviceUUID theo platform
+    String deviceUUID = await _getDeviceUUID();
 
     final data = {
       "deviceUUID": deviceUUID,
@@ -153,14 +162,28 @@ class OneSignalService {
       await dio.post(ApiEndpoints.notification, data: data);
       _sentToken = token;
       box.write(_storageKeyLastToken, token);
-      box.write(_storageKeyDeviceUUID, deviceUUID);
+      // Lưu deviceUUID theo platform
+      await _saveDeviceUUID(deviceUUID);
     } catch (e) {}
   }
 
   Future<void> unregisterDevice() async {
     try {
-      final box = GetStorage();
-      final String? deviceUUID = box.read<String>(_storageKeyDeviceUUID);
+      String? deviceUUID;
+
+      if (Platform.isIOS) {
+        // iOS: Lấy từ Keychain
+        deviceUUID = await _secureStorage.read(key: _keychainKeyDeviceUUID);
+      } else {
+        // Android: Lấy từ GetStorage hoặc lấy lại Android ID
+        final box = GetStorage();
+        deviceUUID = box.read<String>(_storageKeyDeviceUUID);
+
+        // Nếu không có trong storage, lấy lại Android ID
+        if (deviceUUID == null || deviceUUID.isEmpty) {
+          deviceUUID = await DeviceIdService.getAndroidId();
+        }
+      }
 
       if (deviceUUID == null || deviceUUID.isEmpty) {
         return;
@@ -171,9 +194,20 @@ class OneSignalService {
 
       try {
         await dio.post(ApiEndpoints.unregisterNotification, data: data);
-        await box.remove(_storageKeyDeviceUUID);
+        if (Platform.isIOS) {
+          await _secureStorage.delete(key: _keychainKeyDeviceUUID);
+        } else {
+          final box = GetStorage();
+          await box.remove(_storageKeyDeviceUUID);
+        }
       } catch (e) {
-        await box.remove(_storageKeyDeviceUUID);
+        // Vẫn xóa local storage dù API fail
+        if (Platform.isIOS) {
+          await _secureStorage.delete(key: _keychainKeyDeviceUUID);
+        } else {
+          final box = GetStorage();
+          await box.remove(_storageKeyDeviceUUID);
+        }
       }
     } catch (e) {}
   }
@@ -251,9 +285,9 @@ class OneSignalService {
       }
 
       final notificationData = data?["Data"] ?? data;
-      final directType = data?["type"];
+      // final _directType = data?["type"]; // Reserved for future use
       final directId = data?["id"];
-      final wrappedType = notificationData?["type"];
+      // final _wrappedType = notificationData?["type"]; // Reserved for future use
       final wrappedId = notificationData?["id"];
 
       final source = data?["source"] ?? notificationData?["source"];
@@ -270,7 +304,7 @@ class OneSignalService {
       }
 
       // final type = NotificationUtils.getNotificationType(
-      //   wrappedType ?? directType,
+      //   _wrappedType ?? _directType,
       // );
       final id = wrappedId ?? directId;
 
@@ -284,10 +318,57 @@ class OneSignalService {
     } catch (e) {}
   }
 
+  /// Lấy deviceUUID theo platform
+  Future<String> _getDeviceUUID() async {
+    if (Platform.isIOS) {
+      // iOS: Lấy từ Keychain, nếu chưa có thì tạo mới
+      String? uuid = await _secureStorage.read(key: _keychainKeyDeviceUUID);
+      if (uuid == null || uuid.isEmpty) {
+        Uuid uuidGenerator = Uuid();
+        uuid = uuidGenerator.v4();
+        await _secureStorage.write(key: _keychainKeyDeviceUUID, value: uuid);
+      }
+      return uuid;
+    } else if (Platform.isAndroid) {
+      // Android: Lấy Android ID
+      String? androidId = await DeviceIdService.getAndroidId();
+      if (androidId == null || androidId.isEmpty) {
+        // Fallback: Tạo UUID nếu không lấy được Android ID
+        Uuid uuidGenerator = Uuid();
+        androidId = uuidGenerator.v4();
+      }
+      return androidId;
+    } else {
+      // Fallback cho platform khác
+      Uuid uuidGenerator = Uuid();
+      return uuidGenerator.v4();
+    }
+  }
+
+  /// Lưu deviceUUID theo platform
+  Future<void> _saveDeviceUUID(String deviceUUID) async {
+    if (Platform.isIOS) {
+      // iOS: Lưu vào Keychain
+      await _secureStorage.write(
+        key: _keychainKeyDeviceUUID,
+        value: deviceUUID,
+      );
+    } else if (Platform.isAndroid) {
+      // Android: Lưu vào GetStorage (backup, nhưng chủ yếu dùng Android ID)
+      final box = GetStorage();
+      box.write(_storageKeyDeviceUUID, deviceUUID);
+    }
+  }
+
   static Future<void> clearCachedToken() async {
     _sentToken = null;
     final box = GetStorage();
     await box.remove(_storageKeyLastToken);
-    await box.remove(_storageKeyDeviceUUID);
+
+    if (Platform.isIOS) {
+      await _secureStorage.delete(key: _keychainKeyDeviceUUID);
+    } else {
+      await box.remove(_storageKeyDeviceUUID);
+    }
   }
 }
