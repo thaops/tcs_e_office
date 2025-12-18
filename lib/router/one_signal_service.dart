@@ -8,7 +8,7 @@ import 'package:tcs_e_office/feature/private_app_shell/notification/handlers/not
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_keychain/flutter_keychain.dart';
 import 'package:tcs_e_office/common/Services/device_id_service.dart';
 
 class OneSignalService {
@@ -23,15 +23,8 @@ class OneSignalService {
   static const String _storageKeyLastToken = 'last_push_token';
   static const String _storageKeyDeviceUUID = 'onesignal_device_uuid';
   static const String _keychainKeyDeviceUUID = 'onesignal_device_uuid';
+  // AccessGroup được cấu hình trong entitlements: $(AppIdentifierPrefix)com.nps.tcs
   bool _initialized = false;
-
-  // Secure storage cho iOS Keychain
-  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    iOptions: IOSOptions(
-      accessibility: KeychainAccessibility.first_unlock_this_device,
-    ),
-  );
 
   Future<void> init() async {
     if (_initialized) return;
@@ -145,6 +138,7 @@ class OneSignalService {
 
     // Lấy deviceUUID theo platform
     String deviceUUID = await _getDeviceUUID();
+    print("deviceUUID: $deviceUUID");
 
     final data = {
       "deviceUUID": deviceUUID,
@@ -167,25 +161,21 @@ class OneSignalService {
     } catch (e) {}
   }
 
+  static bool _isUnregistering = false;
+
   Future<void> unregisterDevice() async {
+    // Guard để tránh gọi nhiều lần đồng thời
+    if (_isUnregistering) {
+      return;
+    }
+
+    _isUnregistering = true;
     try {
-      String? deviceUUID;
+      // Lấy deviceUUID bằng cách dùng hàm _getDeviceUUID() để đảm bảo consistency
+      String deviceUUID = await _getDeviceUUID();
 
-      if (Platform.isIOS) {
-        // iOS: Lấy từ Keychain
-        deviceUUID = await _secureStorage.read(key: _keychainKeyDeviceUUID);
-      } else {
-        // Android: Lấy từ GetStorage hoặc lấy lại Android ID
-        final box = GetStorage();
-        deviceUUID = box.read<String>(_storageKeyDeviceUUID);
-
-        // Nếu không có trong storage, lấy lại Android ID
-        if (deviceUUID == null || deviceUUID.isEmpty) {
-          deviceUUID = await DeviceIdService.getAndroidId();
-        }
-      }
-
-      if (deviceUUID == null || deviceUUID.isEmpty) {
+      if (deviceUUID.isEmpty) {
+        _isUnregistering = false;
         return;
       }
 
@@ -194,22 +184,24 @@ class OneSignalService {
 
       try {
         await dio.post(ApiEndpoints.unregisterNotification, data: data);
-        if (Platform.isIOS) {
-          await _secureStorage.delete(key: _keychainKeyDeviceUUID);
-        } else {
-          final box = GetStorage();
-          await box.remove(_storageKeyDeviceUUID);
-        }
+        // QUAN TRỌNG: KHÔNG xóa DeviceUUID khỏi Keychain
+        // DeviceUUID phải giữ nguyên để đảm bảo consistency khi user login lại
+        // Chỉ xóa push token
+        final box = GetStorage();
+        await box.remove(_storageKeyLastToken);
+        _sentToken = null;
       } catch (e) {
-        // Vẫn xóa local storage dù API fail
-        if (Platform.isIOS) {
-          await _secureStorage.delete(key: _keychainKeyDeviceUUID);
-        } else {
-          final box = GetStorage();
-          await box.remove(_storageKeyDeviceUUID);
-        }
+        // Vẫn xóa push token dù API fail
+        final box = GetStorage();
+        await box.remove(_storageKeyLastToken);
+        _sentToken = null;
       }
-    } catch (e) {}
+    } catch (e) {
+      // Log error để debug
+      print("❌ Error in unregisterDevice: $e");
+    } finally {
+      _isUnregistering = false;
+    }
   }
 
   Future<Map<String, dynamic>> _getDeviceInfo() async {
@@ -319,16 +311,31 @@ class OneSignalService {
   }
 
   /// Lấy deviceUUID theo platform
+  /// QUAN TRỌNG: Chỉ dùng UUID trong Shared Keychain, KHÔNG dùng IDFV
   Future<String> _getDeviceUUID() async {
     if (Platform.isIOS) {
-      // iOS: Lấy từ Keychain, nếu chưa có thì tạo mới
-      String? uuid = await _secureStorage.read(key: _keychainKeyDeviceUUID);
-      if (uuid == null || uuid.isEmpty) {
-        Uuid uuidGenerator = Uuid();
-        uuid = uuidGenerator.v4();
-        await _secureStorage.write(key: _keychainKeyDeviceUUID, value: uuid);
+      try {
+        String? savedUUID = await FlutterKeychain.get(key: _keychainKeyDeviceUUID);
+        if (savedUUID != null && savedUUID.isNotEmpty) {
+          return savedUUID;
+        }
+      } catch (e) {
+      
       }
-      return uuid;
+      
+      Uuid uuidGenerator = Uuid();
+      String newUUID = uuidGenerator.v4();
+      
+      try {
+        await FlutterKeychain.put(
+          key: _keychainKeyDeviceUUID,
+          value: newUUID,
+        );
+      } catch (e) {
+      
+      }
+      
+      return newUUID;
     } else if (Platform.isAndroid) {
       // Android: Lấy Android ID
       String? androidId = await DeviceIdService.getAndroidId();
@@ -346,13 +353,19 @@ class OneSignalService {
   }
 
   /// Lưu deviceUUID theo platform
+  /// QUAN TRỌNG: Luôn lưu vào Keychain để đảm bảo persistence
   Future<void> _saveDeviceUUID(String deviceUUID) async {
     if (Platform.isIOS) {
-      // iOS: Lưu vào Keychain
-      await _secureStorage.write(
-        key: _keychainKeyDeviceUUID,
-        value: deviceUUID,
-      );
+      // iOS: Luôn lưu vào Shared Keychain
+      // AccessGroup được cấu hình trong entitlements, package tự động sử dụng
+      try {
+        await FlutterKeychain.put(
+          key: _keychainKeyDeviceUUID,
+          value: deviceUUID,
+        );
+      } catch (e) {
+        // Log error nếu cần
+      }
     } else if (Platform.isAndroid) {
       // Android: Lưu vào GetStorage (backup, nhưng chủ yếu dùng Android ID)
       final box = GetStorage();
@@ -365,10 +378,8 @@ class OneSignalService {
     final box = GetStorage();
     await box.remove(_storageKeyLastToken);
 
-    if (Platform.isIOS) {
-      await _secureStorage.delete(key: _keychainKeyDeviceUUID);
-    } else {
-      await box.remove(_storageKeyDeviceUUID);
-    }
+    // QUAN TRỌNG: KHÔNG xóa DeviceUUID khỏi Keychain
+    // DeviceUUID phải giữ nguyên để đảm bảo consistency
+    // Chỉ xóa push token và cache
   }
 }

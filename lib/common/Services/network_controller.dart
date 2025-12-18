@@ -9,8 +9,10 @@ class NetworkController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _initConnectivity();
-    _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    Future.microtask(() async {
+      await _initConnectivity();
+      _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    });
   }
 
   // Kiểm tra kết nối thủ công
@@ -19,7 +21,6 @@ class NetworkController extends GetxController {
       final result = await _connectivity.checkConnectivity();
       await _updateConnectionStatus(result);
     } catch (e) {
-      print('Lỗi kiểm tra kết nối: $e');
       isOnline.value = false;
     }
   }
@@ -30,18 +31,14 @@ class NetworkController extends GetxController {
       final result = await _connectivity.checkConnectivity();
       await _updateConnectionStatus(result);
     } catch (e) {
-      print('Lỗi khởi tạo kết nối: $e');
       isOnline.value = false;
     }
   }
 
   // Cập nhật trạng thái kết nối
   Future<void> _updateConnectionStatus(List<ConnectivityResult> results) async {
-
-    // Nếu không có kết nối nào
     if (results.contains(ConnectivityResult.none) || results.isEmpty) {
       isOnline.value = false;
-      print('No connection detected. isOnline: ${isOnline.value}');
       return;
     }
 

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:app_links/app_links.dart';
 import 'package:calendar_view/calendar_view.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -16,35 +14,44 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:tcs_e_office/common/Services/device_udid.dart';
 import 'package:tcs_e_office/common/Services/network_controller.dart';
 import 'package:tcs_e_office/common/share/auth/sign_out_clear.dart';
-import 'package:tcs_e_office/common/utils/check_awaiting_approval.dart';
-import 'package:tcs_e_office/common/utils/check_awaiting_services.dart';
 import 'package:tcs_e_office/common/widgets/splash_screen_widget.dart';
 import 'package:tcs_e_office/controllers/splash_controller.dart';
 import 'package:tcs_e_office/core/configs/theme/app_theme.dart';
 import 'package:tcs_e_office/router/app_router.dart';
 import 'package:tcs_e_office/router/deep_link_handler.dart';
 import 'package:tcs_e_office/router/one_signal_service.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
 
+bool? _cachedIsIPad;
+
 Future<bool> _isIPad() async {
-  if (kIsWeb) return false;
+  if (_cachedIsIPad != null) return _cachedIsIPad!;
+  
+  if (kIsWeb) {
+    _cachedIsIPad = false;
+    return false;
+  }
 
   if (defaultTargetPlatform == TargetPlatform.macOS) {
+    _cachedIsIPad = false;
     return false;
   }
 
   final deviceInfo = DeviceInfoPlugin();
   if (defaultTargetPlatform == TargetPlatform.iOS) {
     final iosInfo = await deviceInfo.iosInfo;
-    return iosInfo.model.toLowerCase().contains('ipad');
+    _cachedIsIPad = iosInfo.model.toLowerCase().contains('ipad');
+    return _cachedIsIPad!;
   } else if (defaultTargetPlatform == TargetPlatform.android) {
     final mediaQuery = MediaQueryData.fromWindow(
       WidgetsBinding.instance.window,
     );
     final shortestSide = mediaQuery.size.shortestSide;
-    return shortestSide >= 600;
+    _cachedIsIPad = shortestSide >= 600;
+    return _cachedIsIPad!;
   }
+  
+  _cachedIsIPad = false;
   return false;
 }
 
@@ -53,9 +60,12 @@ void main() async {
 
   await GetStorage.init();
 
-  final appLinks = AppLinks();
-  final initialDeepLink = await appLinks.getInitialLink();
-  await _initializeServices();
+  final results = await Future.wait([
+    AppLinks().getInitialLink(),
+    _initializeCriticalServices(),
+  ]);
+  
+  final initialDeepLink = results[0] as Uri?;
 
   runApp(
     CalendarControllerProvider(
@@ -63,55 +73,40 @@ void main() async {
       child: MyApp(initialDeepLink: initialDeepLink),
     ),
   );
+
+  _initializeBackgroundServices();
 }
 
-Future<void> _initializeServices() async {
-  await Hive.initFlutter();
+Future<void> _initializeCriticalServices() async {
+  await Future.wait([
+    Hive.initFlutter(),
+    initializeDateFormatting('vi_VN', null),
+  ]);
 
-  final savedBaseUrl = GetStorage().read<String>('base_url');
-  final isManualEnv =
-      GetStorage().read<bool>('manual_environment_set') ?? false;
-
-  if (savedBaseUrl != null && savedBaseUrl.isNotEmpty && isManualEnv) {
-    // Manual URL set
-  }
   Get.put(NetworkController());
+  Get.put(SignOutClear());
+  
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .catchError((_) {});
 
-  try {
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    await generateUUID();
-  } catch (e) {
-    // Error handling
-  }
+  generateUUID().catchError((_) {});
+}
 
-  final serviceCheckawaiting =
-      await CheckAwaitingServices.createCheckAwaitingServices();
-  CheckAwaitingApproval checkAwaitingApproval = CheckAwaitingApproval();
-  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+void _initializeBackgroundServices() {
+  Future.microtask(() async {
+    try {
+      await OneSignalService().init();
+    } catch (e) {
+    }
+  });
 
-  String appId = packageInfo.packageName;
-  String appVersion = packageInfo.version;
-  String appBuild = packageInfo.buildNumber;
-  String platform = Platform.isIOS ? "iOS" : "Android";
-  Uuid uuid = Uuid();
-
-  bool result = await checkAwaitingApproval.checkAwaitingApproval(
-    platform: platform,
-    appId: appId,
-    appBuild: appBuild,
-    appVersion: appVersion,
-    udid: uuid.v4(),
-  );
-
-  await serviceCheckawaiting.saveawaiting(result);
-  await initializeDateFormatting('vi_VN', null);
-  await Get.put(SignOutClear());
-
-  try {
-    await OneSignalService().init();
-  } catch (e) {
-    // Error handling
-  }
+  Future.microtask(() async {
+    try {
+      final networkController = Get.find<NetworkController>();
+      await networkController.checkInternet();
+    } catch (e) {
+    }
+  });
 }
 
 class MyApp extends StatefulWidget {
@@ -125,14 +120,23 @@ class MyApp extends StatefulWidget {
 
 class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final DeepLinkHandler _deepLinkHandler = DeepLinkHandler();
+  Future<bool>? _isIPadFuture;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    _isIPadFuture = _isIPad();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await OneSignalService().handlePendingNavigation();
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      try {
+        await OneSignalService().handlePendingNavigation();
+      } catch (e) {
+      }
+      
       _deepLinkHandler.init();
     });
   }
@@ -140,7 +144,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      OneSignalService().handlePendingNavigation();
+      OneSignalService().handlePendingNavigation().catchError((_) {});
     }
   }
 
@@ -153,8 +157,10 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final future = _isIPadFuture ?? _isIPad();
+    
     return FutureBuilder<bool>(
-      future: _isIPad(),
+      future: future,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return MaterialApp(
@@ -168,7 +174,9 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                     Text('Error: ${snapshot.error}'),
                     SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => setState(() {}),
+                      onPressed: () => setState(() {
+                        _isIPadFuture = _isIPad();
+                      }),
                       child: Text('Retry'),
                     ),
                   ],
@@ -237,9 +245,12 @@ class _MainAppState extends State<MainApp> {
 }
 
 Future<void> generateUUID() async {
-  DeviceUdid deviceUdid = await DeviceUdid.createDeviceUdid();
-  var uuid = Uuid();
-  deviceUdid.saveUdid(uuid.v4());
+  try {
+    final deviceUdid = await DeviceUdid.createDeviceUdid();
+    final uuid = Uuid();
+    await deviceUdid.saveUdid(uuid.v4());
+  } catch (e) {
+  }
 }
 
 class SplashScreen extends StatelessWidget {
@@ -252,9 +263,7 @@ class SplashScreen extends StatelessWidget {
     Get.put(SplashController(initialDeepLink: initialDeepLink));
 
     return SplashScreenWidget(
-      onComplete: () {
-        // Navigation handled by SplashController
-      },
+      onComplete: () {},
     );
   }
 }

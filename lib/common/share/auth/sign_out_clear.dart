@@ -8,8 +8,17 @@ import 'package:tcs_e_office/router/one_signal_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SignOutClear extends GetxService {
+  static bool _isSigningOut = false;
+
   /// Clear tất cả dữ liệu và cache khi đăng xuất
   Future<void> signOut() async {
+    // Guard để tránh gọi nhiều lần đồng thời
+    if (_isSigningOut) {
+      print("⚠️ signOut đang được thực thi, bỏ qua lần gọi này");
+      return;
+    }
+
+    _isSigningOut = true;
     try {
       // 1. Clear access token và authentication data
       final Services services = await Services.create();
@@ -70,6 +79,8 @@ class SignOutClear extends GetxService {
       if (Get.context != null) {
         Get.offAllNamed(AppRouter.login);
       }
+    } finally {
+      _isSigningOut = false;
     }
   }
 
