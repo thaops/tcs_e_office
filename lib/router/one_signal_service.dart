@@ -8,7 +8,7 @@ import 'package:tcs_e_office/feature/private_app_shell/notification/handlers/not
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flutter_keychain/flutter_keychain.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:tcs_e_office/common/Services/device_id_service.dart';
 
 class OneSignalService {
@@ -24,6 +24,9 @@ class OneSignalService {
   static const String _storageKeyDeviceUUID = 'onesignal_device_uuid';
   static const String _keychainKeyDeviceUUID = 'onesignal_device_uuid';
   // AccessGroup được cấu hình trong entitlements: $(AppIdentifierPrefix)com.nps.tcs
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
   bool _initialized = false;
 
   Future<void> init() async {
@@ -184,7 +187,7 @@ class OneSignalService {
 
       try {
         await dio.post(ApiEndpoints.unregisterNotification, data: data);
-        // QUAN TRỌNG: KHÔNG xóa DeviceUUID khỏi Keychain
+        // QUAN TRỌNG: KHÔNG xóa DeviceUUID khỏi Secure Storage
         // DeviceUUID phải giữ nguyên để đảm bảo consistency khi user login lại
         // Chỉ xóa push token
         final box = GetStorage();
@@ -311,30 +314,25 @@ class OneSignalService {
   }
 
   /// Lấy deviceUUID theo platform
-  /// QUAN TRỌNG: Chỉ dùng UUID trong Shared Keychain, KHÔNG dùng IDFV
+  /// QUAN TRỌNG: Chỉ dùng UUID trong Secure Storage, KHÔNG dùng IDFV
   Future<String> _getDeviceUUID() async {
     if (Platform.isIOS) {
       try {
-        String? savedUUID = await FlutterKeychain.get(key: _keychainKeyDeviceUUID);
+        String? savedUUID = await _secureStorage.read(
+          key: _keychainKeyDeviceUUID,
+        );
         if (savedUUID != null && savedUUID.isNotEmpty) {
           return savedUUID;
         }
-      } catch (e) {
-      
-      }
-      
+      } catch (e) {}
+
       Uuid uuidGenerator = Uuid();
       String newUUID = uuidGenerator.v4();
-      
+
       try {
-        await FlutterKeychain.put(
-          key: _keychainKeyDeviceUUID,
-          value: newUUID,
-        );
-      } catch (e) {
-      
-      }
-      
+        await _secureStorage.write(key: _keychainKeyDeviceUUID, value: newUUID);
+      } catch (e) {}
+
       return newUUID;
     } else if (Platform.isAndroid) {
       // Android: Lấy Android ID
@@ -353,13 +351,12 @@ class OneSignalService {
   }
 
   /// Lưu deviceUUID theo platform
-  /// QUAN TRỌNG: Luôn lưu vào Keychain để đảm bảo persistence
+  /// QUAN TRỌNG: Luôn lưu vào Secure Storage để đảm bảo persistence
   Future<void> _saveDeviceUUID(String deviceUUID) async {
     if (Platform.isIOS) {
-      // iOS: Luôn lưu vào Shared Keychain
-      // AccessGroup được cấu hình trong entitlements, package tự động sử dụng
+      // iOS: Luôn lưu vào Secure Storage (Keychain)
       try {
-        await FlutterKeychain.put(
+        await _secureStorage.write(
           key: _keychainKeyDeviceUUID,
           value: deviceUUID,
         );
@@ -378,7 +375,7 @@ class OneSignalService {
     final box = GetStorage();
     await box.remove(_storageKeyLastToken);
 
-    // QUAN TRỌNG: KHÔNG xóa DeviceUUID khỏi Keychain
+    // QUAN TRỌNG: KHÔNG xóa DeviceUUID khỏi Secure Storage
     // DeviceUUID phải giữ nguyên để đảm bảo consistency
     // Chỉ xóa push token và cache
   }

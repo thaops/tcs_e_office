@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:calendar_view/calendar_view.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -11,9 +12,11 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:tcs_e_office/common/Services/device_udid.dart';
 import 'package:tcs_e_office/common/Services/network_controller.dart';
 import 'package:tcs_e_office/common/share/auth/sign_out_clear.dart';
+import 'package:tcs_e_office/common/utils/check_awaiting_approval.dart';
 import 'package:tcs_e_office/common/widgets/splash_screen_widget.dart';
 import 'package:tcs_e_office/controllers/splash_controller.dart';
 import 'package:tcs_e_office/core/configs/theme/app_theme.dart';
@@ -26,7 +29,7 @@ bool? _cachedIsIPad;
 
 Future<bool> _isIPad() async {
   if (_cachedIsIPad != null) return _cachedIsIPad!;
-  
+
   if (kIsWeb) {
     _cachedIsIPad = false;
     return false;
@@ -50,7 +53,7 @@ Future<bool> _isIPad() async {
     _cachedIsIPad = shortestSide >= 600;
     return _cachedIsIPad!;
   }
-  
+
   _cachedIsIPad = false;
   return false;
 }
@@ -64,7 +67,7 @@ void main() async {
     AppLinks().getInitialLink(),
     _initializeCriticalServices(),
   ]);
-  
+
   final initialDeepLink = results[0] as Uri?;
 
   runApp(
@@ -85,27 +88,75 @@ Future<void> _initializeCriticalServices() async {
 
   Get.put(NetworkController());
   Get.put(SignOutClear());
-  
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-      .catchError((_) {});
 
-  generateUUID().catchError((_) {});
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]).catchError((_) {});
+
+  // Đảm bảo UUID được generate trước khi check awaiting approval
+  await generateUUID().catchError((_) {});
+
+  // Kiểm tra awaiting approval và set domain tương ứng
+  await _checkAndSetAwaitingApproval();
+}
+
+/// Gọi API checkAwaitingApproval và set flag awaiting trong storage
+/// Nếu true -> chuyển sang dev domain, nếu false -> dùng prod domain
+Future<void> _checkAndSetAwaitingApproval() async {
+  try {
+    // Đảm bảo UUID đã được generate trước
+    final deviceUdid = await DeviceUdid.createDeviceUdid();
+    String udid = await deviceUdid.getUdid();
+
+    // Nếu chưa có UDID, tạo mới
+    if (udid.isEmpty) {
+      final uuid = Uuid();
+      udid = uuid.v4();
+      await deviceUdid.saveUdid(udid);
+    }
+
+    // Lấy thông tin app
+    final packageInfo = await PackageInfo.fromPlatform();
+    final platform = Platform.isIOS ? "iOS" : "Android";
+    final appId = packageInfo.packageName;
+    final appBuild = packageInfo.buildNumber;
+    final appVersion = packageInfo.version;
+
+    // Gọi API checkAwaitingApproval
+    final checkAwaitingApproval = CheckAwaitingApproval();
+    final isAwaiting = await checkAwaitingApproval.checkAwaitingApproval(
+      platform: platform,
+      appId: appId,
+      appBuild: appBuild,
+      appVersion: appVersion,
+      udid: udid,
+    );
+
+    // Set flag awaiting trong storage
+    final storage = GetStorage();
+    storage.write('awaiting', isAwaiting);
+
+    print('Awaiting approval check result: $isAwaiting');
+  } catch (e) {
+    // Nếu có lỗi, mặc định dùng prod domain (awaiting = false)
+    print('Error checking awaiting approval: $e');
+    final storage = GetStorage();
+    storage.write('awaiting', false);
+  }
 }
 
 void _initializeBackgroundServices() {
   Future.microtask(() async {
     try {
       await OneSignalService().init();
-    } catch (e) {
-    }
+    } catch (e) {}
   });
 
   Future.microtask(() async {
     try {
       final networkController = Get.find<NetworkController>();
       await networkController.checkInternet();
-    } catch (e) {
-    }
+    } catch (e) {}
   });
 }
 
@@ -131,12 +182,11 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Future.delayed(const Duration(milliseconds: 100));
-      
+
       try {
         await OneSignalService().handlePendingNavigation();
-      } catch (e) {
-      }
-      
+      } catch (e) {}
+
       _deepLinkHandler.init();
     });
   }
@@ -158,7 +208,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final future = _isIPadFuture ?? _isIPad();
-    
+
     return FutureBuilder<bool>(
       future: future,
       builder: (context, snapshot) {
@@ -249,8 +299,7 @@ Future<void> generateUUID() async {
     final deviceUdid = await DeviceUdid.createDeviceUdid();
     final uuid = Uuid();
     await deviceUdid.saveUdid(uuid.v4());
-  } catch (e) {
-  }
+  } catch (e) {}
 }
 
 class SplashScreen extends StatelessWidget {
@@ -262,8 +311,6 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     Get.put(SplashController(initialDeepLink: initialDeepLink));
 
-    return SplashScreenWidget(
-      onComplete: () {},
-    );
+    return SplashScreenWidget(onComplete: () {});
   }
 }

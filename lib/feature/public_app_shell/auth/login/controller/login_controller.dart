@@ -79,6 +79,19 @@ class LoginController extends GetxController {
     int maxRetries = 3;
     int retryCount = 0;
     Duration retryDelay = Duration(seconds: 1);
+    bool dialogClosed = false;
+
+    // Helper function để đóng dialog an toàn
+    void safePopDialog() {
+      if (!dialogClosed && context.mounted) {
+        try {
+          Navigator.pop(context);
+          dialogClosed = true;
+        } catch (e) {
+          // Ignore nếu dialog đã được đóng hoặc context không còn valid
+        }
+      }
+    }
 
     while (retryCount < maxRetries) {
       try {
@@ -95,7 +108,7 @@ class LoginController extends GetxController {
           ),
         );
 
-        Navigator.pop(context);
+        safePopDialog();
 
         if (response.statusCode == 200 && response.data != null) {
           final statusCode = response.data['statusCode'];
@@ -124,7 +137,7 @@ class LoginController extends GetxController {
         retryCount++;
 
         if (retryCount >= maxRetries) {
-          Navigator.pop(context);
+          safePopDialog();
           break;
         } else {
           await Future.delayed(retryDelay);

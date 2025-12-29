@@ -28,24 +28,14 @@ class FrameLogin extends StatelessWidget {
     return FutureBuilder<bool>(
       future: checkAwaitingServices.getawaiting(),
       builder: (context, snapshot) {
-        bool awaiting = snapshot.data ?? false;
-        if (awaiting) {
-          return _buildAppleReview(
-            usernameController: usernameController,
-            passwordControllerl: passwordControllerl,
-            controllerLogin: controllerLogin,
-            context: context,
-          );
-        } else {
-          return _buildAppLoginTcs(context, controllerLogin);
-        }
+        return _buildAppLoginTcs(context, controllerLogin);
       },
     );
   }
 }
 
 Widget _buildAppLoginTcs(
-BuildContext context,
+  BuildContext context,
   LoginController controllerLogin,
 ) {
   return Column(
@@ -86,60 +76,5 @@ BuildContext context,
       //   ),
       // ),
     ],
-  );
-}
-
-Widget _buildAppleReview({
-  required TextEditingController usernameController,
-  required TextEditingController passwordControllerl,
-  required LoginController controllerLogin,
-  required BuildContext context,
-}) {
-  return Center(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 44),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomTextField(controller: usernameController, hintText: 'Username'),
-          SizedBox(height: 20),
-          CustomTextField(
-            controller: passwordControllerl,
-            hintText: 'Password',
-            suffixIcon: Icons.visibility,
-            obscureText: true,
-            maxLines: 1,
-          ),
-          SizedBox(height: 35),
-          Container(
-            width: Get.width,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.indigo,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              onPressed: () {
-                controllerLogin.loginFramework(context);
-              },
-              child: Text(
-                'Đăng nhập',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 10),
-        ],
-      ),
-    ),
   );
 }
