@@ -416,6 +416,7 @@ class ProfileLogic extends GetxController {
 
   void showConfigDialog() {
     if (tapCount.value == 5) {
+      print('showConfigDialog - Config.baseUrl: ${Config.baseUrl}');
       baseUrlController.text = Config.baseUrl;
       String initialBaseUrl = Config.baseUrl;
       Get.dialog(

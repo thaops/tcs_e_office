@@ -373,7 +373,10 @@ class CreateTaskController extends GetxController {
       ApiEndpoints.createTask,
       data: form,
       options: dioLib.Options(
-        headers: {..._dioApi.header, 'Content-Type': 'multipart/form-data'},
+        headers: {
+          ...await _dioApi.getHeader(),
+          'Content-Type': 'multipart/form-data',
+        },
       ),
     );
   }

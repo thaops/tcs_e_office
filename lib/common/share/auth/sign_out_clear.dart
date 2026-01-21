@@ -33,10 +33,11 @@ class SignOutClear extends GetxService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
-      // 4. Clear GetStorage (local storage) nhưng giữ manual environment
+      // 4. Clear GetStorage (local storage) nhưng giữ manual environment và awaiting
       final GetStorage storage = GetStorage();
       final String? savedBaseUrl = storage.read<String>('base_url');
       final bool? isManualEnv = storage.read<bool>('manual_environment_set');
+      final bool? savedAwaiting = storage.read<bool>('awaiting');
       await storage.erase();
 
       // Khôi phục manual environment nếu có
@@ -46,6 +47,12 @@ class SignOutClear extends GetxService {
         await storage.write('base_url', savedBaseUrl);
         await storage.write('manual_environment_set', true);
         print("Restored manual environment: $savedBaseUrl");
+      }
+
+      // Khôi phục awaiting flag
+      if (savedAwaiting != null) {
+        await storage.write('awaiting', savedAwaiting);
+        print("Restored awaiting flag: $savedAwaiting");
       }
 
       // 5. Navigate to login screen trước khi clear controllers
@@ -73,7 +80,6 @@ class SignOutClear extends GetxService {
     } catch (e) {
       // Log error nhưng vẫn navigate về login
       print('Error during sign out: $e');
- 
 
       // Vẫn navigate về login ngay cả khi có lỗi
       if (Get.context != null) {
@@ -91,10 +97,11 @@ class SignOutClear extends GetxService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
-      // Clear GetStorage nhưng giữ manual environment
+      // Clear GetStorage nhưng giữ manual environment và awaiting
       final GetStorage storage = GetStorage();
       final String? savedBaseUrl = storage.read<String>('base_url');
       final bool? isManualEnv = storage.read<bool>('manual_environment_set');
+      final bool? savedAwaiting = storage.read<bool>('awaiting');
       await storage.erase();
 
       // Khôi phục manual environment nếu có
@@ -104,6 +111,12 @@ class SignOutClear extends GetxService {
         await storage.write('base_url', savedBaseUrl);
         await storage.write('manual_environment_set', true);
         print("Restored manual environment in clearCacheOnly: $savedBaseUrl");
+      }
+
+      // Khôi phục awaiting flag
+      if (savedAwaiting != null) {
+        await storage.write('awaiting', savedAwaiting);
+        print("Restored awaiting flag in clearCacheOnly: $savedAwaiting");
       }
 
       // Clear user cache

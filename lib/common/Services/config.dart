@@ -23,6 +23,13 @@ class Config {
     final storage = GetStorage();
     String? savedUrl = storage.read<String>(_baseUrlKey);
     bool isManualEnv = storage.read<bool>(_manualEnvKey) ?? false;
+    bool? awaiting = storage.read('awaiting');
+
+    print('=== Config.baseUrl getter ===');
+    print('savedUrl: $savedUrl');
+    print('isManualEnv: $isManualEnv');
+    print('awaiting: $awaiting');
+    print('storage.hashCode: ${storage.hashCode}');
 
     // Ưu tiên cao nhất: URL được set thủ công
     if (savedUrl != null && savedUrl.isNotEmpty && isManualEnv) {
@@ -30,7 +37,10 @@ class Config {
       return savedUrl;
     }
     // Chỉ fallback về awaiting logic khi chưa có URL thủ công
-    return _currentDefaultBaseUrl(storage);
+    final result = _currentDefaultBaseUrl(storage);
+    print('Result baseUrl: $result');
+    print('=============================');
+    return result;
   }
 
   static set baseUrl(String url) {

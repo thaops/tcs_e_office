@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:tcs_e_office/common/Services/config.dart';
 import 'package:tcs_e_office/common/repositoty/dio_api.dart';
 import 'package:tcs_e_office/common/share/auth/controller_cache_clear.dart';
@@ -17,6 +18,16 @@ class ShowDialogSetUrl {
     required RxInt tapCount,
   }) async {
     if (tapCount.value == 5) {
+      final storage = GetStorage();
+      print('=== ShowDialogSetUrl Debug ===');
+      print('awaiting: ${storage.read('awaiting')}');
+      print('base_url: ${storage.read('base_url')}');
+      print(
+        'manual_environment_set: ${storage.read('manual_environment_set')}',
+      );
+      print('Config.baseUrl: ${Config.baseUrl}');
+      print('Config.hasManualUrl(): ${Config.hasManualUrl()}');
+      print('==============================');
       baseUrlController.text = Config.baseUrl;
       String initialBaseUrl = Config.baseUrl;
       Get.dialog(

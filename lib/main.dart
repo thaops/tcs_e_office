@@ -16,6 +16,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:tcs_e_office/common/Services/device_udid.dart';
 import 'package:tcs_e_office/common/Services/network_controller.dart';
 import 'package:tcs_e_office/common/share/auth/sign_out_clear.dart';
+import 'package:tcs_e_office/common/Services/config.dart';
 import 'package:tcs_e_office/common/utils/check_awaiting_approval.dart';
 import 'package:tcs_e_office/common/widgets/splash_screen_widget.dart';
 import 'package:tcs_e_office/controllers/splash_controller.dart';
@@ -103,26 +104,29 @@ Future<void> _initializeCriticalServices() async {
 /// Gọi API checkAwaitingApproval và set flag awaiting trong storage
 /// Nếu true -> chuyển sang dev domain, nếu false -> dùng prod domain
 Future<void> _checkAndSetAwaitingApproval() async {
+  final storage = GetStorage();
+
+  // Nếu KHÔNG phải manual environment → reset base_url để awaiting logic được áp dụng
+  if (!Config.hasManualUrl()) {
+    Config.resetToAwaitingLogic();
+  }
+
   try {
-    // Đảm bảo UUID đã được generate trước
     final deviceUdid = await DeviceUdid.createDeviceUdid();
     String udid = await deviceUdid.getUdid();
 
-    // Nếu chưa có UDID, tạo mới
     if (udid.isEmpty) {
       final uuid = Uuid();
       udid = uuid.v4();
       await deviceUdid.saveUdid(udid);
     }
 
-    // Lấy thông tin app
     final packageInfo = await PackageInfo.fromPlatform();
     final platform = Platform.isIOS ? "iOS" : "Android";
     final appId = packageInfo.packageName;
     final appBuild = packageInfo.buildNumber;
     final appVersion = packageInfo.version;
 
-    // Gọi API checkAwaitingApproval
     final checkAwaitingApproval = CheckAwaitingApproval();
     final isAwaiting = await checkAwaitingApproval.checkAwaitingApproval(
       platform: platform,
@@ -132,16 +136,13 @@ Future<void> _checkAndSetAwaitingApproval() async {
       udid: udid,
     );
 
-    // Set flag awaiting trong storage
-    final storage = GetStorage();
-    storage.write('awaiting', isAwaiting);
+    await storage.write('awaiting', isAwaiting);
 
     print('Awaiting approval check result: $isAwaiting');
+    print('Current baseUrl: ${Config.baseUrl}');
   } catch (e) {
-    // Nếu có lỗi, mặc định dùng prod domain (awaiting = false)
     print('Error checking awaiting approval: $e');
-    final storage = GetStorage();
-    storage.write('awaiting', false);
+    await storage.write('awaiting', false);
   }
 }
 

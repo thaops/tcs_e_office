@@ -2,12 +2,20 @@ import 'package:get_storage/get_storage.dart';
 
 class Services {
   final GetStorage _storage = GetStorage();
-  
-  // Khóa để lưu trữ token trong GetStorage
+
   static const String _accessTokenKey = 'accessToken';
   static const String _refreshTokenKey = 'refreshToken';
+  static const String _udidKey = 'udid';
 
   Services();
+
+  Future<String?> getUdid() async {
+    return _storage.read(_udidKey);
+  }
+
+  Future<void> saveUdid(String udid) async {
+    await _storage.write(_udidKey, udid);
+  }
 
   // Khởi tạo GetStorage và trả về instance của Services
   static Future<Services> create() async {
@@ -25,8 +33,6 @@ class Services {
     String? token = _storage.read(_accessTokenKey);
     return token ?? ''; // Trả về chuỗi rỗng nếu không có token
   }
-
-  
 
   // Xóa access token
   Future<void> deleteAccessToken() async {

@@ -1,10 +1,8 @@
-// lib/common/config/api_endpoints.dart
 import 'package:tcs_e_office/common/Services/config.dart';
 
 class ApiEndpoints {
-  //notification
-  static String notification = "${Config.baseUrl}/user/onesignal-register";
-  static String unregisterNotification =
+  static String get notification => "${Config.baseUrl}/user/onesignal-register";
+  static String get unregisterNotification =>
       "${Config.baseUrl}/user/onesignal-unregister";
   static String getNotificationList({int pageIndex = 1, int pageSize = 20}) =>
       "${Config.baseUrl}/notification/getlistnotify?pageIndex=$pageIndex&pageSize=$pageSize";
@@ -12,84 +10,78 @@ class ApiEndpoints {
       "${Config.baseUrl}/notification/getnotifydetail/$notificationId";
   static String markNotificationAsRead(String notificationId) =>
       "${Config.baseUrl}/notification/markasread/$notificationId";
-  static String readNotifications =
+  static String get readNotifications =>
       "${Config.baseUrl}/notification/readnotifications";
-  static String readAllNotifications =
+  static String get readAllNotifications =>
       "${Config.baseUrl}/notification/readallnotifications";
 
-  static String login = "${Config.baseUrl}/users/oauth2-google";
+  static String get login => "${Config.baseUrl}/users/oauth2-google";
   static String loginUrlMicrosoft(int platform, int type) =>
       "${Config.baseUrl}/login/get-redirect-url?platform=$platform&type=$type";
-  static String loginMicrosoft = "${Config.baseUrl}/login/login-with-ms-token";
+  static String get loginMicrosoft =>
+      "${Config.baseUrl}/login/login-with-ms-token";
 
-  static String loginFrame = "${Config.baseUrl}/users/login";
+  static String get loginFrame => "${Config.baseUrl}/users/login";
 
-  //task
-  static String getTasks = "${Config.baseUrl}/documenttask/get-tasks";
+  static String get getTasks => "${Config.baseUrl}/documenttask/get-tasks";
   static String getTaskById(String taskId) =>
-      "${Config.baseUrl}/documenttask/get-task-by-id/$taskId"; // detail endpoint
-  static String createTask =
-      "${Config.baseUrl}/documenttask/create-task"; // POST
+      "${Config.baseUrl}/documenttask/get-task-by-id/$taskId";
+  static String get createTask => "${Config.baseUrl}/documenttask/create-task";
   static String updateTask(String taskId) =>
-      "${Config.baseUrl}/documenttask/update-task/$taskId"; // POST
+      "${Config.baseUrl}/documenttask/update-task/$taskId";
   static String completeTask(String taskId) =>
-      "${Config.baseUrl}/documenttask/complete-task/$taskId"; // POST
-  static String forwardTask =
-      "${Config.baseUrl}/documenttask/forward-task"; // POST
-  static String reprocessTask =
-      "${Config.baseUrl}/documenttask/reprocess-task"; // POST
-  static String getPriorityOptions =
-      "${Config.baseUrl}/documenttask/get-priority-options"; // GET
-  static String getStatusOptions =
-      "${Config.baseUrl}/documenttask/get-status-options"; // GET
-  static String getRoleOptions =
-      "${Config.baseUrl}/documenttask/get-role-options"; // GET
-  static String getTaskCount =
-      "${Config.baseUrl}/documenttask/get-count-response"; // GET
+      "${Config.baseUrl}/documenttask/complete-task/$taskId";
+  static String get forwardTask =>
+      "${Config.baseUrl}/documenttask/forward-task";
+  static String get reprocessTask =>
+      "${Config.baseUrl}/documenttask/reprocess-task";
+  static String get getPriorityOptions =>
+      "${Config.baseUrl}/documenttask/get-priority-options";
+  static String get getStatusOptions =>
+      "${Config.baseUrl}/documenttask/get-status-options";
+  static String get getRoleOptions =>
+      "${Config.baseUrl}/documenttask/get-role-options";
+  static String get getTaskCount =>
+      "${Config.baseUrl}/documenttask/get-count-response";
 
-  // document endpoints
-  static String getDocuments = "${Config.baseUrl}/document/get-documents";
+  static String get getDocuments => "${Config.baseUrl}/document/get-documents";
   static String getDocumentById(String documentId) =>
       "${Config.baseUrl}/document/get-document-by-id/$documentId";
   static String getDocumentById4Mobile(String documentId) =>
       "${Config.baseUrl}/document/get-document-by-id-4-mobile/$documentId";
-  static String getDocumentStatusOptions =
+  static String get getDocumentStatusOptions =>
       "${Config.baseUrl}/document/get-status-options";
-  static String getDocumentTypeOptions =
+  static String get getDocumentTypeOptions =>
       "${Config.baseUrl}/document/get-document-type-options";
-  static String getDocumentCountByStatus =
-      "${Config.baseUrl}/document/get-count-by-status"; // GET
+  static String get getDocumentCountByStatus =>
+      "${Config.baseUrl}/document/get-count-by-status";
 
-  // comment endpoints
-  static String addComment = "${Config.baseUrl}/document/comment-document";
+  static String get addComment => "${Config.baseUrl}/document/comment-document";
   static String getComments(String documentId) =>
       "${Config.baseUrl}/document/comments/$documentId";
 
-  // document preview endpoint
   static String previewDocument(String documentId) =>
       "${Config.baseUrl}/document/preview-document/$documentId";
-  
-  // document export endpoint (returns binary PDF)
+
   static String exportDocument(String documentId) =>
       "${Config.baseUrl}/document/export-document/$documentId";
 
-  // document action endpoints
-  static String finishDocuments = "${Config.baseUrl}/document/finish-documents";
-  static String getIssueUnitOptions =
+  static String get finishDocuments =>
+      "${Config.baseUrl}/document/finish-documents";
+  static String get getIssueUnitOptions =>
       "${Config.baseUrl}/document/get-issue-unit-options";
-  static String getEmployeesByDepartment =
+  static String get getEmployeesByDepartment =>
       "${Config.baseUrl}/employee/get-list-employee-of-department";
-  static String forwardDocument = "${Config.baseUrl}/document/forward-document";
-  static String approveDocuments =
+  static String get forwardDocument =>
+      "${Config.baseUrl}/document/forward-document";
+  static String get approveDocuments =>
       "${Config.baseUrl}/document/approve-documents";
 
-  // profile
-  static String profile = "${Config.baseUrl}/user/get-info-mine";
+  static String get profile => "${Config.baseUrl}/user/get-info-mine";
 
-  static String role = "${Config.baseUrl}/tasks/get-role-for-task";
+  static String get role => "${Config.baseUrl}/tasks/get-role-for-task";
 
-  // user
-  static String users =
+  static String get users =>
       "${Config.baseUrl}/users?userStatus=1&page=1&pageSize=9999";
 
   static String usersWith({
@@ -110,31 +102,27 @@ class ApiEndpoints {
     return "${Config.baseUrl}/users?$query";
   }
 
-  static String employees =
+  static String get employees =>
       "${Config.baseUrl}/employee/get-list-employee?pageIndex=1&pageSize=9999";
 
-  // departments + employees tree for selector
-  static String employeesByDepartment =
+  static String get employeesByDepartment =>
       "${Config.baseUrl}/document/get-employee-by-department";
 
-  // search employees by department with keyword
   static String searchEmployeesByDepartment(String keyword) =>
       "${Config.baseUrl}/document/get-employee-by-department?keyword=${Uri.encodeComponent(keyword)}";
 
-  // departments
-  static String departments =
+  static String get departments =>
       "${Config.baseUrl}/employee/get-list-employee-of-department";
 
-  // listoff - ensure ISO8601 and URL-encoded
   static String listoff(DateTime firstDayOfMonth, DateTime lastDayOfMonth) {
     final from = Uri.encodeComponent(firstDayOfMonth.toIso8601String());
     final to = Uri.encodeComponent(lastDayOfMonth.toIso8601String());
     return "${Config.baseUrl}/dayoff/get-list-day-off?pageIndex=1&pageSize=9999&fromDate=$from&toDate=$to&keyword=";
   }
 
-  static String listoffV2 =
+  static String get listoffV2 =>
       "${Config.baseUrl}/dayoff/get-list-day-off-schedule";
-  static String listoffListView =
+  static String get listoffListView =>
       "${Config.baseUrl}/dayoff/get-list-day-off-list-view";
 
   static String getLeaveIDV2(String leaveId) =>
@@ -145,9 +133,10 @@ class ApiEndpoints {
       "${Config.baseUrl}/dayoffv2/delete-day-off-v2/$leaveId";
   static String cancelLeaveIDV2(String leaveId) =>
       "${Config.baseUrl}/dayoffv2/cancel-day-off-v2";
-  static String createLeaveIDV2() =>
+  static String get createLeaveIDV2 =>
       "${Config.baseUrl}/dayoffv2/add-day-off-v2";
-  static String getLeaveV2 = "${Config.baseUrl}/dayoffv2/get-list-category-v2";
+  static String get getLeaveV2 =>
+      "${Config.baseUrl}/dayoffv2/get-list-category-v2";
   static String approveLeaveV2(String approveId) =>
       "${Config.baseUrl}/dayoffv2/approve-day-off-v2/$approveId";
   static String getListApproverV2(int? step, String? keyword) =>
@@ -155,10 +144,9 @@ class ApiEndpoints {
   static String getListApprovalByUserV2(String leaveOffId) =>
       "${Config.baseUrl}/dayoffv2/get-list-approval-by-v2/$leaveOffId";
 
-  // Leave comments endpoints
   static String getLeaveCommentsV2(String dayOffId) =>
       "${Config.baseUrl}/dayoffv2/get-list-day-off-comments-v2/$dayOffId";
-  static String addLeaveCommentV2 =
+  static String get addLeaveCommentV2 =>
       "${Config.baseUrl}/dayoffv2/add-day-off-comment-v2";
 
   static String fetchListOff(
@@ -173,65 +161,31 @@ class ApiEndpoints {
   static String supportcenterDetail(String supportId) =>
       "${Config.baseUrl}/supportcenter/get-detail-request?id=$supportId";
 
-  static String messageSupport =
+  static String get messageSupport =>
       "${Config.baseUrl}/supportcenter/create-message";
 
-  //lave
-  static String leavePagination =
+  static String get leavePagination =>
       "${Config.baseUrl}/dayoff/list-category?pageIndex=1&pageSize=9999";
-  //careateleave
-  static String careateleave = "${Config.baseUrl}/dayoff/add-day-off";
-  //updateleave
+  static String get careateleave => "${Config.baseUrl}/dayoff/add-day-off";
   static String updateleave(String leaveId) =>
       "${Config.baseUrl}/dayoff/update-day-off/$leaveId";
 
-  //SupportCenter
-
-  //  static String supportcenter(
-  //     {int? status,
-  //     DateTime? fromDate,
-  //     DateTime? toDate,
-  //     int? pageIndex,
-  //     int? pageSize,
-  //     String? keyword}) {
-  //   fromDate ??= DateTime(2025, 1, 1, 0, 0, 0);
-  //   toDate ??= DateTime(2025, 1, 31, 23, 59, 59);
-
-  //   String formattedFromDate = fromDate.toIso8601String();
-  //   String formattedToDate = toDate.toIso8601String();
-
-  //   return "${Config.baseUrl}/get-list-request"
-  //       "?status=$status"
-  //       "&keyword=${keyword ?? ''}"
-  //       "&fromDate=$formattedFromDate"
-  //       "&toDate=$formattedToDate"
-  //       "&pageIndex=$pageIndex"
-  //       "&pageSize=$pageSize";
-  // }
-
-  // static String supportcenterDetail(String supportId) =>
-  //     "${Config.baseUrl}/get-detail-request?id=$supportId";
-
-  // static String messageSupport = "${Config.baseUrl}/create-message";
-  static String projectSupport =
+  static String get projectSupport =>
       "${Config.baseUrl}/supportcenter/get-list-project?page=1&pageSize=9999";
 
-  static String typeSupport =
+  static String get typeSupport =>
       "${Config.baseUrl}/supportcenter/get-type-support";
 
-  // Annual leave endpoints
   static String getMyAnnualLeave(int year) =>
       "${Config.baseUrl}/dayoff/get-my-register-annual-day-off/$year";
-  static String saveAnnualLeave =
+  static String get saveAnnualLeave =>
       "${Config.baseUrl}/dayoff/save-register-annual-day-off";
-  static String updateAnnualLeave =
+  static String get updateAnnualLeave =>
       "${Config.baseUrl}/dayoff/update-year-register-annual-day-off";
   static String getMySummaryDayOff(int year) =>
       "${Config.baseUrl}/dayoff/get-my-summary-day-off/$year";
 
-  // static String handlerSupport = "${Config.baseUrl}/supportcenter/get-list-handler?pageIndex=1&pageSize=99999";
-
-  static String listEmailContact =
+  static String get listEmailContact =>
       "${Config.baseUrl}/supportcenter/get-list-email-contact?projectId=&keyword=&isAll=true";
 
   static String updateTypeSupport(String supportTypeId) =>
@@ -246,11 +200,10 @@ class ApiEndpoints {
   static String updateStatusSupport(String supportId) =>
       "${Config.baseUrl}/supportcenter/update-status-request/$supportId";
 
-  static String createSupport =
+  static String get createSupport =>
       "${Config.baseUrl}/supportcenter/create-request";
 
-  // apple Test
-  static String usersProfileApple = "${Config.baseUrl}/users/profile";
+  static String get usersProfileApple => "${Config.baseUrl}/users/profile";
 
   static String listoffApple(
     DateTime firstDayOfMonth,
@@ -260,4 +213,10 @@ class ApiEndpoints {
     final to = Uri.encodeComponent(lastDayOfMonth.toIso8601String());
     return "${Config.baseUrl}/dayoff/list-day-off?pageIndex=1&pageSize=9999&fromDate=$from&toDate=$to&keyword=";
   }
+
+  static String get getListNews => "${Config.baseUrl}/news/getnews";
+  static String get getNewsDetail => "${Config.baseUrl}/news/getdetail";
+  static String get getNewsComments => "${Config.baseUrl}/news/commentgetlist";
+  static String get addNewsComment => "${Config.baseUrl}/news/addcomment";
+  static String get doReaction => "${Config.baseUrl}/news/doreaction";
 }

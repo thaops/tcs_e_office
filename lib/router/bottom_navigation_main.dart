@@ -6,6 +6,7 @@ import 'package:tcs_e_office/feature/private_app_shell/profile/view/profile_scre
 import 'package:tcs_e_office/feature/private_app_shell/work_management/view/work_management_tab.dart';
 import 'package:tcs_e_office/feature/private_app_shell/home/view/home_tab.dart';
 import 'package:tcs_e_office/feature/private_app_shell/document_management/view/document_management_tab.dart';
+import 'package:tcs_e_office/feature/private_app_shell/news/view/news_tab.dart';
 import 'package:tcs_e_office/common/services/navigation_service.dart';
 
 class MainScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeTab(),
     WorkManagementTab(),
     const DocumentManagementTab(),
+    const NewsTab(),
     ProfileScreen(),
   ];
 
@@ -99,6 +101,17 @@ class _MainScreenState extends State<MainScreen> {
                   color: Colors.white,
                 ),
                 label: 'Văn bản',
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.newspaper_outlined,
+                  color: Colors.grey.shade600,
+                ),
+                selectedIcon: Icon(
+                  Icons.newspaper_rounded,
+                  color: Colors.white,
+                ),
+                label: 'Tin tức',
               ),
               NavigationDestination(
                 icon: Icon(Icons.person_outline, color: Colors.grey.shade600),

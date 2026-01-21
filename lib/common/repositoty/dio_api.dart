@@ -10,140 +10,170 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:tcs_e_office/common/share/auth/sign_out_clear.dart';
 import 'package:uuid/uuid.dart';
 
+class ApiException implements Exception {
+  final int? statusCode;
+  final String message;
+  ApiException({this.statusCode, required this.message});
+
+  @override
+  String toString() {
+    return 'ApiException: $message (Status Code: $statusCode)';
+  }
+}
+
 class DioApi {
-  NetworkController networkController = Get.put(NetworkController());
+  late final NetworkController networkController;
+  final dioLib.Dio dio = dioLib.Dio()
+    ..options.validateStatus = (status) => status! < 500;
+  static final Map<String, dynamic> _cache = {};
   static final RxBool _hasShownDialog = false.obs;
 
-  final dioLib.Dio dio =
-      dioLib.Dio()..options.validateStatus = (status) => status! < 500;
+  DioApi() {
+    networkController = Get.find<NetworkController>();
+    _initDio();
+  }
 
-  Map<String, dynamic> header = {
-    "X_API_ID": "VN_CREW_2017",
-    'Content-Type': 'application/json',
-    'Accept': 'application/json, text/plain, */*',
-    'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
-    'Connection': 'keep-alive',
-  };
+  void _initDio() {
+    dio.interceptors.add(
+      dioLib.LogInterceptor(
+        request: true,
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: false,
+        responseBody: true,
+        error: true,
+        logPrint: (obj) => debugPrint(obj.toString()),
+      ),
+    );
+    dio.interceptors.add(
+      dioLib.InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          await _checkNetwork();
+          final header = await _buildHeader();
+          options.headers.addAll(header);
+          handler.next(options);
+        },
+        onResponse: (response, handler) {
+          if (response.statusCode == HttpStatusCodes.STATUS_CODE_UNAUTHORIZED) {
+            SignOutClear().signOut();
+          }
+          handler.next(response);
+        },
+        onError: (error, handler) {
+          throw ApiException(
+            statusCode: error.response?.statusCode,
+            message: error.response?.data['message'] ?? 'Something went wrong',
+          );
+        },
+      ),
+    );
+  }
 
-  // Bộ nhớ cache
-  static final Map<String, dynamic> _cache = {};
-  static DateTime? _tokenCacheTime;
+  Future<Map<String, dynamic>> getHeader() async {
+    return _buildHeader();
+  }
 
-  Future<void> _buildHeader() async {
-    try {
-      final services = await Services.create();
-      final packageInfo = await _getPackageInfo();
-      final deviceInfo = await _getDeviceInfo();
-      final udid = await _getUdid();
-
-      final accessToken = await _getAccessToken(services);
-      header['Authorization'] = 'Bearer $accessToken';
-
-      header['X_REQUEST_PLATFORM'] = deviceInfo['platform'];
-      header['X_REQUEST_DEVICE_NAME'] = deviceInfo['deviceName'];
-      header['X_REQUEST_OS_VERSION'] = deviceInfo['osVersion'];
-      header['X_REQUEST_UDID'] = udid;
-      header['X_APP_ID'] = "NPP";
-      header['X_APP_BUILD'] = packageInfo['buildNumber'];
-      header['X_APP_VERSION'] = packageInfo['version'];
-
-      print('Header: $header');
-    } catch (e) {
-      print('Lỗi khi xây dựng header: $e');
+  void logLong(String tag, String text) {
+    const int chunkSize = 800;
+    for (var i = 0; i < text.length; i += chunkSize) {
+      final end = (i + chunkSize < text.length) ? i + chunkSize : text.length;
+      debugPrint('$tag: ${text.substring(i, end)}');
     }
   }
 
-  // Lấy thông tin gói ứng dụng từ cache hoặc mới
+  Future<Map<String, dynamic>> _buildHeader() async {
+    final services = await Services.create();
+    final packageInfo = await _getPackageInfo();
+    final deviceInfo = await _getDeviceInfo();
+    final udid = await _getUdid();
+    final accessToken = await services.getAccessToken();
+
+    return {
+      "X_API_ID": "VN_CREW_2017",
+      "Authorization": "Bearer $accessToken",
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "Accept-Language": "vi-VN",
+      "Connection": "keep-alive",
+      "X_REQUEST_PLATFORM": deviceInfo['platform'],
+      "X_REQUEST_DEVICE_NAME": deviceInfo['deviceName'],
+      "X_REQUEST_OS_VERSION": deviceInfo['osVersion'],
+      "X_REQUEST_UDID": udid,
+      "X_APP_ID": "NPP",
+      "X_APP_BUILD": packageInfo['buildNumber'],
+      "X_APP_VERSION": packageInfo['version'],
+    };
+  }
+
   Future<Map<String, dynamic>> _getPackageInfo() async {
     if (_cache.containsKey('packageInfo')) {
       return _cache['packageInfo'];
     }
-    final packageInfo = await PackageInfo.fromPlatform();
-    final info = {
-      'buildNumber': packageInfo.buildNumber,
-      'version': packageInfo.version,
-    };
-    _cache['packageInfo'] = info;
-    return info;
+    final info = await PackageInfo.fromPlatform();
+    final data = {'buildNumber': info.buildNumber, 'version': info.version};
+    _cache['packageInfo'] = data;
+    return data;
   }
 
-  // Lấy thông tin thiết bị từ cache hoặc mới
   Future<Map<String, dynamic>> _getDeviceInfo() async {
     if (_cache.containsKey('deviceInfo')) {
       return _cache['deviceInfo'];
     }
-    final deviceInfoPlugin = DeviceInfoPlugin();
-    final deviceInfo = await deviceInfoPlugin.deviceInfo;
-    Map<String, dynamic> info;
+
+    final plugin = DeviceInfoPlugin();
+    final device = await plugin.deviceInfo;
+
+    late final Map<String, dynamic> data;
+
     if (Platform.isAndroid) {
-      final androidInfo = deviceInfo as AndroidDeviceInfo;
-      info = {
+      final android = device as AndroidDeviceInfo;
+      data = {
         'platform': 'Android',
-        'deviceName': androidInfo.model,
-        'osVersion': androidInfo.version.release,
+        'deviceName': android.model,
+        'osVersion': android.version.release,
       };
     } else if (Platform.isIOS) {
-      final iosInfo = deviceInfo as IosDeviceInfo;
-      info = {
+      final ios = device as IosDeviceInfo;
+      data = {
         'platform': 'iOS',
-        'deviceName': iosInfo.name,
-        'osVersion': iosInfo.systemVersion,
+        'deviceName': ios.name,
+        'osVersion': ios.systemVersion,
       };
     } else {
-      info = {
-        'platform': '',
-        'deviceName': '',
-        'osVersion': '',
-      };
+      data = {'platform': 'Unknown', 'deviceName': '', 'osVersion': ''};
     }
-    _cache['deviceInfo'] = info;
-    return info;
+
+    _cache['deviceInfo'] = data;
+    return data;
   }
 
-  // Lấy UDID từ cache hoặc sinh mới
   Future<String> _getUdid() async {
-    if (_cache.containsKey('udid')) {
-      return _cache['udid'];
-    }
-    final Uuid _uuid = Uuid();
-    String udid = _uuid.v4();
-    _cache['udid'] = udid;
-    return udid;
-  }
+    final services = await Services.create();
+    final saved = await services.getUdid();
+    if (saved != null) return saved;
 
-  // Lấy Access Token từ cache hoặc mới
-  Future<String> _getAccessToken(Services services) async {
-    // const tokenCacheDuration = Duration(hours: 1);
-    // if (_cache.containsKey('accessToken') &&
-    //     _tokenCacheTime != null &&
-    //     DateTime.now().difference(_tokenCacheTime!) < tokenCacheDuration) {
-    //   return _cache['accessToken'];
-    // }
-    final accessToken = await services.getAccessToken();
-    // _cache['accessToken'] = accessToken;
-    // _tokenCacheTime = DateTime.now();
-    return accessToken;
+    final udid = const Uuid().v4();
+    await services.saveUdid(udid);
+    return udid;
   }
 
   Future<void> _checkNetwork() async {
     await networkController.checkInternet();
     if (!networkController.isOnline.value) {
       await _showNoNetworkDialog();
-      throw Exception('No internet connection');
+      throw ApiException(message: 'No internet connection');
     }
   }
 
   Future<void> _showNoNetworkDialog() async {
-    // Prevent showing multiple stacked dialogs
-    if (_hasShownDialog.value || (Get.isDialogOpen == true)) {
-      return;
-    }
+    if (_hasShownDialog.value || Get.isDialogOpen == true) return;
     _hasShownDialog.value = true;
+
     await Get.dialog(
       CupertinoAlertDialog(
         title: const Text('No Internet Connection'),
         content: const Text(
-          'We couldn’t connect to the server. Please check your internet connection and try again.',
+          'Please check your internet connection and try again.',
         ),
         actions: [
           CupertinoDialogAction(
@@ -157,116 +187,35 @@ class DioApi {
       ),
       barrierDismissible: false,
     );
-    // Ensure flag reset even if the dialog is dismissed programmatically
+
     _hasShownDialog.value = false;
   }
 
-  Future<dioLib.Response> get(
-    String url, {
-    Map<String, dynamic>? params,
-    Map<String, dynamic>? data,
-    dioLib.CancelToken? cancelToken,
-  }) async {
-    await _checkNetwork();
-    await _buildHeader();
-    try {
-      final response = await dio.get(
-        url,
-        queryParameters: params,
-        data: data,
-        options: dioLib.Options(headers: header),
-        cancelToken: cancelToken,
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      throw Exception('Failed to load data: $e');
-    }
-  }
-
-  Future<dioLib.Response> getBytes(
-    String url, {
-    Map<String, dynamic>? params,
-    dioLib.CancelToken? cancelToken,
-  }) async {
-    await _checkNetwork();
-    await _buildHeader();
-    try {
-      final response = await dio.get(
-        url,
-        queryParameters: params,
-        options: dioLib.Options(
-          headers: header,
-          responseType: dioLib.ResponseType.bytes,
-        ),
-        cancelToken: cancelToken,
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      throw Exception('Failed to load binary data: $e');
-    }
+  Future<dioLib.Response> get(String url, {Map<String, dynamic>? params}) {
+    return dio.get(url, queryParameters: params);
   }
 
   Future<dioLib.Response> post(
     String url, {
     dynamic data,
     dioLib.Options? options,
-  }) async {
-    await _checkNetwork();
-    await _buildHeader();
-    try {
-      final response = await dio.post(
-        url,
-        data: data,
-        options: options ?? dioLib.Options(headers: header),
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      throw Exception('Failed to post data: $e');
-    }
+  }) {
+    return dio.post(url, data: data, options: options);
   }
 
-  Future<dioLib.Response> put(
-    String url, {
-    dynamic data,
-    dioLib.Options? options,
-  }) async {
-    await _checkNetwork();
-    await _buildHeader();
-    try {
-      final response = await dio.put(
-        url,
-        data: data,
-        options: options ?? dioLib.Options(headers: header),
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      throw Exception('Failed to update data: $e');
-    }
+  Future<dioLib.Response> put(String url, {dynamic data}) {
+    return dio.put(url, data: data);
   }
 
-  Future<dioLib.Response> delete(
-    String url, {
-    Map<String, dynamic>? params,
-  }) async {
-    await _checkNetwork();
-    await _buildHeader();
-    try {
-      final response = await dio.delete(
-        url,
-        queryParameters: params,
-        options: dioLib.Options(headers: header),
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      throw Exception('Failed to delete data: $e');
-    }
+  Future<dioLib.Response> delete(String url, {Map<String, dynamic>? params}) {
+    return dio.delete(url, queryParameters: params);
   }
 
-  dioLib.Response _handleResponse(dioLib.Response response) {
-    if (response.statusCode == HttpStatusCodes.STATUS_CODE_UNAUTHORIZED) {
-      SignOutClear().signOut();
-      throw Exception('Unauthorized');
-    }
-    return response;
+  Future<dioLib.Response> getBytes(String url, {Map<String, dynamic>? params}) {
+    return dio.get(
+      url,
+      queryParameters: params,
+      options: dioLib.Options(responseType: dioLib.ResponseType.bytes),
+    );
   }
 }
