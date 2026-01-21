@@ -148,11 +148,11 @@ class NewsDetailScreen extends StatelessWidget {
               createdDate: detail.createdDate,
               creator: basic?.creator,
             ),
+            NewsDetailContent(content: detail.content),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Column(
                 children: [
-                  NewsDetailContent(content: detail.content),
                   SizedBox(height: 24.h),
                   NewsDetailStatBar(
                     totalViewed: detail.totalViewed,
